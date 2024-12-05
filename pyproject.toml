@@ -16,6 +16,10 @@ archs = ['AMD64']
 before-build = [
     "pip install pybind11[global]",
     "pip install -U cmake",
+    "ls -al",
+    "whoami",
+    "pwd",
+
     # dont drop these () at the both sides, otherwise the CI will fail after concat all commands with &&
     # "(if \"%PYTHON_ARCH%\"==\"32\" (cmake -S UDBM -B build -A Win32 -DCMAKE_BUILD_TYPE=Release) else (cmake -S UDBM -B build -A x64 -DCMAKE_BUILD_TYPE=Release))",
     # Win32 is no longer suported

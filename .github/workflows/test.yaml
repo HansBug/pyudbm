@@ -17,11 +17,11 @@ jobs:
           - 'windows-2019'
           - 'macos-13'
         python-version:
-          - '3.8'
-          - '3.9'
+#          - '3.8'
+#          - '3.9'
           - '3.10'
-          - '3.11'
-          - '3.12'
+#          - '3.11'
+#          - '3.12'
 
     steps:
       - name: Get system version for Linux
@@ -155,11 +155,11 @@ jobs:
           - 'windows-2019'
           - 'macos-13'
         python:
-          - '3.8'
+#          - '3.8'
 #          - '3.9'
           - '3.10'
 #          - '3.11'
-          - '3.12'
+#          - '3.12'
         architecture:
           - x86_64
           #          - arm64  # macOS only, seems not well-supported
