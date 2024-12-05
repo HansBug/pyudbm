@@ -120,7 +120,6 @@ jobs:
           python -V
           pip --version
           pip list
-          tree .
           cloc pyudbm
           cloc test
       - name: Build And Run Unittest
