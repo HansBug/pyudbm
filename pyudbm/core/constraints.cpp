@@ -91,14 +91,10 @@ PYBIND11_MODULE(_c_udbm_constraints, m) {
     m.def("_c_dbm_addFiniteWeak", &dbm_addFiniteWeak, py::arg("x"), py::arg("y"),
           "Specialized addition of finite constraints.");
 
-    m.def("_c_dbm_rawInc", [](int c, int i) {
-        return dbm_rawInc(static_cast<raw_t>(c), static_cast<raw_t>(i));
-    }, py::arg("c"), py::arg("i"),
+    m.def("_c_dbm_rawInc", &dbm_rawInc, py::arg("c"), py::arg("i"),
           "Increment a raw constraint.");
 
-    m.def("_c_dbm_rawDec", [](int c, int d) {
-        return dbm_rawDec(static_cast<raw_t>(c), static_cast<raw_t>(d));
-    }, py::arg("c"), py::arg("d"),
+    m.def("_c_dbm_rawDec", &dbm_rawDec, py::arg("c"), py::arg("d"),
           "Decrement a raw constraint.");
 
     m.def("_c_dbm_constraint", [](int i, int j, int bound, strictness_t strictness) {
