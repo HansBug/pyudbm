@@ -28,10 +28,10 @@ jobs:
           - aarch64
           - x86
           - AMD64
-          - i686
+#          - i686  # compile Error on UDBM
           - ppc64le
           - s390x
-          - armv7l  # musllinux only
+#          - armv7l  # musllinux only, compile Error on UDBM
         exclude:
           - os: ubuntu-20.04
             architecture: arm64
