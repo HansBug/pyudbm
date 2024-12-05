@@ -20,6 +20,7 @@ before-build = [
     "whoami",
     "pwd",
     "bash --version",
+    "echo {package}",
 
     # dont drop these () at the both sides, otherwise the CI will fail after concat all commands with &&
     # "(if \"%PYTHON_ARCH%\"==\"32\" (cmake -S UDBM -B build -A Win32 -DCMAKE_BUILD_TYPE=Release) else (cmake -S UDBM -B build -A x64 -DCMAKE_BUILD_TYPE=Release))",
