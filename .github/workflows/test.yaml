@@ -17,11 +17,11 @@ jobs:
           - 'windows-2019'
           - 'macos-13'
         python-version:
-#          - '3.8'
-#          - '3.9'
+          - '3.8'
+          - '3.9'
           - '3.10'
-#          - '3.11'
-#          - '3.12'
+          - '3.11'
+          - '3.12'
 
     steps:
       - name: Get system version for Linux
@@ -155,11 +155,11 @@ jobs:
           - 'windows-2019'
           - 'macos-13'
         python:
-#          - '3.8'
+          - '3.8'
 #          - '3.9'
           - '3.10'
 #          - '3.11'
-#          - '3.12'
+          - '3.12'
         architecture:
           - x86_64
           #          - arm64  # macOS only, seems not well-supported
@@ -226,12 +226,6 @@ jobs:
         run: |
           uname -m
           [ "$(uname -m)" = "${{ matrix.architecture }}" ] || { echo "The architecture is not ${{ matrix.architecture }}."; exit 1; }
-#      - name: Build wheels
-#        uses: pypa/cibuildwheel@v2.21.3
-#        env:
-#          CIBW_SKIP: "pp*"
-#          CIBW_ARCHS: ${{ matrix.architecture }}
-#          CIBW_PROJECT_REQUIRES_PYTHON: ~=${{ matrix.python }}.0
       - name: Set up python ${{ matrix.python }}
         uses: actions/setup-python@v2
         with:
