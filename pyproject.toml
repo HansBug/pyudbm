@@ -24,22 +24,21 @@ before-build = [
     "ctest --test-dir UUtils_build --output-on-failure -C Release",
     "cmake --install UUtils_build --prefix bin_install --config Release",
 
-    "cmake -S UDBM -B UDBM_build -DCMAKE_BUILD_TYPE=Release -DUUtils_DIR=\"bin_install\\lib\\cmake\\UUtils\"",
+#    "cmake -S UDBM -B UDBM_build -DCMAKE_BUILD_TYPE=Release -DUUtils_DIR=\"bin_install\\lib\\cmake\\UUtils\"",
+    "cmake -S UDBM -B UDBM_build -DCMAKE_BUILD_TYPE=Release -DUUtils_DIR=$(readlink -f bin_install/lib*/cmake/UUtils)",
     "cmake --build UDBM_build --config Release",
     "ctest --test-dir UDBM_build --output-on-failure -C Release",
     "cmake --install UDBM_build --prefix bin_install --config Release",
 ]
 before-test = [# Unittest for windows
-    "pip install -r \"{project}\\requirements-test.txt\"",
+    "pip install -r {project}/requirements-test.txt",
 ]
 test-command = [
-    "rm -rf \"{project}\\UUtils_build\"",
-    "rm -rf \"{project}\\UDBM_build\"",
-    "rm -rf \"{project}\\bin_install\"",
-    "xcopy /e /i \"{project}\\test\" test",
-    "copy \"{project}\\pytest.ini\" pytest.ini",
+    "rm -rf {project}/UUtils_build {project}/UDBM_build {project}/bin_install",
+    "cp -rf {project}/test test",
+    "cp {project}/pytest.ini pytest.ini",
     "pytest test -sv -m unittest --log-level=DEBUG",
-    "rmdir /s /q test",
+    "rm -rf test",
 ]
 
 ## macOS build configuration
