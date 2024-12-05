@@ -29,7 +29,7 @@ PYBIND11_MODULE(_c_udbm_constraints, m) {
         "    j (int): Index of the second clock variable\n"
         "    value (int): The bound value of the constraint\n\n"
         "The constraint represents a relation of the form x_i - x_j <= value")
-        .def(py::init<int, int, int>(), py::arg("i"), py::arg("j"), py::arg("value"),
+        .def(py::init<cindex_t, cindex_t, int>(), py::arg("i"), py::arg("j"), py::arg("value"),
              "Create a constraint with specified i, j indices and bound value")
         .def_readwrite("i", &constraint_t::i, "Index of the first clock variable")
         .def_readwrite("j", &constraint_t::j, "Index of the second clock variable")
@@ -91,16 +91,24 @@ PYBIND11_MODULE(_c_udbm_constraints, m) {
     m.def("_c_dbm_addFiniteWeak", &dbm_addFiniteWeak, py::arg("x"), py::arg("y"),
           "Specialized addition of finite constraints.");
 
-    m.def("_c_dbm_rawInc", &dbm_rawInc, py::arg("c"), py::arg("i"),
+    m.def("_c_dbm_rawInc", [](int c, int i) {
+        return dbm_rawInc(static_cast<raw_t>(c), static_cast<raw_t>(i));
+    }, py::arg("c"), py::arg("i"),
           "Increment a raw constraint.");
 
-    m.def("_c_dbm_rawDec", &dbm_rawDec, py::arg("c"), py::arg("d"),
+    m.def("_c_dbm_rawDec", [](int c, int d) {
+        return dbm_rawDec(static_cast<raw_t>(c), static_cast<raw_t>(d));
+    }, py::arg("c"), py::arg("d"),
           "Decrement a raw constraint.");
 
-    m.def("_c_dbm_constraint", &dbm_constraint, py::arg("i"), py::arg("j"), py::arg("bound"), py::arg("strictness"),
+    m.def("_c_dbm_constraint", [](int i, int j, int bound, strictness_t strictness) {
+        return dbm_constraint(static_cast<cindex_t>(i), static_cast<cindex_t>(j), bound, strictness);
+    }, py::arg("i"), py::arg("j"), py::arg("bound"), py::arg("strictness"),
           "Create a constraint.");
 
-    m.def("_c_dbm_constraint2", &dbm_constraint2, py::arg("i"), py::arg("j"), py::arg("bound"), py::arg("isStrict"),
+    m.def("_c_dbm_constraint2", [](int i, int j, int bound, bool isStrict) {
+        return dbm_constraint2(static_cast<cindex_t>(i), static_cast<cindex_t>(j), bound, isStrict);
+    }, py::arg("i"), py::arg("j"), py::arg("bound"), py::arg("isStrict"),
           "Create a constraint with strictness flag.");
 
     m.def("_c_dbm_negConstraint", &dbm_negConstraint, py::arg("c"),
