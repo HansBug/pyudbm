@@ -226,12 +226,21 @@ jobs:
         run: |
           uname -m
           [ "$(uname -m)" = "${{ matrix.architecture }}" ] || { echo "The architecture is not ${{ matrix.architecture }}."; exit 1; }
+#      - name: Build wheels
+#        uses: pypa/cibuildwheel@v2.21.3
+#        env:
+#          CIBW_SKIP: "pp*"
+#          CIBW_ARCHS: ${{ matrix.architecture }}
+#          CIBW_PROJECT_REQUIRES_PYTHON: ~=${{ matrix.python }}.0
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.21.3
         env:
           CIBW_SKIP: "pp*"
           CIBW_ARCHS: ${{ matrix.architecture }}
           CIBW_PROJECT_REQUIRES_PYTHON: ~=${{ matrix.python }}.0
+        shell: bash
+        run: |
+          pip install cibuildwheel==2.22.0
+          python -m cibuildwheel --output-dir wheelhouse
       - name: Show the buildings
         shell: bash
         run: |
