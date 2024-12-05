@@ -1,0 +1,161 @@
+name: Release Test
+
+on:
+#  push:
+  workflow_dispatch:
+
+jobs:
+  wheel_build:
+    name: Try build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - 'ubuntu-20.04'
+          - 'windows-2019'
+          - 'macos-13'  # macOS 13 is x86_64 arch
+          - 'macos-14'  # macOS 14 is arm64 arch
+        python:
+          - '3.8'
+          - '3.9'
+          - '3.10'
+          - '3.11'
+          - '3.12'
+        architecture:
+          - x86_64
+          - arm64  # macOS only, seems not well-supported
+          - aarch64
+          - x86
+          - AMD64
+          - i686
+          - ppc64le
+          - s390x
+          - armv7l  # musllinux only
+        exclude:
+          - os: ubuntu-20.04
+            architecture: arm64
+          - os: ubuntu-20.04
+            architecture: x86
+          - os: ubuntu-20.04
+            architecture: AMD64
+          - os: windows-2019
+            architecture: x86  # win32 unittest failed
+          - os: windows-2019
+            architecture: x86_64
+          - os: windows-2019
+            architecture: arm64
+          - os: windows-2019
+            architecture: aarch64
+          - os: windows-2019
+            architecture: i686
+          - os: windows-2019
+            architecture: ppc64le
+          - os: windows-2019
+            architecture: s390x
+          - os: windows-2019
+            architecture: armv7l
+          - os: macos-13
+            architecture: aarch64
+          - os: macos-13
+            architecture: x86
+          - os: macos-13
+            architecture: AMD64
+          - os: macos-13
+            architecture: i686
+          - os: macos-13
+            architecture: ppc64le
+          - os: macos-13
+            architecture: s390x
+          - os: macos-13
+            architecture: armv7l
+          - os: macos-13
+            architecture: arm64
+          - os: macos-14
+            architecture: aarch64
+          - os: macos-14
+            architecture: x86
+          - os: macos-14
+            architecture: AMD64
+          - os: macos-14
+            architecture: i686
+          - os: macos-14
+            architecture: ppc64le
+          - os: macos-14
+            architecture: s390x
+          - os: macos-14
+            architecture: armv7l
+          - os: macos-14
+            architecture: x86_64
+          - os: macos-14  # python3.8 doesn't have macOS arm64 supported version
+            python: '3.8'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 20
+          submodules: 'recursive'
+
+      - name: Set up QEMU
+        if: ${{ runner.os == 'Linux' }}
+        uses: docker/setup-qemu-action@v1
+        with:
+          platforms: all
+      - name: Check the Arch on macOS
+        if: ${{ runner.os == 'macOS' }}
+        shell: bash
+        run: |
+          uname -m
+          [ "$(uname -m)" = "${{ matrix.architecture }}" ] || { echo "The architecture is not ${{ matrix.architecture }}."; exit 1; }
+      - name: Set up python ${{ matrix.python }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Build wheels
+        env:
+          CIBW_SKIP: "pp*"
+          CIBW_ARCHS: ${{ matrix.architecture }}
+          CIBW_PROJECT_REQUIRES_PYTHON: ~=${{ matrix.python }}.0
+        shell: bash
+        run: |
+          pip install cibuildwheel==2.22.0
+          python -m cibuildwheel --output-dir wheelhouse
+      - name: Show the buildings
+        shell: bash
+        run: |
+          ls -al ./wheelhouse
+          mv wheelhouse dist
+      - name: Upload packed files to artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifacts-${{ runner.os }}-cp${{ matrix.python }}-${{ matrix.architecture }}
+          path: ./dist/*
+      - name: Upload packed files to artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifacts-all
+          path: ./dist/*
+
+  # the publishing can only be processed on linux system
+  fake_publish:
+    name: Fake Publish
+    runs-on: ubuntu-20.04
+    needs:
+      - wheel_build
+    strategy:
+      fail-fast: false
+      matrix:
+        python:
+          - '3.8'
+
+    steps:
+      - name: Download packed files to artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build-artifacts-all
+          path: ./dist
+      - name: Show the buildings
+        shell: bash
+        run: |
+          ls -al ./dist
