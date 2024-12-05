@@ -1,2 +1,6 @@
 # pyudbm
-Python wrapper of Uppaal's UDBM library
+
+Python Wrapper for Uppaal [UDBM](https://github.com/UPPAALModelChecker/UDBM).
+
+WIP ...
+

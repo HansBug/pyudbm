@@ -1,0 +1,272 @@
+name: Code Test
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  unittest:
+    name: Code test
+    runs-on: ${{ matrix.os }}
+    if: "!contains(github.event.head_commit.message, 'ci skip')"
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - 'ubuntu-20.04'
+          - 'windows-2019'
+          - 'macos-13'
+        python-version:
+          - '3.8'
+          - '3.9'
+          - '3.10'
+          - '3.11'
+          - '3.12'
+
+    steps:
+      - name: Get system version for Linux
+        if: ${{ contains(matrix.os, 'ubuntu') }}
+        shell: bash
+        run: |
+          echo "OS_NAME=Linux" >> $GITHUB_ENV
+          echo "IS_WIN=" >> $GITHUB_ENV
+          echo "IS_MAC=" >> $GITHUB_ENV
+      - name: Get system version for Windows
+        if: ${{ contains(matrix.os, 'windows') }}
+        shell: bash
+        run: |
+          echo "OS_NAME=Windows" >> $GITHUB_ENV
+          echo "IS_WIN=1" >> $GITHUB_ENV
+          echo "IS_MAC=" >> $GITHUB_ENV
+      - name: Get system version for MacOS
+        if: ${{ contains(matrix.os, 'macos') }}
+        shell: bash
+        run: |
+          echo "OS_NAME=MacOS" >> $GITHUB_ENV
+          echo "IS_WIN=" >> $GITHUB_ENV
+          echo "IS_MAC=1" >> $GITHUB_ENV
+      - name: Set environment for Cpython
+        if: ${{ !contains(matrix.python-version, 'pypy') }}
+        shell: bash
+        run: |
+          echo "IS_PYPY=" >> $GITHUB_ENV
+      - name: Set environment for PyPy
+        if: ${{ contains(matrix.python-version, 'pypy') }}
+        shell: bash
+        run: |
+          echo "IS_PYPY=1" >> $GITHUB_ENV
+      - name: Checkout code
+        uses: actions/checkout@v3.3.0
+        with:
+          fetch-depth: 20
+          submodules: 'recursive'
+      - name: Set up system dependencies on Linux
+        if: ${{ env.OS_NAME == 'Linux' }}
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tree cloc wget curl make zip
+          sudo apt-get install -y git ninja-build make gcc g++
+      - name: Set up system dependencies on Windows
+        if: ${{ env.OS_NAME == 'Windows' }}
+        shell: bash
+        run: |
+          choco install tree cloc wget curl make zip
+          choco install ninja make mingw
+      - name: Kill Primitive CMake on MacOS
+        if: ${{ env.OS_NAME == 'MacOS' }}
+        shell: bash
+        run: |
+          ./macos_kill_cmake.sh
+      - name: Set up system dependencies on MacOS
+        if: ${{ env.OS_NAME == 'MacOS' }}
+        run: |
+          brew install tree cloc wget curl make zip
+          brew install git ninja make gcc
+      - name: Set up python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Set up pybind11
+        shell: bash
+        run: |
+          pip install "pybind11[global]"
+          pip install -U cmake
+      - name: Test the basic environment
+        shell: bash
+        run: |
+          pip install -U hfutils
+          python -V
+          cmake --version
+          which gcc
+          gcc --version
+          which g++
+          g++ --version
+          tree .
+      - name: Build The Binaries
+        shell: bash
+        run: |
+          CC=gcc CXX=g++ CTEST_CFG=Release make bin
+          tree bin_install
+      - name: Prepare Python Env
+        shell: bash
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-test.txt
+          pip install -r requirements-build.txt
+      - name: Test the Python environment
+        shell: bash
+        run: |
+          python -V
+          pip --version
+          pip list
+          tree .
+          cloc pyudbm
+          cloc test
+      - name: Build And Run Unittest
+        env:
+          CI: 'true'
+          LINETRACE: 1
+        shell: bash
+        run: |
+          make build
+          ls -al $(find pyudbm -type f)
+          make clean_x
+          make unittest
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
+  test_wheel_build:
+    name: Try build
+    runs-on: ${{ matrix.os }}
+    if: "!contains(github.event.head_commit.message, 'ci skip')"
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - 'ubuntu-20.04'
+#          - 'windows-2019'
+#          - 'macos-13'
+        python:
+          - '3.8'
+#          - '3.9'
+          - '3.10'
+#          - '3.11'
+          - '3.12'
+        architecture:
+          - x86_64
+          #          - arm64  # macOS only, seems not well-supported
+#          - aarch64
+#          - x86
+          - AMD64
+#          - i686
+#          - ppc64le
+#          - s390x
+#          - armv7l  # musllinux only
+        exclude:
+          - os: ubuntu-20.04
+            architecture: arm64
+          - os: ubuntu-20.04
+            architecture: x86
+          - os: ubuntu-20.04
+            architecture: AMD64
+          - os: windows-2019
+            architecture: x86  # win32 unittest failed
+          - os: windows-2019
+            architecture: x86_64
+          - os: windows-2019
+            architecture: arm64
+          - os: windows-2019
+            architecture: aarch64
+          - os: windows-2019
+            architecture: i686
+          - os: windows-2019
+            architecture: ppc64le
+          - os: windows-2019
+            architecture: s390x
+          - os: windows-2019
+            architecture: armv7l
+          - os: macos-13
+            architecture: aarch64
+          - os: macos-13
+            architecture: x86
+          - os: macos-13
+            architecture: AMD64
+          - os: macos-13
+            architecture: i686
+          - os: macos-13
+            architecture: ppc64le
+          - os: macos-13
+            architecture: s390x
+          - os: macos-13
+            architecture: armv7l
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 20
+          submodules: 'recursive'
+
+      - name: Set up QEMU
+        if: ${{ runner.os == 'Linux' }}
+        uses: docker/setup-qemu-action@v1
+        with:
+          platforms: all
+      - name: Check the Arch on macOS
+        if: ${{ runner.os == 'macOS' }}
+        shell: bash
+        run: |
+          uname -m
+          [ "$(uname -m)" = "${{ matrix.architecture }}" ] || { echo "The architecture is not ${{ matrix.architecture }}."; exit 1; }
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.21.3
+        env:
+          CIBW_SKIP: "pp*"
+          CIBW_ARCHS: ${{ matrix.architecture }}
+          CIBW_PROJECT_REQUIRES_PYTHON: ~=${{ matrix.python }}.0
+      - name: Show the buildings
+        shell: bash
+        run: |
+          ls -al ./wheelhouse
+          mv wheelhouse dist
+      - name: Upload packed files to artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifacts-${{ runner.os }}-cp${{ matrix.python }}-${{ matrix.architecture }}
+          path: ./dist/*
+      - name: Upload packed files to artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifacts-all
+          path: ./dist/*
+
+  # the publishing can only be processed on linux system
+  fake_publish:
+    name: Fake Publish
+    runs-on: ubuntu-20.04
+    if: "!contains(github.event.head_commit.message, 'ci skip')"
+    needs:
+      - test_wheel_build
+    strategy:
+      fail-fast: false
+      matrix:
+        python:
+          - '3.8'
+
+    steps:
+      - name: Download packed files to artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build-artifacts-all
+          path: ./dist
+      - name: Show the buildings
+        shell: bash
+        run: |
+          ls -al ./dist

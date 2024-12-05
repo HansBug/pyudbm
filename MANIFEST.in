@@ -1,0 +1,6 @@
+include README.md
+include MANIFEST.in
+include CMakeLists.txt
+include requirements.txt
+include requirements-*.txt
+recursive-include pyudbm *.pyx *.pxd *.pyd *.cpp *.so *.a *.dll

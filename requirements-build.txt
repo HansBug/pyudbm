@@ -1,0 +1,4 @@
+pybind11[global]
+build>=0.7.0
+auditwheel>=4
+cmake
