@@ -97,14 +97,10 @@ PYBIND11_MODULE(_c_udbm_constraints, m) {
     m.def("_c_dbm_rawDec", &dbm_rawDec, py::arg("c"), py::arg("d"),
           "Decrement a raw constraint.");
 
-    m.def("_c_dbm_constraint", [](int i, int j, int bound, strictness_t strictness) {
-        return dbm_constraint(static_cast<cindex_t>(i), static_cast<cindex_t>(j), bound, strictness);
-    }, py::arg("i"), py::arg("j"), py::arg("bound"), py::arg("strictness"),
+    m.def("_c_dbm_constraint", &dbm_constraint, py::arg("i"), py::arg("j"), py::arg("bound"), py::arg("strictness"),
           "Create a constraint.");
 
-    m.def("_c_dbm_constraint2", [](int i, int j, int bound, bool isStrict) {
-        return dbm_constraint2(static_cast<cindex_t>(i), static_cast<cindex_t>(j), bound, isStrict);
-    }, py::arg("i"), py::arg("j"), py::arg("bound"), py::arg("isStrict"),
+    m.def("_c_dbm_constraint2", &dbm_constraint2, py::arg("i"), py::arg("j"), py::arg("bound"), py::arg("isStrict"),
           "Create a constraint with strictness flag.");
 
     m.def("_c_dbm_negConstraint", &dbm_negConstraint, py::arg("c"),

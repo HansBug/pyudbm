@@ -102,7 +102,7 @@ jobs:
           gcc --version
           which g++
           g++ --version
-          tree .
+          ls -al
       - name: Build The Binaries
         shell: bash
         run: |
@@ -130,6 +130,7 @@ jobs:
         shell: bash
         run: |
           make build
+          tree pyudbm
           ls -al $(find pyudbm -type f)
           make clean_x
           make unittest
@@ -151,8 +152,8 @@ jobs:
       matrix:
         os:
           - 'ubuntu-20.04'
-#          - 'windows-2019'
-#          - 'macos-13'
+          - 'windows-2019'
+          - 'macos-13'
         python:
           - '3.8'
 #          - '3.9'

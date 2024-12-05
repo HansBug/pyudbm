@@ -17,16 +17,24 @@ before-build = [
     "pip install pybind11[global]",
     "pip install -U cmake",
     # dont drop these () at the both sides, otherwise the CI will fail after concat all commands with &&
-    "(if \"%PYTHON_ARCH%\"==\"32\" (cmake -S UDBM -B build -A Win32 -DCMAKE_BUILD_TYPE=Release) else (cmake -S UDBM -B build -A x64 -DCMAKE_BUILD_TYPE=Release))",
-    "cmake --build build --config Release",
-    "ctest --test-dir build --output-on-failure -C Release",
-    "cmake --install build --prefix bin_install --config Release",
+    # "(if \"%PYTHON_ARCH%\"==\"32\" (cmake -S UDBM -B build -A Win32 -DCMAKE_BUILD_TYPE=Release) else (cmake -S UDBM -B build -A x64 -DCMAKE_BUILD_TYPE=Release))",
+    # Win32 is no longer suported
+    "cmake -S UUtils -B UUtils_build -DCMAKE_BUILD_TYPE=Release",
+    "cmake --build UUtils_build --config Release",
+    "ctest --test-dir UUtils_build --output-on-failure -C Release",
+    "cmake --install UUtils_build --prefix bin_install --config Release",
+
+    "cmake -S UDBM -B UDBM_build -DCMAKE_BUILD_TYPE=Release -DUUtils_DIR=\"bin_install\\lib\\cmake\\UUtils\"",
+    "cmake --build UDBM_build --config Release",
+    "ctest --test-dir UDBM_build --output-on-failure -C Release",
+    "cmake --install UDBM_build --prefix bin_install --config Release",
 ]
 before-test = [# Unittest for windows
     "pip install -r \"{project}\\requirements-test.txt\"",
 ]
 test-command = [
-    "rm -rf \"{project}\\build\"",
+    "rm -rf \"{project}\\UUtils_build\"",
+    "rm -rf \"{project}\\UDBM_build\"",
     "rm -rf \"{project}\\bin_install\"",
     "xcopy /e /i \"{project}\\test\" test",
     "copy \"{project}\\pytest.ini\" pytest.ini",
@@ -46,17 +54,23 @@ before-build = [
     "if [ \"$CIBW_ARCHS\" = \"arm64\" ]; then echo detected arm64; else echo detected x86_64; fi",
     "echo xxx",
     # something wrong with this line, xxhash compile arch is still x86_64 when CIBW_ARCHS is surly 'arm64'
-    "if [ \"$CIBW_ARCHS\" = \"arm64\" ]; then cmake -S UDBM -B build -DCMAKE_OSX_ARCHITECTURES=\"arm64\" -DCMAKE_SYSTEM_PROCESSOR=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TRY_COMPILE_OSX_ARCHITECTURES=arm64; else cmake -S UDBM -B build -DCMAKE_OSX_ARCHITECTURES=\"x86_64\" -DCMAKE_SYSTEM_PROCESSOR=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TRY_COMPILE_OSX_ARCHITECTURES=x86_64; fi",
-#    "cmake -S UDBM -B build -DCMAKE_BUILD_TYPE=Release",
-    "cmake --build build --config Release",
-    "ctest --test-dir build --output-on-failure -C Release",
-    "cmake --install build --prefix bin_install --config Release",
+    "if [ \"$CIBW_ARCHS\" = \"arm64\" ]; then cmake -S UUtils -B UUtils_build -DCMAKE_OSX_ARCHITECTURES=\"arm64\" -DCMAKE_SYSTEM_PROCESSOR=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TRY_COMPILE_OSX_ARCHITECTURES=arm64; else cmake -S UUtils -B UUtils_build -DCMAKE_OSX_ARCHITECTURES=\"x86_64\" -DCMAKE_SYSTEM_PROCESSOR=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TRY_COMPILE_OSX_ARCHITECTURES=x86_64; fi",
+#    "cmake -S UUtils -B UUtils_build -DCMAKE_BUILD_TYPE=Release",
+    "cmake --build UUtils_build --config Release",
+    "ctest --test-dir UUtils_build --output-on-failure -C Release",
+    "cmake --install UUtils_build --prefix bin_install --config Release",
+
+    "if [ \"$CIBW_ARCHS\" = \"arm64\" ]; then cmake -S UDBM -B UDBM_build -DUUtils_DIR=$(readlink -f bin_install/lib*/cmake/UUtils) -DCMAKE_OSX_ARCHITECTURES=\"arm64\" -DCMAKE_SYSTEM_PROCESSOR=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TRY_COMPILE_OSX_ARCHITECTURES=arm64; else cmake -S UDBM -B UDBM_build -DUUtils_DIR=$(readlink -f bin_install/lib*/cmake/UUtils) -DCMAKE_OSX_ARCHITECTURES=\"x86_64\" -DCMAKE_SYSTEM_PROCESSOR=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TRY_COMPILE_OSX_ARCHITECTURES=x86_64; fi",
+#    "cmake -S UDBM -B UDBM_build -DCMAKE_BUILD_TYPE=Release -DUUtils_DIR=$(readlink -f bin_install/lib*/cmake/UUtils)",
+    "cmake --build UDBM_build --config Release",
+    "ctest --test-dir UDBM_build --output-on-failure -C Release",
+    "cmake --install UDBM_build --prefix bin_install --config Release",
 ]
 before-test = [# Unittest for macos
     "pip install -r {project}/requirements-test.txt",
 ]
 test-command = [
-    "rm -rf {project}/build {project}/bin_install",
+    "rm -rf {project}/UUtils_build {project}/UDBM_build {project}/bin_install",
     "cp -rf {project}/test test",
     "cp {project}/pytest.ini pytest.ini",
     "pytest test -sv -m unittest --log-level=DEBUG",
