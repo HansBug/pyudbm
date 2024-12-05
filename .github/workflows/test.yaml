@@ -232,10 +232,10 @@ jobs:
 #          CIBW_SKIP: "pp*"
 #          CIBW_ARCHS: ${{ matrix.architecture }}
 #          CIBW_PROJECT_REQUIRES_PYTHON: ~=${{ matrix.python }}.0
-      - name: Set up python ${{ matrix.python-version }}
+      - name: Set up python ${{ matrix.python }}
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ matrix.python }}
       - name: Build wheels
         env:
           CIBW_SKIP: "pp*"
