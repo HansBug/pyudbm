@@ -32,7 +32,7 @@ before-build = [
 
 #    "cmake -S UDBM -B UDBM_build -DCMAKE_BUILD_TYPE=Release -DUUtils_DIR=\"bin_install\\lib\\cmake\\UUtils\"",
 #    "cmake -S UDBM -B UDBM_build -DCMAKE_BUILD_TYPE=Release -DUUtils_DIR=$(readlink -f bin_install/lib*/cmake/UUtils)",
-    "cmake -S UDBM -B UDBM_build -DCMAKE_BUILD_TYPE=Release -DUUtils_DIR=bin_install/lib/cmake/UUtils",
+    "cmake -S UDBM -B UDBM_build -DCMAKE_BUILD_TYPE=Release -DUUtils_DIR=\"{package}\\bin_install\\lib\\cmake\\UUtils\"",
     "cmake --build UDBM_build --config Release",
     "ctest --test-dir UDBM_build --output-on-failure -C Release",
     "cmake --install UDBM_build --prefix bin_install --config Release",
