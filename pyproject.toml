@@ -3,7 +3,7 @@ requires = [
     "setuptools>=42",
     "wheel",
     "pybind11[global]",
-    "cmake",
+    "cmake<4",
 ]
 
 [tool.cibuildwheel]
@@ -15,7 +15,7 @@ skip = ["pp*"] # Do not build for PyPy
 archs = ['AMD64']
 before-build = [
     "pip install pybind11[global]",
-    "pip install -U cmake",
+    "pip install -U 'cmake<4'",
     "ls -al",
     "whoami",
     "pwd",
@@ -54,7 +54,7 @@ archs = ["x86_64", "arm64"] # Build for x86_64 and arm64
 before-build = [
     "./macos_kill_cmake.sh",
     "pip install pybind11[global]",
-    "pip install -U cmake",
+    "pip install -U 'cmake<4'",
     "uname -m",
     "echo $CIBW_ARCHS",
     "if [ \"$CIBW_ARCHS\" = \"arm64\" ]; then echo detected arm64; else echo detected x86_64; fi",
@@ -91,7 +91,7 @@ archs = ["x86_64", "aarch64"] # Build for x86_64 and arm64
 skip = ["pp*"] # dependencies do not build for musl
 before-build = [
     "pip install pybind11[global]",
-    "pip install -U cmake",
+    "pip install -U 'cmake<4'",
 
     "cmake -S UUtils -B UUtils_build -DCMAKE_BUILD_TYPE=Release",
     "cmake --build UUtils_build --config Release",
