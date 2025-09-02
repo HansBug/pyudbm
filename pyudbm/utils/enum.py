@@ -1,4 +1,9 @@
-from typing import Protocol, Dict, TypeVar
+from typing import Dict, TypeVar
+
+try:
+    from typing import Protocol
+except (ImportError, ModuleNotFoundError):
+    from typing_extensions import Protocol
 
 T = TypeVar('T', bound='EnumProtocol')
 

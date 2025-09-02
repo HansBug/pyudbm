@@ -1,4 +1,9 @@
-from typing import Protocol, Any
+from typing import Any
+
+try:
+    from typing import Protocol
+except (ImportError, ModuleNotFoundError):
+    from typing_extensions import Protocol
 
 # noinspection PyUnresolvedReferences,PyProtectedMember
 from .._core._c_udbm_constraints import (
