@@ -17,11 +17,13 @@ jobs:
           - 'macos-13'  # macOS 13 is x86_64 arch
           - 'macos-14'  # macOS 14 is arm64 arch
         python:
+          - '3.7'
           - '3.8'
           - '3.9'
           - '3.10'
           - '3.11'
           - '3.12'
+          - '3.13'
         architecture:
           - x86_64
           - arm64  # macOS only, seems not well-supported
@@ -89,6 +91,8 @@ jobs:
             architecture: x86_64
           - os: macos-14  # python3.8 doesn't have macOS arm64 supported version
             python: '3.8'
+          - os: macos-14  # python3.7 doesn't have macOS arm64 supported version
+            python: '3.7'
 
     steps:
       - name: Checkout code
@@ -127,15 +131,15 @@ jobs:
           ls -al ./wheelhouse
           mv wheelhouse dist
       - name: Upload packed files to artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-artifacts-${{ runner.os }}-cp${{ matrix.python }}-${{ matrix.architecture }}
           path: ./dist/*
-      - name: Upload packed files to artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: build-artifacts-all
-          path: ./dist/*
+#      - name: Upload packed files to artifacts
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: build-artifacts-all
+#          path: ./dist/*
 
   # the publishing can only be processed on linux system
   fake_publish:
@@ -151,10 +155,12 @@ jobs:
 
     steps:
       - name: Download packed files to artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: build-artifacts-all
+#          name: build-artifacts-all
+          pattern: build-artifacts-*
           path: ./dist
+          merge-multiple: true
       - name: Show the buildings
         shell: bash
         run: |

@@ -49,6 +49,7 @@ include(UDBM/cmake/UUtils.cmake)
 
 list(APPEND PYBIND_MODULES
     "_c_udbm_constraints|pyudbm/core/constraints.cpp"
+    "_c_udbm_dbm|pyudbm/core/dbm.cpp"
 )
 
 foreach(MODULE_PAIR IN LISTS PYBIND_MODULES)
