@@ -17,11 +17,13 @@ jobs:
           - 'windows-2022'
           - 'macos-13'
         python-version:
+          - '3.7'
           - '3.8'
           - '3.9'
           - '3.10'
           - '3.11'
           - '3.12'
+          - '3.13'
 
     steps:
       - name: Get system version for Linux
@@ -65,13 +67,13 @@ jobs:
         shell: bash
         run: |
           sudo apt-get update
-          sudo apt-get install -y tree cloc wget curl make zip
+          sudo apt-get install -y tree cloc wget curl make
           sudo apt-get install -y git ninja-build make gcc g++
       - name: Set up system dependencies on Windows
         if: ${{ env.OS_NAME == 'Windows' }}
         shell: bash
         run: |
-          choco install tree cloc wget curl make zip
+          choco install tree cloc wget curl make
           choco install ninja make mingw
       - name: Kill Primitive CMake on MacOS
         if: ${{ env.OS_NAME == 'MacOS' }}
@@ -81,7 +83,7 @@ jobs:
       - name: Set up system dependencies on MacOS
         if: ${{ env.OS_NAME == 'MacOS' }}
         run: |
-          brew install tree cloc wget curl make zip
+          brew install tree cloc wget curl make
           brew install git ninja make gcc
       - name: Set up python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
