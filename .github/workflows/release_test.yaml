@@ -12,8 +12,8 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - 'ubuntu-20.04'
-          - 'windows-2019'
+          - 'ubuntu-22.04'
+          - 'windows-2022'
           - 'macos-13'  # macOS 13 is x86_64 arch
           - 'macos-14'  # macOS 14 is arm64 arch
         python:
@@ -35,27 +35,27 @@ jobs:
           - s390x
 #          - armv7l  # musllinux only, compile Error on UDBM
         exclude:
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             architecture: arm64
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             architecture: x86
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             architecture: AMD64
-          - os: windows-2019
+          - os: windows-2022
             architecture: x86  # win32 unittest failed
-          - os: windows-2019
+          - os: windows-2022
             architecture: x86_64
-          - os: windows-2019
+          - os: windows-2022
             architecture: arm64
-          - os: windows-2019
+          - os: windows-2022
             architecture: aarch64
-          - os: windows-2019
+          - os: windows-2022
             architecture: i686
-          - os: windows-2019
+          - os: windows-2022
             architecture: ppc64le
-          - os: windows-2019
+          - os: windows-2022
             architecture: s390x
-          - os: windows-2019
+          - os: windows-2022
             architecture: armv7l
           - os: macos-13
             architecture: aarch64
@@ -144,7 +144,7 @@ jobs:
   # the publishing can only be processed on linux system
   fake_publish:
     name: Fake Publish
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs:
       - wheel_build
     strategy:
