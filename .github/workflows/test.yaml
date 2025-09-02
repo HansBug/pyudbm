@@ -237,7 +237,6 @@ jobs:
           CIBW_PROJECT_REQUIRES_PYTHON: ~=${{ matrix.python }}.0
         shell: bash
         run: |
-#          pip install cibuildwheel==2.22.0
           pip install cibuildwheel
           python -m cibuildwheel --output-dir wheelhouse
       - name: Show the buildings
