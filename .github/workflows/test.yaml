@@ -97,7 +97,6 @@ jobs:
       - name: Test the basic environment
         shell: bash
         run: |
-          pip install -U hfutils
           python -V
           cmake --version
           which gcc

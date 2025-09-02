@@ -15,7 +15,7 @@ skip = ["pp*"] # Do not build for PyPy
 archs = ['AMD64']
 before-build = [
     "pip install pybind11[global]",
-    "pip install -U 'cmake<4'",
+    "pip install -U \"cmake<4\"",
     "ls -al",
     "whoami",
     "pwd",
