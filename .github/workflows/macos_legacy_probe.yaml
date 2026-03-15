@@ -1,6 +1,9 @@
 name: Legacy macOS Probe
 
 on:
+  push:
+    branches:
+      - ci/macos-legacy-py37-py39
   workflow_dispatch:
 
 jobs:
