@@ -6,7 +6,6 @@ import shutil
 import subprocess
 import sys
 from codecs import open
-from distutils.version import LooseVersion
 
 from setuptools import Extension
 from setuptools import find_packages, setup
@@ -37,6 +36,10 @@ with open('README.md', 'r', 'utf-8') as f:
     readme = f.read()
 
 
+def _parse_version_tuple(version: str):
+    return tuple(int(part) for part in version.split('.'))
+
+
 class CMakeExtension(Extension):
     def __init__(self, name, sourcedir=''):
         Extension.__init__(self, name, sources=[])
@@ -52,8 +55,8 @@ class CMakeBuild(build_ext):
                                ", ".join(e.name for e in self.extensions))
 
         if platform.system() == "Windows":
-            cmake_version = LooseVersion(re.search(r'version\s*([\d.]+)', out.decode()).group(1))
-            if cmake_version < '3.1.0':
+            cmake_version = _parse_version_tuple(re.search(r'version\s*([\d.]+)', out.decode()).group(1))
+            if cmake_version < (3, 1, 0):
                 raise RuntimeError("CMake >= 3.1.0 is required on Windows")
 
         for ext in self.extensions:
