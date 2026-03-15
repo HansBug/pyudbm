@@ -165,17 +165,29 @@ reliable path because it keeps `UUtils`, `UDBM`, and the Python extension in
 sync:
 
 ```shell
+# Build, test, and install the vendored UUtils and UDBM libraries
 make bin
+
+# Build the pybind11 extension module in place under pyudbm/binding/
 make build
+
+# Run the Python binding-focused unit tests only
 make unittest RANGE_DIR=binding
 ```
 
 If you changed native-integration logic, a fuller rebuild is safer:
 
 ```shell
+# Remove previous native build directories and the local install prefix
 make bin_clean
+
+# Rebuild, retest, and reinstall the vendored UUtils and UDBM libraries
 make bin
+
+# Rebuild the Python extension module against the refreshed native install
 make build
+
+# Run the full Python unit test suite
 make unittest
 ```
 
