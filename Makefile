@@ -1,4 +1,7 @@
-.PHONY: docs test unittest build clean benchmark zip bin_test bin_build bin_clean bin bin_install
+.PHONY: help info build clean clean_x package zip test unittest \
+	uutils_build uutils_test uutils_install uutils_clean uutils uutils_notest \
+	udbm_build udbm_test udbm_install udbm_clean udbm udbm_notest \
+	bin_clean bin bin_notest docs pdocs
 
 PYTHON := $(shell which python)
 CC     ?= $(shell which gcc)
@@ -39,6 +42,61 @@ CTEST_CFG ?= Release
 
 COV_TYPES ?= xml term-missing
 
+.DEFAULT_GOAL := help
+
+help:
+	@echo "pyudbm Build System"
+	@echo "==================="
+	@echo ""
+	@echo "Python Package:"
+	@echo "  make build        - Build Python extension modules in place"
+	@echo "  make package      - Build Python source and wheel packages"
+	@echo "  make zip          - Build Python source package only"
+	@echo "  make clean        - Remove Python extension and package artifacts"
+	@echo "  make clean_x      - Remove all local build outputs, including local prefix"
+	@echo ""
+	@echo "Testing:"
+	@echo "  make test         - Run tests (alias for unittest)"
+	@echo "  make unittest     - Run pytest unit tests"
+	@echo "                      Options: RANGE_DIR=<dir> COV_TYPES='xml term-missing'"
+	@echo "                               MIN_COVERAGE=<percent> WORKERS=<n>"
+	@echo ""
+	@echo "Upstream Dependencies:"
+	@echo "  make uutils_build   - Configure and build UUtils"
+	@echo "  make uutils_test    - Run UUtils tests"
+	@echo "  make uutils_install - Install UUtils into the local prefix"
+	@echo "  make uutils_clean   - Remove the UUtils build directory"
+	@echo "  make uutils         - Build, test, and install UUtils"
+	@echo "  make uutils_notest  - Build and install UUtils without running tests"
+	@echo ""
+	@echo "  make udbm_build     - Configure and build UDBM"
+	@echo "  make udbm_test      - Run UDBM tests"
+	@echo "  make udbm_install   - Install UDBM into the local prefix"
+	@echo "  make udbm_clean     - Remove the UDBM build directory"
+	@echo "  make udbm           - Build, test, and install UDBM"
+	@echo "  make udbm_notest    - Build and install UDBM without running tests"
+	@echo ""
+	@echo "Combined Dependency Pipeline:"
+	@echo "  make bin          - Build, test, and install UUtils and UDBM"
+	@echo "  make bin_notest   - Build and install UUtils and UDBM without tests"
+	@echo "  make bin_clean    - Remove UUtils, UDBM, and local prefix build outputs"
+	@echo ""
+	@echo "Documentation:"
+	@echo "  make docs         - Build documentation"
+	@echo "  make pdocs        - Build production documentation"
+	@echo ""
+	@echo "Diagnostics:"
+	@echo "  make info         - Print current path and CMake environment values"
+	@echo ""
+	@echo "Common Variables:"
+	@echo "  BINSTALL_DIR=<dir> - Local install prefix for UUtils/UDBM"
+	@echo "  CTEST_CFG=<cfg>    - CMake/CTest build configuration (default: Release)"
+	@echo "  RANGE_DIR=<dir>    - Limit pytest coverage and test scope (default: .)"
+	@echo "  COV_TYPES=<types>  - Coverage report types (default: xml term-missing)"
+	@echo "  MIN_COVERAGE=<n>   - Minimum required coverage percentage"
+	@echo "  WORKERS=<n>        - Number of parallel pytest workers"
+	@echo ""
+
 build:
 	BINSTALL_DIR="${BINSTALL_DIR}" $(PYTHON) setup.py build_ext --inplace
 clean:
@@ -52,6 +110,8 @@ package:
 	BINSTALL_DIR="${BINSTALL_DIR}" $(PYTHON) -m build --sdist --wheel --outdir ${DIST_DIR}
 zip:
 	BINSTALL_DIR="${BINSTALL_DIR}" $(PYTHON) -m build --sdist --outdir ${DIST_DIR}
+
+test: unittest
 
 unittest:
 	$(PYTHON) -m pytest "${RANGE_TEST_DIR}" \

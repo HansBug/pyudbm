@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+`AGENTS.md` and `CLAUDE.md` are the same file via symlink, so edit only one of them and avoid duplicate changes.
+
 ## Project Identity
 
 `pyudbm` is intended to become a Python wrapper around the UPPAAL DBM library, not a reimplementation of DBM algorithms.
