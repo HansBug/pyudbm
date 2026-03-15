@@ -6,7 +6,183 @@ on:
     types:
       - published
 
+permissions:
+  contents: read
+
 jobs:
-  full_release_validation:
-    uses: ./.github/workflows/release_test.yaml
-    secrets: inherit
+  # PyPI publishing should stay in a normal workflow job instead of a reusable workflow.
+  wheel_build:
+    name: Build wheel
+    runs-on: ${{ matrix.os }}
+    env:
+      CIBW_CACHE_PATH: ./.cibw-cache
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - 'ubuntu-22.04'
+#          - 'ubuntu-22.04-arm'  # Linux aarch64/ppc64le/s390x wheels are already covered via cibuildwheel + QEMU
+          - 'windows-2022'
+          - 'macos-14'        # public macOS arm64 runner
+          - 'macos-15-intel'  # public macOS x86_64 runner
+#          - 'windows-11-arm' # not enabled yet: Windows build chain is still validated only for AMD64
+        python:
+          - '3.7'
+          - '3.8'
+          - '3.9'
+          - '3.10'
+          - '3.11'
+          - '3.12'
+          - '3.13'
+          - '3.14'
+        architecture:
+          - x86_64
+          - arm64
+          - aarch64
+          - AMD64
+#          - i686  # compile Error on UDBM
+          - ppc64le
+          - s390x
+#          - armv7l  # musllinux only, compile Error on UDBM
+        exclude:
+          - os: ubuntu-22.04
+            architecture: arm64
+          - os: ubuntu-22.04
+            architecture: x86
+          - os: ubuntu-22.04
+            architecture: AMD64
+          - os: windows-2022
+            architecture: x86  # win32 unittest failed
+          - os: windows-2022
+            architecture: x86_64
+          - os: windows-2022
+            architecture: arm64
+          - os: windows-2022
+            architecture: aarch64
+          - os: windows-2022
+            architecture: i686
+          - os: windows-2022
+            architecture: ppc64le
+          - os: windows-2022
+            architecture: s390x
+          - os: windows-2022
+            architecture: armv7l
+          - os: macos-14
+            architecture: aarch64
+          - os: macos-14
+            architecture: AMD64
+          - os: macos-14
+            architecture: i686
+          - os: macos-14
+            architecture: ppc64le
+          - os: macos-14
+            architecture: s390x
+          - os: macos-14
+            architecture: armv7l
+          - os: macos-14
+            architecture: x86_64
+          - os: macos-14  # python3.8 doesn't have macOS arm64 supported version
+            python: '3.8'
+          - os: macos-14  # python3.7 doesn't have macOS arm64 supported version
+            python: '3.7'
+          - os: macos-15-intel
+            architecture: aarch64
+          - os: macos-15-intel
+            architecture: AMD64
+          - os: macos-15-intel
+            architecture: arm64
+          - os: macos-15-intel
+            architecture: i686
+          - os: macos-15-intel
+            architecture: ppc64le
+          - os: macos-15-intel
+            architecture: s390x
+          - os: macos-15-intel
+            architecture: armv7l
+          - os: macos-15-intel  # new Intel macOS runner images only guarantee non-EOL CPython majors
+            python: '3.7'
+          - os: macos-15-intel  # new Intel macOS runner images only guarantee non-EOL CPython majors
+            python: '3.8'
+          - os: macos-15-intel  # Python 3.9 is EOL and not guaranteed on fresh Intel macOS runner images
+            python: '3.9'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 20
+          submodules: 'recursive'
+
+      - name: Set up QEMU
+        if: ${{ runner.os == 'Linux' }}
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: all
+      - name: Check the Arch on macOS
+        if: ${{ runner.os == 'macOS' }}
+        shell: bash
+        run: |
+          uname -m
+          [ "$(uname -m)" = "${{ matrix.architecture }}" ] || { echo "The architecture is not ${{ matrix.architecture }}."; exit 1; }
+      - name: Set up python ${{ matrix.python }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Prime cibuildwheel cache
+        if: ${{ runner.os == 'Windows' || runner.os == 'macOS' }}
+        shell: bash
+        run: |
+          case "${{ matrix.python }}" in
+            3.7) VIRTUALENV_VERSION=20.21.1 ;;
+            *) VIRTUALENV_VERSION=20.30.0 ;;
+          esac
+          mkdir -p "$CIBW_CACHE_PATH"
+          TARGET="$CIBW_CACHE_PATH/virtualenv-${VIRTUALENV_VERSION}.pyz"
+          URL="https://raw.githubusercontent.com/pypa/get-virtualenv/${VIRTUALENV_VERSION}/public/virtualenv.pyz"
+          if [ ! -f "$TARGET" ]; then
+            curl -fL --retry 8 --retry-all-errors --retry-delay 5 -o "$TARGET" "$URL"
+          fi
+          ls -al "$CIBW_CACHE_PATH"
+      - name: Build wheels
+        env:
+          CIBW_SKIP: "pp* cp31?t-*"
+          CIBW_ARCHS: ${{ matrix.architecture }}
+          CIBW_PROJECT_REQUIRES_PYTHON: ~=${{ matrix.python }}.0
+        shell: bash
+        run: |
+          pip install cibuildwheel
+          python -m cibuildwheel --output-dir wheelhouse
+      - name: Show the buildings
+        shell: bash
+        run: |
+          ls -al ./wheelhouse
+          mv wheelhouse dist
+      - name: Upload packed files to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts-${{ runner.os }}-cp${{ matrix.python }}-${{ matrix.architecture }}
+          path: ./dist/*
+
+  publish:
+    name: Publish to PyPI
+    runs-on: ubuntu-22.04
+    needs:
+      - wheel_build
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Download packed files to artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: build-artifacts-*
+          path: ./dist
+          merge-multiple: true
+      - name: Show the buildings
+        shell: bash
+        run: |
+          ls -al ./dist
+      - name: Publish distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: ./dist
