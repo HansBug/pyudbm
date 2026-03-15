@@ -15,7 +15,7 @@ jobs:
         os:
           - 'ubuntu-22.04'
           - 'windows-2022'
-          - 'macos-13'
+          - 'macos-15-intel'
         python-version:
           - '3.7'
           - '3.8'
@@ -154,7 +154,7 @@ jobs:
         os:
           - 'ubuntu-22.04'
           - 'windows-2022'
-          - 'macos-13'
+          - 'macos-15-intel'
         python:
           - '3.8'
 #          - '3.9'
@@ -195,19 +195,19 @@ jobs:
             architecture: s390x
           - os: windows-2022
             architecture: armv7l
-          - os: macos-13
+          - os: macos-15-intel
             architecture: aarch64
-          - os: macos-13
+          - os: macos-15-intel
             architecture: x86
-          - os: macos-13
+          - os: macos-15-intel
             architecture: AMD64
-          - os: macos-13
+          - os: macos-15-intel
             architecture: i686
-          - os: macos-13
+          - os: macos-15-intel
             architecture: ppc64le
-          - os: macos-13
+          - os: macos-15-intel
             architecture: s390x
-          - os: macos-13
+          - os: macos-15-intel
             architecture: armv7l
 
     steps:
