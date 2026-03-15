@@ -1,0 +1,35 @@
+# Read the Docs configuration file
+# See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
+
+version: 2
+
+build:
+  os: ubuntu-24.04
+  tools:
+    python: "3.12"
+  apt_packages:
+    - build-essential
+    - cmake
+    - graphviz
+    - librsvg2-bin
+  jobs:
+    post_checkout:
+      - git config submodule.UDBM.url https://github.com/UPPAALModelChecker/UDBM.git
+      - git config submodule.UUtils.url https://github.com/HansBug/UUtils.git
+      - git submodule sync --recursive
+      - git submodule update --init --recursive
+    post_install:
+      - python -m pip install natsort
+    pre_build:
+      - make docs_prepare
+      - make -C docs contents
+
+sphinx:
+  configuration: docs/source/conf.py
+  fail_on_warning: false
+
+python:
+  install:
+    - requirements: requirements.txt
+    - requirements: requirements-build.txt
+    - requirements: requirements-doc.txt
