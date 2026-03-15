@@ -94,12 +94,6 @@ jobs:
             architecture: s390x
           - os: macos-15-intel
             architecture: armv7l
-          - os: macos-15-intel  # new Intel macOS runner images only guarantee non-EOL CPython majors
-            python: '3.7'
-          - os: macos-15-intel  # new Intel macOS runner images only guarantee non-EOL CPython majors
-            python: '3.8'
-          - os: macos-15-intel  # Python 3.9 is EOL and not guaranteed on fresh Intel macOS runner images
-            python: '3.9'
 
     steps:
       - name: Checkout code

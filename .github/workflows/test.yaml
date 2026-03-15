@@ -15,7 +15,6 @@ jobs:
         os:
           - 'ubuntu-22.04'
           - 'windows-2022'
-          # Keep Code Test on the public macOS arm64 runner; Intel/macOS breadth lives in Release Test.
           - 'macos-14'
         python-version:
           - '3.7'
@@ -32,6 +31,14 @@ jobs:
             python-version: '3.7'
           - os: 'macos-14'
             python-version: '3.8'
+        include:
+          # Legacy macOS CPython validation stays on the public Intel runner.
+          - os: 'macos-15-intel'
+            python-version: '3.7'
+          - os: 'macos-15-intel'
+            python-version: '3.8'
+          - os: 'macos-15-intel'
+            python-version: '3.9'
 
     steps:
       - name: Get system version for Linux
