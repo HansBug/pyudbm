@@ -56,6 +56,19 @@ Primary references:
 - Legacy page: <https://homes.cs.aau.dk/~adavid/udbm/python.html>
 - Legacy source package: <https://homes.cs.aau.dk/~adavid/UDBM/ureleases/python_dbm-0.1.tar.gz>
 
+Local repository copy:
+
+- `srcpy2/` contains an extracted local copy of the official legacy `python_dbm-0.1.tar.gz` source package.
+
+Reference snapshot rules for `srcpy2/`:
+
+- `srcpy2/` exists to preserve the historical Python 2 binding as an archaeological reference snapshot.
+- Start with `srcpy2/README.md` for provenance, usage reconstruction, and historical context.
+- Then inspect `srcpy2/udbm.py`, `srcpy2/test.py`, `srcpy2/setup.py`, `srcpy2/udbm_int.i`, and `srcpy2/udbm_int.h` when recovering legacy semantics or build assumptions.
+- Unless the user explicitly requests it, do not treat `srcpy2/` as an implementation target for feature work, cleanup, modernization, or bug fixing.
+- Unless the user explicitly requests a snapshot refresh or another direct edit, do not modify any file under `srcpy2/` except `srcpy2/README.md`.
+- In particular, do not edit `srcpy2/README`, `srcpy2/PKG-INFO`, `srcpy2/__init__.py`, `srcpy2/setup.py`, `srcpy2/test.py`, `srcpy2/udbm.py`, `srcpy2/udbm_int.h`, or `srcpy2/udbm_int.i` by default.
+
 Key facts from that legacy binding:
 
 - It targeted Python 2.x.
@@ -90,6 +103,9 @@ That means:
 - It is fine to improve typing, packaging, module layout, and platform support.
 - Avoid unnecessary semantic drift in the legacy `Context` / `Clock` / `Federation` programming model.
 - When behavior is unclear, inspect the historical `udbm.py` and `test.py` before inventing a new API shape.
+- Treat `srcpy2/` as a reference snapshot of the old Python 2 binding, not as the active implementation of this repository.
+- Use files such as `srcpy2/udbm.py`, `srcpy2/test.py`, and `srcpy2/setup.py` to study historical semantics, operator behavior, and legacy build assumptions.
+- Treat `srcpy2/README.md` as the entry point for archaeology notes; preserve the rest of `srcpy2/` as vendored source evidence unless explicitly told otherwise.
 
 ## Compatibility Direction
 
@@ -127,6 +143,7 @@ Safe places to work:
 - `pyudbm/core/*.cpp` for pybind11 bindings.
 - `pyudbm/core/*.py` for Python-level wrappers.
 - `pyudbm/config/meta.py` for package metadata.
+- `srcpy2/README.md` for archaeology notes about the vendored legacy Python 2 reference snapshot.
 - `test/` for Python tests.
 - Root build and packaging glue such as `CMakeLists.txt`, `Makefile`, `setup.py`, `pyproject.toml`, and `.github/workflows/`.
 
@@ -178,6 +195,7 @@ Packaging and wheel builds are driven by `pyproject.toml`, `setup.py`, and the G
 - If the task would require changing UDBM or UUtils source, stop at the wrapper boundary unless the user explicitly asks for a submodule version bump.
 - When updating a submodule version, verify compatibility with the wrapper and adjust tests or build glue as needed.
 - When in doubt, keep `pyudbm` aligned with upstream behavior rather than inventing repository-local semantics.
+- If a task mentions `srcpy2/`, default to reading it as historical reference material. Modify only `srcpy2/README.md` unless the user explicitly asks for a refresh or direct edit of the vendored snapshot.
 
 ## Upstream References
 

@@ -1212,3 +1212,14 @@ fabric.properties
 /docs/source/**/*.auto.rst
 /*_build
 /bin_install
+
+# Keep the vendored legacy Python 2 reference snapshot tracked.
+!/srcpy2/PKG-INFO
+!/srcpy2/README
+!/srcpy2/README.md
+!/srcpy2/__init__.py
+!/srcpy2/setup.py
+!/srcpy2/test.py
+!/srcpy2/udbm.py
+!/srcpy2/udbm_int.h
+!/srcpy2/udbm_int.i
