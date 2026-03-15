@@ -1,0 +1,115 @@
+name: Legacy macOS Probe
+
+on:
+  workflow_dispatch:
+
+jobs:
+  legacy_unittest:
+    name: Legacy unittest
+    runs-on: macos-15-intel
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - '3.7'
+          - '3.8'
+          - '3.9'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 20
+          submodules: 'recursive'
+      - name: Kill Primitive CMake on MacOS
+        shell: bash
+        run: |
+          ./macos_kill_cmake.sh
+      - name: Set up system dependencies on MacOS
+        shell: bash
+        run: |
+          brew install make git ninja gcc
+      - name: Set up python ${{ matrix.python-version }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Set up pybind11
+        shell: bash
+        run: |
+          pip install "pybind11[global]"
+          pip install -U 'cmake<4'
+      - name: Build native dependencies
+        shell: bash
+        run: |
+          CC=gcc CXX=g++ CTEST_CFG=Release make bin
+      - name: Prepare Python env
+        shell: bash
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-test.txt
+          pip install -r requirements-build.txt
+      - name: Build and run unittest
+        env:
+          CI: 'true'
+          LINETRACE: 1
+        shell: bash
+        run: |
+          make build
+          make clean_x
+          make unittest
+
+  legacy_try_build:
+    name: Legacy try build
+    runs-on: macos-15-intel
+    env:
+      CIBW_CACHE_PATH: ./.cibw-cache
+    strategy:
+      fail-fast: false
+      matrix:
+        python:
+          - '3.7'
+          - '3.8'
+          - '3.9'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 20
+          submodules: 'recursive'
+      - name: Check the Arch on macOS
+        shell: bash
+        run: |
+          uname -m
+          [ "$(uname -m)" = "x86_64" ] || { echo "The architecture is not x86_64."; exit 1; }
+      - name: Set up python ${{ matrix.python }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Prime cibuildwheel cache
+        shell: bash
+        run: |
+          case "${{ matrix.python }}" in
+            3.7) VIRTUALENV_VERSION=20.21.1 ;;
+            *) VIRTUALENV_VERSION=20.30.0 ;;
+          esac
+          mkdir -p "$CIBW_CACHE_PATH"
+          TARGET="$CIBW_CACHE_PATH/virtualenv-${VIRTUALENV_VERSION}.pyz"
+          URL="https://raw.githubusercontent.com/pypa/get-virtualenv/${VIRTUALENV_VERSION}/public/virtualenv.pyz"
+          if [ ! -f "$TARGET" ]; then
+            curl -fL --retry 8 --retry-all-errors --retry-delay 5 -o "$TARGET" "$URL"
+          fi
+          ls -al "$CIBW_CACHE_PATH"
+      - name: Build wheels
+        env:
+          CIBW_SKIP: "pp* cp31?t-*"
+          CIBW_ARCHS: x86_64
+          CIBW_PROJECT_REQUIRES_PYTHON: ~=${{ matrix.python }}.0
+        shell: bash
+        run: |
+          pip install cibuildwheel
+          python -m cibuildwheel --output-dir wheelhouse
+      - name: Show the buildings
+        shell: bash
+        run: |
+          ls -al ./wheelhouse
