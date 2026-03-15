@@ -1,43 +1,84 @@
 Installation
-===================
+============
 
-pyfcstm is currently hosted on PyPI. It requires Python >= 3.7 and is tested on CPython 3.7 through 3.14.
+``pyudbm`` combines a Python package with native UDBM and UUtils
+dependencies. The intended end-user path is prebuilt wheels, while repository
+development is currently most reliable from a source checkout.
 
-You can simply install pyfcstm from PyPI with the following command:
+Install from a wheel
+--------------------
 
-.. code:: shell
+If a published wheel is available for your platform, install it with:
 
-    pip install pyfcstm
+.. code-block:: bash
 
-You can also install with the newest version through GitHub:
+    pip install pyudbm
 
-.. code:: shell
+Build from source
+-----------------
 
-    pip install -U git+https://github.com/hansbug/pyfcstm@main
+For local development, start from a repository checkout:
 
-You can check your installation by the following python \
-script:
+.. code-block:: bash
+
+    git clone https://github.com/HansBug/pyudbm.git
+    cd pyudbm
+    git submodule update --init --recursive
+
+Create an isolated Python environment and install the repository requirements:
+
+.. code-block:: bash
+
+    python -m venv venv
+    source venv/bin/activate
+    python -m pip install -U pip setuptools wheel
+    python -m pip install -r requirements.txt
+    python -m pip install -r requirements-test.txt
+    python -m pip install -r requirements-build.txt
+
+Build the vendored native dependencies and then the Python extension:
+
+.. code-block:: bash
+
+    make bin
+    make build
+
+Run the binding-focused unit tests:
+
+.. code-block:: bash
+
+    make unittest RANGE_DIR=binding
+
+Smoke Check
+-----------
+
+The shell snippet below verifies that the package imports correctly:
+
+.. literalinclude:: cli_check.demo.sh
+    :language: bash
+    :linenos:
+
+Example output:
+
+.. literalinclude:: cli_check.demo.sh.txt
+    :language: text
+    :linenos:
+
+The Python snippet below exercises the restored high-level API:
 
 .. literalinclude:: install_check.demo.py
     :language: python
     :linenos:
 
-The output should be like below, which means your installation \
-is successful.
+Example output:
 
 .. literalinclude:: install_check.demo.py.txt
     :language: text
     :linenos:
 
-You can check with CLI command as well
+Notes
+-----
 
-.. literalinclude:: cli_check.demo.sh
-    :language: shell
-    :linenos:
-
-.. literalinclude:: cli_check.demo.sh.txt
-    :language: txt
-    :linenos:
-
-pyfcstm is still under development, you can also check out the \
-documents in stable version through `https://hansbug.github.io/pyfcstm/main/index.html <https://hansbug.github.io/pyfcstm/main/index.html>`_.
+The repository is still unfinished. For source builds, the repository-level
+``make`` flow remains the most reliable path because it keeps the vendored
+native libraries, Python extension, and test environment aligned.

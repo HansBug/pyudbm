@@ -35,7 +35,7 @@ os.chdir(_PROJ_PATH)
 
 # Set environment, remove the pre-installed package
 sys.path.insert(0, _PROJ_PATH)
-modnames = [mname for mname in sys.modules if mname.startswith('pyfcstm')]
+modnames = [mname for mname in sys.modules if mname.startswith('pyudbm')]
 for modname in modnames:
     del sys.modules[modname]
 
@@ -52,29 +52,30 @@ if not os.environ.get("NO_CONTENTS_BUILD"):
     )
 
     if os.path.exists(os.path.join(_PROJ_PATH, 'requirements-build.txt')):
-        pip_build_cmd = (where.first('pip'), 'install', '-r', os.path.join(_PROJ_PATH, 'requirements-build.txt'))
+        pip_build_cmd = (
+            sys.executable, '-m', 'pip', 'install', '-r', os.path.join(_PROJ_PATH, 'requirements-build.txt'))
         print("Install pip requirements {cmd}...".format(cmd=repr(pip_build_cmd)))
         pip_build = Popen(pip_build_cmd, stdout=sys.stdout, stderr=sys.stderr, env=_env, cwd=_PROJ_PATH)
         if pip_build.wait() != 0:
             raise ChildProcessError("Pip install failed with %d." % (pip_build.returncode,))
 
-        make_build_cmd = (where.first('make'), 'clean', 'build')
+        make_build_cmd = (where.first('make'), 'clean', 'bin', 'build')
         print("Try building extensions {cmd}...".format(cmd=repr(make_build_cmd)))
         make_build = Popen(make_build_cmd, stdout=sys.stdout, stderr=sys.stderr, env=_env, cwd=_PROJ_PATH)
         if make_build.wait() != 0:
             raise ChildProcessError("Extension build failed with %d." % (make_build.returncode,))
 
-    pip_cmd = (where.first('pip'), 'install', '-r', os.path.join(_PROJ_PATH, 'requirements.txt'))
+    pip_cmd = (sys.executable, '-m', 'pip', 'install', '-r', os.path.join(_PROJ_PATH, 'requirements.txt'))
     print("Install pip requirements {cmd}...".format(cmd=repr(pip_cmd)))
     pip = Popen(pip_cmd, stdout=sys.stdout, stderr=sys.stderr, env=_env, cwd=_DOC_PATH)
     if pip.wait() != 0:
         raise ChildProcessError("Pip install failed with %d." % (pip.returncode,))
 
-    pip_docs_cmd = (where.first('pip'), 'install', '-r', os.path.join(_PROJ_PATH, 'requirements-doc.txt'))
+    pip_docs_cmd = (sys.executable, '-m', 'pip', 'install', '-r', os.path.join(_PROJ_PATH, 'requirements-doc.txt'))
     print("Install pip docs requirements {cmd}...".format(cmd=repr(pip_docs_cmd)))
     pip_docs = Popen(pip_docs_cmd, stdout=sys.stdout, stderr=sys.stderr, env=_env, cwd=_DOC_PATH)
     if pip_docs.wait() != 0:
-        raise ChildProcessError("Pip docs install failed with %d." % (pip.returncode,))
+        raise ChildProcessError("Pip docs install failed with %d." % (pip_docs.returncode,))
 
     all_cmd = (where.first('make'), '-f', "all.mk", "build")
     print("Building all {cmd} at {cp}...".format(cmd=repr(all_cmd), cp=repr(_DOC_PATH)))
@@ -84,18 +85,7 @@ if not os.environ.get("NO_CONTENTS_BUILD"):
 
     print("Build of contents complete.")
 
-from pyfcstm.config.meta import __TITLE__, __AUTHOR__, __VERSION__
-
-# Register FCSTM Pygments lexer for syntax highlighting
-from pygments.lexers import get_lexer_by_name
-from pyfcstm.highlight.pygments_lexer import FcstmLexer
-from sphinx.highlighting import lexers
-
-# Register the lexer with Sphinx
-lexers['fcstm'] = FcstmLexer()
-lexers['fcsm'] = FcstmLexer()  # Alternative alias
-
-print("✓ FCSTM Pygments lexer registered successfully")
+from pyudbm.config.meta import __TITLE__, __AUTHOR__, __VERSION__
 
 project = __TITLE__
 copyright = '{year}, {author}'.format(year=datetime.now().year, author=__AUTHOR__)
@@ -167,7 +157,7 @@ gettext_compact = False
 # a list of plugins themes.
 #
 html_theme = 'sphinx_rtd_theme'
-htmlhelp_basename = 'TreeValue'
+htmlhelp_basename = 'pyudbm'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the plugins static files,
@@ -182,7 +172,7 @@ html_css_files = [
 html_context = {
     'display_github': True,
     'github_user': 'hansbug',
-    'github_repo': 'pyfcstm',
+    'github_repo': 'pyudbm',
     'github_version': 'main',
     'conf_py_path': '/docs/source/',
 }

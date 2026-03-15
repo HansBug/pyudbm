@@ -1,40 +1,82 @@
 安装
-===================
+====
 
-pyfcstm 目前托管在 PyPI 上，需要 Python >= 3.7，并且已在 CPython 3.7 到 3.14 上完成测试。
+``pyudbm`` 同时包含 Python 包装层以及原生 UDBM / UUtils 依赖。面向最终用户的目标分发方式是预构建 wheel，
+而当前仓库开发阶段最稳妥的方式仍然是从源码构建。
 
-你可以使用以下命令从 PyPI 简单安装 pyfcstm：
+通过 wheel 安装
+---------------
 
-.. code:: shell
+如果目标平台已有发布好的 wheel，可以直接执行：
 
-    pip install pyfcstm
+.. code-block:: bash
 
-你也可以通过 GitHub 安装最新版本：
+    pip install pyudbm
 
-.. code:: shell
+从源码构建
+----------
 
-    pip install -U git+https://github.com/hansbug/pyfcstm@main
+本地开发建议从仓库 checkout 开始：
 
-你可以通过以下 Python 脚本检查你的安装：
+.. code-block:: bash
+
+    git clone https://github.com/HansBug/pyudbm.git
+    cd pyudbm
+    git submodule update --init --recursive
+
+然后创建虚拟环境并安装仓库依赖：
+
+.. code-block:: bash
+
+    python -m venv venv
+    source venv/bin/activate
+    python -m pip install -U pip setuptools wheel
+    python -m pip install -r requirements.txt
+    python -m pip install -r requirements-test.txt
+    python -m pip install -r requirements-build.txt
+
+接着构建 vendored 原生依赖以及 Python 扩展：
+
+.. code-block:: bash
+
+    make bin
+    make build
+
+最后执行绑定层测试：
+
+.. code-block:: bash
+
+    make unittest RANGE_DIR=binding
+
+快速检查
+--------
+
+下面这段 shell 代码会验证包能够被正确导入：
+
+.. literalinclude:: cli_check.demo.sh
+    :language: bash
+    :linenos:
+
+示例输出：
+
+.. literalinclude:: cli_check.demo.sh.txt
+    :language: text
+    :linenos:
+
+下面的 Python 示例会实际构造一个 federation 并执行包含性检查：
 
 .. literalinclude:: install_check.demo.py
     :language: python
     :linenos:
 
-输出应该如下所示，这意味着你的安装成功了。
+示例输出：
 
 .. literalinclude:: install_check.demo.py.txt
     :language: text
     :linenos:
 
-你也可以使用 CLI 命令进行检查
+说明
+----
 
-.. literalinclude:: cli_check.demo.sh
-    :language: shell
-    :linenos:
-
-.. literalinclude:: cli_check.demo.sh.txt
-    :language: txt
-    :linenos:
-
-pyfcstm 仍在开发中，你也可以通过 `https://hansbug.github.io/pyfcstm/main/index.html <https://hansbug.github.io/pyfcstm/main/index.html>`_ 查看稳定版本的文档。
+当前仓库仍在持续开发中。对源码构建场景来说，仓库根目录的 ``make`` 流程是最稳妥的方式，因为它会同时维护
+vendored 原生库、Python 扩展以及测试环境的一致性。

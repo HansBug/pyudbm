@@ -1,115 +1,53 @@
-欢迎来到 pyfcstm（Python Finite Control State Machine Framework）的文档
-==========================================================================
-
-.. image:: _static/logos/logo_banner.svg
-   :alt: pyfcstm - Python Finite Control State Machine Framework
-   :align: center
-   :width: 800px
+欢迎来到 pyudbm 的文档
+======================
 
 概述
--------------
+----
 
-\ **pyfcstm**\ （Python Finite Control State Machine Framework）是一个强大的 Python 框架，用于解析
-\ **FCSTM（Finite Control State Machine）**\ 领域特定语言（DSL）并生成多种目标语言的可执行代码。它专注于使用
-灵活的 Jinja2 模板系统建模\ **层次状态机（Harel 状态图）**\ 。
+\ **pyudbm**\ 是对 UPPAAL UDBM 原生库的 Python 封装。这个项目的重点是在现代
+``pybind11 + CMake + setuptools`` 构建栈上恢复历史高层 Python 绑定，同时尽量保持封装足够薄，并贴近上游语义。
 
 核心特性
 ~~~~~~~~~~~~~
 
-* **表达性 DSL 语法**：直观的领域特定语言，用于定义状态、转换、事件和生命周期动作
-* **层次状态机**：完全支持嵌套状态的父子关系和面向切面编程
-* **多语言代码生成**：基于模板的渲染系统，支持 C、C++、Python 和自定义目标语言
-* **PlantUML 可视化**：自动生成状态机图表用于文档
-* **基于 ANTLR4 的解析器**：强大的语法解析，提供详细的错误报告
-* **灵活的事件系统**：本地、链式和全局事件作用域，用于复杂的状态机协调
-* **生命周期动作**：进入、期间和退出动作，支持前后切面
-* **抽象和引用动作**：声明抽象函数并在状态间重用动作
+* **兼容历史风格的 API**，核心对象是 ``Context``、``Clock`` 和 ``Federation``
+* **原生 federation 运算**，底层能力直接来自 vendored UDBM
+* **自然的约束表达式语法**，可以直接描述时钟界和时钟差
+* **面向跨平台分发的包装方向**，目标平台覆盖 Linux、macOS 和 Windows
 
-应用场景
-~~~~~~~~~~~~~
+项目状态
+--------
 
-pyfcstm 适用于：
-
-* **嵌入式系统**：为微控制器和物联网设备生成高效的状态机代码
-* **协议实现**：使用复杂状态转换建模通信协议
-* **游戏 AI**：使用层次状态机设计角色行为和游戏逻辑
-* **工作流引擎**：使用清晰的状态定义实现业务流程工作流
-* **控制系统**：构建具有安全关键状态管理的工业控制逻辑
+当前仓库仍处于持续开发中。核心 federation 构造、valuation 处理以及一批高层操作已经可用，
+但整个包仍应被视为兼容导向的进行中实现，而不是完全冻结的最终 API。
 
 快速开始
 -------------
 
-安装
-~~~~~~~~~~~~~
+.. code-block:: python
 
-.. code-block:: bash
+   from pyudbm import Context, IntValuation
 
-   pip install pyfcstm
+   c = Context(["x", "y"], name="c")
+   zone = (c.x < 10) & (c.x - c.y <= 1)
 
-基本用法
-~~~~~~~~~~~~~
+   valuation = IntValuation(c)
+   valuation["x"] = 3
+   valuation["y"] = 2
 
-**1. 使用 DSL 定义状态机**
-
-创建文件 ``traffic_light.fcstm``：
-
-.. code-block:: fcstm
-
-   def int timer = 0;
-
-   state TrafficLight {
-       [*] -> Red;
-
-       state Red {
-           enter { timer = 0; }
-           during { timer = timer + 1; }
-       }
-
-       state Yellow {
-           enter { timer = 0; }
-           during { timer = timer + 1; }
-       }
-
-       state Green {
-           enter { timer = 0; }
-           during { timer = timer + 1; }
-       }
-
-       Red -> Green : if [timer >= 30];
-       Green -> Yellow : if [timer >= 25];
-       Yellow -> Red : if [timer >= 5];
-   }
-
-**2. 生成代码**
-
-.. code-block:: bash
-
-   pyfcstm generate -i traffic_light.fcstm -t templates/c/ -o output/
-
-**3. 使用 PlantUML 可视化**
-
-.. code-block:: bash
-
-   pyfcstm plantuml -i traffic_light.fcstm -o traffic_light.puml
+   assert zone.contains(valuation)
 
 架构
 -------------
 
-pyfcstm 遵循三阶段流水线：
+当前公开结构可以概括为：
 
-1. **DSL 解析**：基于 ANTLR4 的解析器将 DSL 文本转换为抽象语法树（AST）
-2. **模型构建**：AST 节点转换为可查询的状态机模型
-3. **代码生成**：Jinja2 模板将模型渲染为目标语言代码
-
-框架提供：
-
-* **DSL 层** (``pyfcstm.dsl``)：语法定义、解析器和 AST 节点
-* **模型层** (``pyfcstm.model``)：带验证的状态机模型类
-* **渲染引擎** (``pyfcstm.render``)：基于模板的代码生成，支持表达式样式
-* **CLI 工具** (``pyfcstm.entry``)：常用操作的命令行界面
+* **包根** (``pyudbm``)：对外重导出高层兼容 API
+* **绑定层** (``pyudbm.binding``)：在原生扩展之上提供 Python 侧易用接口
+* **元数据层** (``pyudbm.config``)：暴露包版本和上游版本信息
 
 教程
--------------------------
+----
 
 .. toctree::
     :maxdepth: 2
@@ -120,23 +58,14 @@ pyfcstm 遵循三阶段流水线：
 
 * :doc:`tutorials/installation/index_zh`
 
-最佳实践
--------------------------
-
-.. toctree::
-    :maxdepth: 2
-    :caption: 最佳实践
+API 参考
+--------
 
 .. include:: api_doc_zh.rst
 
-社区和支持
------------------------
+上游与源码
+----------
 
-* **GitHub 仓库**：https://github.com/HansBug/pyfcstm
-* **问题跟踪**：https://github.com/HansBug/pyfcstm/issues
-* **PyPI 包**：https://pypi.org/project/pyfcstm/
-
-许可证
----------
-
-pyfcstm 在 Apache License 2.0 下发布。详情请参阅 LICENSE 文件。
+* **GitHub 仓库**：https://github.com/HansBug/pyudbm
+* **UDBM 上游**：https://github.com/UPPAALModelChecker/UDBM
+* **UUtils 上游**：https://github.com/UPPAALModelChecker/UUtils

@@ -1,4 +1,5 @@
 PYTHON := $(shell which python)
+PS     ?= $(shell ${PYTHON} -c "import os; print(os.pathsep)")
 
 SOURCE         ?= .
 PYTHON_DEMOS   := $(shell find ${SOURCE} -name *.demo.py)
@@ -14,29 +15,29 @@ SHELL_RESULTS  := $(addsuffix .sh.txt, $(basename ${SHELL_DEMOS} ${SHELL_DEMOXS}
 
 %.demo.py.txt: %.demo.py
 	cd "$(shell dirname $(shell readlink -f $<))" && \
-		PYTHONPATH="$(shell dirname $(shell readlink -f $<)):${PYTHONPATH}" \
+		PYTHONPATH="$(shell dirname $(shell readlink -f $<))${PS}${PYTHONPATH}" \
 		$(PYTHON) "$(shell readlink -f $<)" > "$(shell readlink -f $@)"
 
 %.demox.py.txt: %.demox.py
 	cd "$(shell dirname $(shell readlink -f $<))" && \
-		PYTHONPATH="$(shell dirname $(shell readlink -f $<)):${PYTHONPATH}" \
+		PYTHONPATH="$(shell dirname $(shell readlink -f $<))${PS}${PYTHONPATH}" \
 		$(PYTHON) "$(shell readlink -f $<)" 1> "$(shell readlink -f $@)" \
 		2> "$(shell readlink -f $(addsuffix .err, $(basename $@)))"; \
 		echo $$? > "$(shell readlink -f $(addsuffix .exitcode, $(basename $@)))"
 
 %.plot.py.svg: %.plot.py
 	cd "$(shell dirname $(shell readlink -f $<))" && \
-		PYTHONPATH="$(shell dirname $(shell readlink -f $<)):${PYTHONPATH}" \
+		PYTHONPATH="$(shell dirname $(shell readlink -f $<))${PS}${PYTHONPATH}" \
 		$(PYTHON) "$(shell readlink -f $<)" -o "$(shell readlink -f $@)"
 
 %.demo.sh.txt: %.demo.sh
 	cd "$(shell dirname $(shell readlink -f $<))" && \
-		PYTHONPATH="$(shell dirname $(shell readlink -f $<)):${PYTHONPATH}" \
+		PYTHONPATH="$(shell dirname $(shell readlink -f $<))${PS}${PYTHONPATH}" \
 		$(SHELL) "$(shell readlink -f $<)" > "$(shell readlink -f $@)"
 
 %.demox.sh.txt: %.demox.sh
 	cd "$(shell dirname $(shell readlink -f $<))" && \
-		PYTHONPATH="$(shell dirname $(shell readlink -f $<)):${PYTHONPATH}" \
+		PYTHONPATH="$(shell dirname $(shell readlink -f $<))${PS}${PYTHONPATH}" \
 		$(SHELL) "$(shell readlink -f $<)" 1> "$(shell readlink -f $@)" \
 		2> "$(shell readlink -f $(addsuffix .err, $(basename $@)))"; \
 		echo $$? > "$(shell readlink -f $(addsuffix .exitcode, $(basename $@)))"

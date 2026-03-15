@@ -1,4 +1,6 @@
 PIP := $(shell which pip)
+PYTHON ?= $(shell which python)
+PS     ?= $(shell ${PYTHON} -c "import os; print(os.pathsep)")
 
 SPHINXOPTS         ?=
 SPHINXBUILD        ?= $(shell which sphinx-build)
@@ -8,26 +10,21 @@ BUILDDIR           ?= $(shell readlink -f ${CURDIR}/../build)
 
 DIAGRAMS_MK := ${SOURCEDIR}/diagrams.mk
 DIAGRAMS    := $(MAKE) -f "${DIAGRAMS_MK}" SOURCE=${SOURCEDIR}
-FCSTMS_MK   := ${SOURCEDIR}/fcstms.mk
-FCSTMS      := $(MAKE) -f "${FCSTMS_MK}" SOURCE=${SOURCEDIR}
 GRAPHVIZ_MK := ${SOURCEDIR}/graphviz.mk
 GRAPHVIZ    := $(MAKE) -f "${GRAPHVIZ_MK}" SOURCE=${SOURCEDIR}
 DEMOS_MK    := ${SOURCEDIR}/demos.mk
 DEMOS       := $(MAKE) -f "${DEMOS_MK}" SOURCE=${SOURCEDIR}
 NOTEBOOK_MK := ${SOURCEDIR}/notebook.mk
 NOTEBOOK    := $(MAKE) -f "${NOTEBOOK_MK}" SOURCE=${SOURCEDIR}
-LOGOS_MK    := ${SOURCEDIR}/logos.mk
-LOGOS       := $(MAKE) -f "${LOGOS_MK}" SOURCE=${SOURCEDIR}
 
 _CURRENT_PATH := ${PATH}
 _PROJ_DIR     := $(shell readlink -f ${SOURCEDIR}/../..)
 _LIBS_DIR     := $(shell readlink -f ${SOURCEDIR}/_libs)
-_SHIMS_DIR    := $(shell readlink -f ${SOURCEDIR}/_shims)
 
 .EXPORT_ALL_VARIABLES:
 
-PYTHONPATH = ${_PROJ_DIR}:${_LIBS_DIR}
-PATH       = ${_SHIMS_DIR}:${_CURRENT_PATH}
+PYTHONPATH = ${_PROJ_DIR}${PS}${_LIBS_DIR}
+PATH       = ${_CURRENT_PATH}
 
 .PHONY: all build clean pip
 
@@ -36,9 +33,7 @@ pip:
 	@$(PIP) install -r ${_PROJ_DIR}/requirements-doc.txt
 
 build:
-	@$(LOGOS) build
 	@$(DIAGRAMS) build
-	@$(FCSTMS) build
 	@$(GRAPHVIZ) build
 	@$(DEMOS) build
 	@$(NOTEBOOK) build
@@ -46,9 +41,7 @@ build:
 all: build
 
 clean:
-	@$(LOGOS) clean
 	@$(DIAGRAMS) clean
-	@$(FCSTMS) clean
 	@$(GRAPHVIZ) clean
 	@$(DEMOS) clean
 	@$(NOTEBOOK) clean

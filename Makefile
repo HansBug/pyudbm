@@ -1,7 +1,7 @@
 .PHONY: help info build clean clean_x package zip test unittest \
 	uutils_build uutils_test uutils_install uutils_clean uutils uutils_notest \
 	udbm_build udbm_test udbm_install udbm_clean udbm udbm_notest \
-	bin_clean bin bin_notest docs pdocs uversion
+	bin_clean bin bin_notest docs_prepare docs docs_en docs_zh pdocs rst_auto uversion
 
 PYTHON := $(shell which python)
 CC     ?= $(shell which gcc)
@@ -29,6 +29,13 @@ RANGE_DIR       ?= .
 RANGE_TEST_DIR  := ${TEST_DIR}/${RANGE_DIR}
 RANGE_BENCH_DIR := ${BENCHMARK_DIR}/${RANGE_DIR}
 RANGE_SRC_DIR   := ${SRC_DIR}/${RANGE_DIR}
+
+PYTHON_CODE_DIR   := ${SRC_DIR}
+RST_DOC_DIR       := ${DOC_DIR}/source/api_doc
+PYTHON_CODE_FILES := $(shell find ${PYTHON_CODE_DIR} -name "*.py" ! -path "*/__pycache__/*" ! -name "__*.py" 2>/dev/null)
+RST_DOC_FILES     := $(patsubst ${PYTHON_CODE_DIR}/%.py,${RST_DOC_DIR}/%.rst,${PYTHON_CODE_FILES})
+PYTHON_NONM_FILES := $(shell find ${PYTHON_CODE_DIR} -name "__init__.py" ! -path "*/__pycache__/*" 2>/dev/null)
+RST_NONM_FILES    := $(foreach file,${PYTHON_NONM_FILES},$(patsubst %/__init__.py,%/index.rst,$(patsubst ${PYTHON_CODE_DIR}/%,${RST_DOC_DIR}/%,$(patsubst ${PYTHON_CODE_DIR}/__init__.py,${RST_DOC_DIR}/index.rst,${file}))))
 
 BINSTALL_LIB_DIR     ?= $(shell readlink -f ${BINSTALL_DIR}/lib*)
 BINSTALL_INCLUDE_DIR ?= $(shell readlink -f ${BINSTALL_DIR}/include*)
@@ -83,8 +90,11 @@ help:
 	@echo "  make bin_clean    - Remove UUtils, UDBM, and local prefix build outputs"
 	@echo ""
 	@echo "Documentation:"
-	@echo "  make docs         - Build documentation"
+	@echo "  make docs         - Build documentation (auto-detects language)"
+	@echo "  make docs_en      - Build English documentation"
+	@echo "  make docs_zh      - Build Chinese documentation"
 	@echo "  make pdocs        - Build production documentation"
+	@echo "  make rst_auto     - Generate RST documentation from Python source"
 	@echo ""
 	@echo "Diagnostics:"
 	@echo "  make info         - Print current path and CMake environment values"
@@ -155,9 +165,36 @@ bin: uutils udbm
 bin_notest: uutils_notest udbm_notest
 
 docs:
+	$(MAKE) docs_prepare
 	$(MAKE) -C "${DOC_DIR}" build
+docs_prepare:
+	$(MAKE) bin_notest
+	$(MAKE) build
+	$(MAKE) rst_auto
+docs_en:
+	$(MAKE) docs_prepare
+	READTHEDOCS_LANGUAGE=en $(MAKE) -C "${DOC_DIR}" build
+docs_zh:
+	$(MAKE) docs_prepare
+	READTHEDOCS_LANGUAGE=zh-cn $(MAKE) -C "${DOC_DIR}" build
 pdocs:
+	$(MAKE) docs_prepare
 	$(MAKE) -C "${DOC_DIR}" prod
+
+rst_auto: ${RST_DOC_FILES} ${RST_NONM_FILES} auto_rst_top_index.py
+	$(PYTHON) auto_rst_top_index.py -i "${PYTHON_CODE_DIR}" -o "${DOC_DIR}/source"
+
+${RST_DOC_DIR}/%.rst: ${PYTHON_CODE_DIR}/%.py auto_rst.py Makefile
+	@mkdir -p "$(dir $@)"
+	$(PYTHON) auto_rst.py -i "$<" -o "$@"
+
+${RST_DOC_DIR}/%/index.rst: ${PYTHON_CODE_DIR}/%/__init__.py auto_rst.py Makefile
+	@mkdir -p "$(dir $@)"
+	$(PYTHON) auto_rst.py -i "$<" -o "$@"
+
+${RST_DOC_DIR}/index.rst: ${PYTHON_CODE_DIR}/__init__.py auto_rst.py Makefile
+	@mkdir -p "$(dir $@)"
+	$(PYTHON) auto_rst.py -i "$<" -o "$@"
 
 info:
 	echo "PS: ${PS}"
