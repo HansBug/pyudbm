@@ -22,6 +22,17 @@ from typing import Any, Iterable, List, Mapping, Optional, Union
 
 from ._binding import _NativeConstraint, _NativeFederation
 
+__all__ = [
+    "Clock",
+    "Constraint",
+    "Context",
+    "Federation",
+    "FloatValuation",
+    "IntValuation",
+    "Valuation",
+    "VariableDifference",
+]
+
 LOGGER = logging.getLogger("pyudbm")
 
 
@@ -542,15 +553,3 @@ class Context:
         """
 
         return Federation(self)
-
-
-__all__ = [
-    "Clock",
-    "Constraint",
-    "Context",
-    "Federation",
-    "FloatValuation",
-    "IntValuation",
-    "Valuation",
-    "VariableDifference",
-]

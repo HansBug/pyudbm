@@ -2,7 +2,7 @@ import pytest
 
 import pyudbm
 import pyudbm.binding
-from pyudbm.binding import Context, Federation, FloatValuation, IntValuation
+from pyudbm.binding import Constraint, Context, Federation, FloatValuation, IntValuation, Valuation, VariableDifference
 
 
 @pytest.mark.unittest
@@ -215,3 +215,172 @@ class TestBindingApi:
         assert not (c.x == 1).isEmpty()
         assert not ((c.x == 1) & (c.y != 1)).isEmpty()
         assert (((c.x == 1) & (c.x != 1)) | ((c.y == 1) & (c.y != 1))).isEmpty()
+
+    def test_clock_public_edge_cases(self):
+        context = Context(["x", "y"], name="c")
+        other = Context(["x"], name="other")
+        anonymous = Context(["x"])
+
+        assert repr(context.x) == "<Clock c.x>"
+        assert anonymous.x.getFullName() == "x"
+        assert context.x == context.x
+        assert context.x != context.y
+
+        with pytest.raises(TypeError):
+            _ = context.x - 1
+
+        with pytest.raises(ValueError):
+            _ = context.x - other.x
+
+        with pytest.raises(TypeError):
+            _ = context.x <= 1.5
+
+        with pytest.raises(TypeError):
+            _ = context.x >= 1.5
+
+        with pytest.raises(TypeError):
+            _ = context.x < 1.5
+
+        with pytest.raises(TypeError):
+            _ = context.x > 1.5
+
+    def test_valuation_public_edge_cases(self, caplog):
+        context = Context(["x", "y"])
+        other = Context(["x"])
+        valuation = Valuation(context)
+
+        with pytest.raises(TypeError):
+            valuation[1] = 1
+
+        with pytest.raises(ValueError):
+            valuation[other.x] = 1
+
+        valuation["x"] = 1
+        valuation[context.y] = 2
+
+        assert valuation[context.y] == 2
+
+        with caplog.at_level("ERROR", logger="pyudbm"):
+            valuation.check()
+
+        assert "Clock y is not present in the clock valuation." not in caplog.text
+
+        incomplete = Valuation(context)
+        incomplete["x"] = 1
+
+        with caplog.at_level("ERROR", logger="pyudbm"):
+            incomplete.check()
+
+        assert "Clock y is not present in the clock valuation." in caplog.text
+
+        float_valuation = FloatValuation(context)
+        with pytest.raises(TypeError):
+            float_valuation["x"] = "1.0"
+
+    def test_variable_difference_public_edge_cases(self):
+        context = Context(["x", "y"])
+        other = Context(["x"])
+
+        with pytest.raises(ValueError):
+            VariableDifference([context.x])
+
+        with pytest.raises(ValueError):
+            VariableDifference([context.x, other.x])
+
+        difference = context.x - context.y
+
+        with pytest.raises(TypeError):
+            _ = difference <= 0.5
+
+        with pytest.raises(TypeError):
+            _ = difference >= 0.5
+
+        with pytest.raises(TypeError):
+            _ = difference < 0.5
+
+        with pytest.raises(TypeError):
+            _ = difference > 0.5
+
+        assert not (difference == object())
+        assert difference != object()
+
+    def test_constraint_public_validation(self):
+        context = Context(["x", "y"])
+        other = Context(["x"])
+
+        with pytest.raises(TypeError):
+            Constraint(context.x, None, 1.5, False)
+
+        with pytest.raises(ValueError):
+            Constraint(None, None, 1, False)
+
+        with pytest.raises(TypeError):
+            Constraint("x", None, 1, False)
+
+        with pytest.raises(TypeError):
+            Constraint(context.x, "y", 1, False)
+
+        with pytest.raises(ValueError):
+            Constraint(context.x, other.x, 1, False)
+
+    def test_federation_public_validation(self):
+        context = Context(["x", "y"])
+        other = Context(["x", "y"])
+        federation = context.x <= 1
+
+        with pytest.raises(TypeError):
+            Federation(object())
+
+        with pytest.raises(TypeError):
+            _ = federation & 1
+
+        with pytest.raises(ValueError):
+            _ = federation & (other.x <= 1)
+
+        assert not (federation == object())
+
+        valuation = Valuation(context)
+        valuation["x"] = 0
+        valuation["y"] = 0
+
+        with pytest.raises(TypeError):
+            federation.contains(valuation)
+
+        with pytest.raises(ValueError):
+            federation.updateValue(other.x, 1)
+
+    def test_extrapolate_max_bounds_public_validation(self, caplog):
+        context = Context(["x", "y", "z"])
+        other = Context(["x"])
+        federation = (context.x - context.y <= 1) & (context.x < 150) & (context.z < 150) & (context.x - context.z <= 1000)
+
+        with caplog.at_level("ERROR", logger="pyudbm"):
+            result = federation.extrapolateMaxBounds({"x": 100})
+
+        assert "extrapolateMaxBounds called without bounds for every clock." in caplog.text
+        assert isinstance(result, Federation)
+
+        with pytest.raises(TypeError):
+            federation.extrapolateMaxBounds({context.x: 100, context.y: 200, 1: 300})
+
+        with pytest.raises(ValueError):
+            federation.extrapolateMaxBounds({other.x: 100, context.y: 200, context.z: 300})
+
+    def test_context_public_edge_cases(self, caplog):
+        with caplog.at_level("WARNING", logger="pyudbm"):
+            warned = Context(["clocks", "x"])
+
+        assert "already has attribute clocks" in caplog.text
+        assert warned["clocks"].name == "clocks"
+
+        context = Context(["x"])
+        context.setName("renamed")
+
+        assert context.x.getFullName() == "renamed.x"
+
+        with pytest.raises(KeyError):
+            _ = context["missing"]
+
+        ambiguous = Context(["x", "x"])
+        with pytest.raises(KeyError, match="Ambiguous clock name: x"):
+            _ = ambiguous["x"]
