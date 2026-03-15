@@ -85,11 +85,12 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Set up pybind11
+      - name: Set up build tools
         shell: bash
         run: |
-          pip install "pybind11[global]"
-          pip install -U 'cmake<4'
+          python -m pip install setuptools wheel
+          python -m pip install "pybind11[global]"
+          python -m pip install -U 'cmake<4'
       - name: Build native dependencies
         shell: bash
         run: |
