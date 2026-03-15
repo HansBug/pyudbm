@@ -8,14 +8,15 @@ jobs:
   wheel_build:
     name: Try build
     runs-on: ${{ matrix.os }}
+    env:
+      CIBW_CACHE_PATH: ./.cibw-cache
     strategy:
       fail-fast: false
       matrix:
         os:
           - 'ubuntu-22.04'
           - 'windows-2022'
-          - 'macos-15-intel'  # Intel macOS runner for x86_64
-          - 'macos-14'  # macOS 14 is arm64 arch
+          - 'macos-14'
         python:
           - '3.7'
           - '3.8'
@@ -27,9 +28,8 @@ jobs:
           - '3.14'
         architecture:
           - x86_64
-          - arm64  # macOS only, seems not well-supported
+          - arm64
           - aarch64
-          - x86
           - AMD64
 #          - i686  # compile Error on UDBM
           - ppc64le
@@ -58,26 +58,8 @@ jobs:
             architecture: s390x
           - os: windows-2022
             architecture: armv7l
-          - os: macos-15-intel
-            architecture: aarch64
-          - os: macos-15-intel
-            architecture: x86
-          - os: macos-15-intel
-            architecture: AMD64
-          - os: macos-15-intel
-            architecture: i686
-          - os: macos-15-intel
-            architecture: ppc64le
-          - os: macos-15-intel
-            architecture: s390x
-          - os: macos-15-intel
-            architecture: armv7l
-          - os: macos-15-intel
-            architecture: arm64
           - os: macos-14
             architecture: aarch64
-          - os: macos-14
-            architecture: x86
           - os: macos-14
             architecture: AMD64
           - os: macos-14
@@ -117,6 +99,21 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python }}
+      - name: Prime cibuildwheel cache
+        if: ${{ runner.os == 'Windows' || runner.os == 'macOS' }}
+        shell: bash
+        run: |
+          case "${{ matrix.python }}" in
+            3.7) VIRTUALENV_VERSION=20.26.6 ;;
+            *) VIRTUALENV_VERSION=20.30.0 ;;
+          esac
+          mkdir -p "$CIBW_CACHE_PATH"
+          TARGET="$CIBW_CACHE_PATH/virtualenv-${VIRTUALENV_VERSION}.pyz"
+          URL="https://raw.githubusercontent.com/pypa/get-virtualenv/${VIRTUALENV_VERSION}/public/virtualenv.pyz"
+          if [ ! -f "$TARGET" ]; then
+            curl -fL --retry 8 --retry-all-errors --retry-delay 5 -o "$TARGET" "$URL"
+          fi
+          ls -al "$CIBW_CACHE_PATH"
       - name: Build wheels
         env:
           CIBW_SKIP: "pp*"

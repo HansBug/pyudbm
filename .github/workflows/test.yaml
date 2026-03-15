@@ -15,7 +15,7 @@ jobs:
         os:
           - 'ubuntu-22.04'
           - 'windows-2022'
-          - 'macos-15-intel'
+          - 'macos-14'
         python-version:
           - '3.7'
           - '3.8'
@@ -25,6 +25,11 @@ jobs:
           - '3.12'
           - '3.13'
           - '3.14'
+        exclude:
+          - os: macos-14
+            python-version: '3.7'
+          - os: macos-14
+            python-version: '3.8'
 
     steps:
       - name: Get system version for Linux
@@ -148,13 +153,15 @@ jobs:
     name: Try build
     runs-on: ${{ matrix.os }}
     if: "!contains(github.event.head_commit.message, 'ci skip')"
+    env:
+      CIBW_CACHE_PATH: ./.cibw-cache
     strategy:
       fail-fast: false
       matrix:
         os:
           - 'ubuntu-22.04'
           - 'windows-2022'
-          - 'macos-15-intel'
+          - 'macos-14'
         python:
           - '3.8'
 #          - '3.9'
@@ -164,51 +171,22 @@ jobs:
           - '3.14'
         architecture:
           - x86_64
-          #          - arm64  # macOS only, seems not well-supported
-#          - aarch64
-#          - x86
+          - arm64
           - AMD64
-#          - i686
-#          - ppc64le
-#          - s390x
-#          - armv7l  # musllinux only
         exclude:
           - os: ubuntu-22.04
             architecture: arm64
           - os: ubuntu-22.04
-            architecture: x86
-          - os: ubuntu-22.04
             architecture: AMD64
-          - os: windows-2022
-            architecture: x86  # win32 unittest failed
-          - os: windows-2022
-            architecture: x86_64
           - os: windows-2022
             architecture: arm64
           - os: windows-2022
-            architecture: aarch64
-          - os: windows-2022
-            architecture: i686
-          - os: windows-2022
-            architecture: ppc64le
-          - os: windows-2022
-            architecture: s390x
-          - os: windows-2022
-            architecture: armv7l
-          - os: macos-15-intel
-            architecture: aarch64
-          - os: macos-15-intel
-            architecture: x86
-          - os: macos-15-intel
+            architecture: x86_64
+          - os: macos-14
             architecture: AMD64
-          - os: macos-15-intel
-            architecture: i686
-          - os: macos-15-intel
-            architecture: ppc64le
-          - os: macos-15-intel
-            architecture: s390x
-          - os: macos-15-intel
-            architecture: armv7l
+          - os: macos-14
+            python: '3.8'
+            architecture: arm64
 
     steps:
       - name: Checkout code
@@ -232,6 +210,21 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python }}
+      - name: Prime cibuildwheel cache
+        if: ${{ runner.os == 'Windows' || runner.os == 'macOS' }}
+        shell: bash
+        run: |
+          case "${{ matrix.python }}" in
+            3.7) VIRTUALENV_VERSION=20.26.6 ;;
+            *) VIRTUALENV_VERSION=20.30.0 ;;
+          esac
+          mkdir -p "$CIBW_CACHE_PATH"
+          TARGET="$CIBW_CACHE_PATH/virtualenv-${VIRTUALENV_VERSION}.pyz"
+          URL="https://raw.githubusercontent.com/pypa/get-virtualenv/${VIRTUALENV_VERSION}/public/virtualenv.pyz"
+          if [ ! -f "$TARGET" ]; then
+            curl -fL --retry 8 --retry-all-errors --retry-delay 5 -o "$TARGET" "$URL"
+          fi
+          ls -al "$CIBW_CACHE_PATH"
       - name: Build wheels
         env:
           CIBW_SKIP: "pp*"
