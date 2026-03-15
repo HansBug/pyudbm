@@ -1,23 +1,36 @@
 import pytest
 
 import pyudbm
+import pyudbm.binding
+from pyudbm.binding import Context, Federation, FloatValuation, IntValuation
 
 
 @pytest.mark.unittest
-class TestLegacyApi:
+class TestBindingApi:
     def setup_method(self):
-        self.c = pyudbm.Context(["x", "y", "z"], name="c")
+        self.c = Context(["x", "y", "z"], name="c")
+
+    def test_binding_exports(self):
+        assert Context is pyudbm.binding.Context
+        assert Federation is pyudbm.binding.Federation
+        assert IntValuation is pyudbm.binding.IntValuation
+        assert FloatValuation is pyudbm.binding.FloatValuation
+        assert pyudbm.binding.Clock is not None
+        assert pyudbm.binding.Context is not None
+        assert pyudbm.binding.Federation is not None
+        assert pyudbm.binding.IntValuation is not None
+        assert pyudbm.binding.FloatValuation is not None
 
     def test_root_exports(self):
-        assert pyudbm.Clock is not None
-        assert pyudbm.Context is not None
-        assert pyudbm.Federation is not None
-        assert pyudbm.IntValuation is not None
-        assert pyudbm.FloatValuation is not None
+        assert pyudbm.Clock is pyudbm.binding.Clock
+        assert pyudbm.Context is pyudbm.binding.Context
+        assert pyudbm.Federation is pyudbm.binding.Federation
+        assert pyudbm.IntValuation is pyudbm.binding.IntValuation
+        assert pyudbm.FloatValuation is pyudbm.binding.FloatValuation
 
     def test_int_valuation(self):
         c = self.c
-        valuation = pyudbm.IntValuation(c)
+        valuation = IntValuation(c)
 
         with pytest.raises(KeyError):
             _ = valuation["not_in_federation"]
@@ -34,7 +47,7 @@ class TestLegacyApi:
 
     def test_float_valuation(self):
         c = self.c
-        valuation = pyudbm.FloatValuation(c)
+        valuation = FloatValuation(c)
 
         with pytest.raises(KeyError):
             _ = valuation["not_in_federation"]
@@ -122,7 +135,7 @@ class TestLegacyApi:
         assert d3 == d1
 
     def test_up_down(self):
-        c = pyudbm.Context(["x", "y"])
+        c = Context(["x", "y"])
         d1 = (c.x >= 1) & (c.x <= 2) & (c.y >= 1) & (c.y <= 2)
         d2 = (c.x - c.y <= 1) & (c.y - c.x <= 1) & (c.x >= 1) & (c.y >= 1)
         d3 = (c.x - c.y <= 1) & (c.y - c.x <= 1) & (c.x <= 2) & (c.y <= 2)
@@ -184,7 +197,7 @@ class TestLegacyApi:
         c = self.c
         assert c.getZeroFederation().isZero()
         assert c.getZeroFederation().hasZero()
-        assert pyudbm.Federation(c).isZero()
+        assert Federation(c).isZero()
         assert not (c.x == 1).isZero()
         assert (c.x == 1) != c.getZeroFederation()
 

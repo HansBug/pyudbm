@@ -117,7 +117,7 @@ setup(
     # environment
     python_requires=">=3.7",
     ext_modules=[
-        CMakeExtension('pyudbm._binding'),
+        CMakeExtension('pyudbm.binding._binding'),
     ],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,

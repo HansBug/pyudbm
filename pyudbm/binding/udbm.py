@@ -18,7 +18,7 @@ Example::
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Union
+from typing import Any, Iterable, List, Mapping, Optional, Union
 
 from ._binding import _NativeConstraint, _NativeFederation
 

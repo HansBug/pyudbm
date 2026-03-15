@@ -39,18 +39,18 @@ Short-term repository direction:
 As the repository currently stands:
 
 - The binding stack is `pybind11 + CMake + setuptools`, not SWIG.
-- The root `CMakeLists.txt` builds two pybind11 extension modules from:
-  - `pyudbm/core/constraints.cpp`
-  - `pyudbm/core/dbm.cpp`
+- The root `CMakeLists.txt` builds one pybind11 extension module from:
+  - `pyudbm/binding/_binding.cpp`
 - The currently visible Python-side code mostly lives in:
-  - `pyudbm/core/constraints.py`
-  - `pyudbm/core/dbm.py`
+  - `pyudbm/binding/udbm.py`
+  - `pyudbm/binding/__init__.py`
   - `pyudbm/config/meta.py`
-- Test coverage is still very limited and currently centered on:
-  - `test/core/test_constraints.py`
+- The package root re-exports the high-level binding API from `pyudbm.binding`.
+- Test coverage is currently centered on:
+  - `test/binding/test_api.py`
   - `test/config/test_meta.py`
 
-That means the repository is still in a “low-level binding first, historical high-level API not yet restored” phase. Design work should follow the long-term direction instead of freezing the current incomplete layout into a final architecture.
+That means the repository has already moved back to a compatibility-oriented high-level API, but the wrapper is still unfinished and should continue to follow the long-term legacy-parity direction instead of ossifying around temporary implementation details.
 
 ## Support Targets
 
@@ -201,8 +201,8 @@ Safe places to work:
 
 - `pyudbm/` for the in-progress Python API and binding-facing code.
 - `tools/` for repository maintenance utilities such as metadata sync scripts.
-- `pyudbm/core/*.cpp` for pybind11 bindings.
-- `pyudbm/core/*.py` for Python-level wrappers.
+- `pyudbm/binding/*.cpp` for pybind11 bindings.
+- `pyudbm/binding/*.py` for Python-level wrappers.
 - `pyudbm/config/meta.py` for package metadata.
 - `test/` for Python tests.
 - `srcpy2/README.md` for archaeology notes about the vendored legacy Python 2 reference snapshot.
@@ -226,8 +226,8 @@ Treat these as generated or local-only artifacts:
 - `venv/`
 - `.coverage`
 - `coverage.xml`
-- `pyudbm/_core/*.so`
-- `pyudbm/_core/*.pyd`
+- `pyudbm/binding/*.so`
+- `pyudbm/binding/*.pyd`
 
 Do not commit generated binaries, coverage outputs, or environment-specific build products.
 
@@ -249,22 +249,17 @@ The current repository layout can be understood like this:
 |- requirements*.txt             # runtime / build / test / docs dependencies
 |- pyudbm/                       # Current Python package
 |  |- __init__.py
+|  |- binding/
+|  |  |- __init__.py             # public binding namespace
+|  |  |- _binding.cpp            # pybind11 binding implementation
+|  |  `- udbm.py                 # historical high-level Python DSL
 |  |- config/
 |  |  `- meta.py                 # package metadata
-|  |- core/
-|  |  |- constraints.cpp         # pybind11 bindings for constraints
-|  |  |- dbm.cpp                 # pybind11 bindings for DBM operations
-|  |  |- constraints.py          # Python wrapper layer for constraints
-|  |  `- dbm.py                  # Python wrapper layer for DBM operations
-|  |- utils/
-|  |  `- enum.py                 # enum helpers
-|  `- _core/                     # in-place built extension output directory
 |- test/
+|  |- binding/
+|  |  `- test_api.py
 |  |- config/
 |  |  `- test_meta.py
-|  |- core/
-|  |  `- test_constraints.py
-|  `- utils/
 |- srcpy2/                       # historical Python 2 binding snapshot
 |- UUtils/                       # upstream submodule, do not patch directly
 |- UDBM/                         # upstream submodule, do not patch directly
@@ -277,7 +272,8 @@ The current repository layout can be understood like this:
 
 Additional notes:
 
-- `pyudbm/_core/` is a build output location, not a hand-edited source directory.
+- `pyudbm/binding/` contains both hand-written source files and the in-place built extension output.
+- Do not edit compiled extension artifacts that appear under `pyudbm/binding/`.
 - The repository currently has no root `docs/` directory, so `make docs` / `make pdocs` should not be treated as a working documentation flow yet.
 - `Makefile` still exposes variables for benchmark paths, but the repository does not currently contain a real benchmark tree.
 
@@ -310,9 +306,7 @@ Python dependency layers in this repository:
 
 Concrete dependency notes from the current files:
 
-- `requirements.txt` currently contains:
-  - `hbutils>=0.9`
-  - `enum_tools>=0.9.0`
+- `requirements.txt` is currently empty because the restored high-level binding does not need extra runtime Python dependencies.
 - `requirements-build.txt` currently contains:
   - `pybind11[global]`
   - `build>=0.7.0`
@@ -332,13 +326,6 @@ Concrete dependency notes from the current files:
   - `where`
   - `responses`
   - `natsort`
-
-One practical caveat in the current codebase:
-
-- `pyudbm/core/dbm.py` imports `numpy`
-- `pyudbm/core/dbm.cpp` uses `pybind11/numpy.h`
-- `requirements.txt` does not currently declare `numpy`
-- Therefore, if you are going to use or test the Python `DBM` layer locally, install `numpy` explicitly
 
 ### Platform Guidance
 
@@ -377,10 +364,7 @@ python -m pip install -U pip setuptools wheel
 python -m pip install -r requirements.txt
 python -m pip install -r requirements-test.txt
 python -m pip install -r requirements-build.txt
-python -m pip install numpy
 ```
-
-If you are only working on the constraints layer you may not hit the `numpy` dependency immediately, but anything that exercises `pyudbm.core.dbm` should assume `numpy` is required locally.
 
 If you want to inspect the current path and CMake environment expansion before building, run:
 
@@ -458,12 +442,11 @@ In practice this means:
 - enter `setup.py`
 - invoke the custom `CMakeBuild`
 - build the pybind11 extensions through the root `CMakeLists.txt`
-- place the built modules in `pyudbm/_core/`
+- place the built module in `pyudbm/binding/`
 
-At the moment the root build produces two extension modules:
+At the moment the root build produces one extension module:
 
-- `_c_udbm_constraints`
-- `_c_udbm_dbm`
+- `_binding`
 
 ### Step 4: Run Python Unit Tests
 
@@ -482,7 +465,6 @@ git submodule update --init --recursive
 python -m pip install -r requirements.txt
 python -m pip install -r requirements-test.txt
 python -m pip install -r requirements-build.txt
-python -m pip install numpy
 make uversion
 make bin
 make build
@@ -501,7 +483,7 @@ make unittest
 Important detail:
 
 - `make clean_x` removes `build/`, `dist/`, `wheelhouse/`, and `bin_install/`
-- it does not remove the in-place built extension modules already copied into `pyudbm/_core/`
+- it does not remove the in-place built extension modules already copied into `pyudbm/binding/`
 - that is why CI can run `make build`, then `make clean_x`, then still run `make unittest`
 
 By contrast, `make clean` removes the in-place extension `.so` files under `pyudbm/`, so after `make clean` you must rebuild with `make build`.
@@ -568,7 +550,7 @@ Examples:
 
 ```bash
 make unittest
-make unittest RANGE_DIR=core
+make unittest RANGE_DIR=binding
 make unittest COV_TYPES="xml term-missing"
 make unittest MIN_COVERAGE=80
 make unittest WORKERS=4
@@ -825,6 +807,13 @@ def f(items: list[str] | None) -> dict[str, int]:
 - If behavior is inherited from upstream UDBM rather than invented locally, reflect that clearly in tests, comments, or commit messages.
 - Extend the structured `test/` tree instead of adding ad hoc validation scripts and calling them “tests”.
 
+### Test Organization
+
+- Put tests under `test/` and mark unit tests with `@pytest.mark.unittest`.
+- Binding-facing tests belong under `test/binding/`.
+- If shared fixtures or helpers become necessary, place them in a dedicated `test/testings/` area instead of scattering them across feature directories.
+- Keep test runtime within the timeout configured by `pytest.ini` for this repository.
+
 ## Python Docstring Style Guide
 
 Use **reStructuredText (reST)** format exclusively for public Python docstrings, following PEP 257 and Sphinx conventions.
@@ -992,7 +981,7 @@ Do not:
 - Prefer exposing upstream UDBM capabilities directly.
 - Place higher-level Python ergonomics in the Python layer unless performance or boundary concerns clearly require C++.
 - Keep naming close to upstream terminology.
-- If a change is only about making Python usage nicer, first ask whether it belongs in `pyudbm/core/*.py` instead of the C++ binding.
+- If a change is only about making Python usage nicer, first ask whether it belongs in `pyudbm/binding/*.py` instead of the C++ binding.
 
 ## Agent Decision Rules
 
@@ -1010,7 +999,7 @@ Typical flow:
 
 ```bash
 make build
-make unittest RANGE_DIR=core
+make unittest RANGE_DIR=binding
 ```
 
 This assumes you have already run `make bin` at least once before.

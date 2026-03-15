@@ -6,7 +6,7 @@ the historical UDBM Python binding.
 """
 
 from .config.meta import __VERSION__ as __version__
-from .udbm import Clock, Constraint, Context, Federation, FloatValuation, IntValuation, Valuation, VariableDifference
+from .binding import Clock, Constraint, Context, Federation, FloatValuation, IntValuation, Valuation, VariableDifference
 
 __all__ = [
     "Clock",

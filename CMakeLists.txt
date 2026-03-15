@@ -25,6 +25,6 @@ find_package(pybind11 REQUIRED)
 find_package(UUtils CONFIG REQUIRED)
 find_package(UDBM CONFIG REQUIRED)
 
-pybind11_add_module(_binding pyudbm/_binding.cpp)
+pybind11_add_module(_binding pyudbm/binding/_binding.cpp)
 target_link_libraries(_binding PRIVATE UDBM)
 target_include_directories(_binding PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
