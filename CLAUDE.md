@@ -200,6 +200,7 @@ If a requested change requires altering upstream source code, do one of these in
 Safe places to work:
 
 - `pyudbm/` for the in-progress Python API and binding-facing code.
+- `tools/` for repository maintenance utilities such as metadata sync scripts.
 - `pyudbm/core/*.cpp` for pybind11 bindings.
 - `pyudbm/core/*.py` for Python-level wrappers.
 - `pyudbm/config/meta.py` for package metadata.
@@ -240,6 +241,9 @@ The current repository layout can be understood like this:
 |- CLAUDE.md
 |- CMakeLists.txt                # Root CMake for pybind11 extension builds
 |- Makefile                      # Unified local build / test / package entrypoint
+|- tools/                        # Repository maintenance helper scripts
+|  |- __init__.py
+|  `- udbm_version.py            # Sync UDBM version/commit into pyudbm metadata
 |- pyproject.toml                # Build-system metadata and cibuildwheel config
 |- setup.py                      # setuptools + CMake bridge
 |- requirements*.txt             # runtime / build / test / docs dependencies
@@ -479,6 +483,7 @@ python -m pip install -r requirements.txt
 python -m pip install -r requirements-test.txt
 python -m pip install -r requirements-build.txt
 python -m pip install numpy
+make uversion
 make bin
 make build
 make unittest
@@ -532,6 +537,12 @@ By contrast, `make clean` removes the in-place extension `.so` files under `pyud
   - `wheelhouse/`
   - `build/`
   - `bin_install/`
+
+`make uversion`
+
+- Update `pyudbm/config/meta.py` with the declared version from
+  `UDBM/CMakeLists.txt` and the current `UDBM` submodule commit hash.
+- Runs `python -m tools.udbm_version -i UDBM -o pyudbm/config/meta.py`.
 
 ### Python Test Targets
 

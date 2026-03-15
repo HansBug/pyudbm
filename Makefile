@@ -1,7 +1,7 @@
 .PHONY: help info build clean clean_x package zip test unittest \
 	uutils_build uutils_test uutils_install uutils_clean uutils uutils_notest \
 	udbm_build udbm_test udbm_install udbm_clean udbm udbm_notest \
-	bin_clean bin bin_notest docs pdocs
+	bin_clean bin bin_notest docs pdocs uversion
 
 PYTHON := $(shell which python)
 CC     ?= $(shell which gcc)
@@ -52,6 +52,7 @@ help:
 	@echo "  make build        - Build Python extension modules in place"
 	@echo "  make package      - Build Python source and wheel packages"
 	@echo "  make zip          - Build Python source package only"
+	@echo "  make uversion     - Sync UDBM version metadata into pyudbm/config/meta.py"
 	@echo "  make clean        - Remove Python extension and package artifacts"
 	@echo "  make clean_x      - Remove all local build outputs, including local prefix"
 	@echo ""
@@ -99,6 +100,8 @@ help:
 
 build:
 	BINSTALL_DIR="${BINSTALL_DIR}" $(PYTHON) setup.py build_ext --inplace
+uversion:
+	$(PYTHON) -m tools.udbm_version -i "${UDBM_DIR}" -o "${SRC_DIR}/config/meta.py"
 clean:
 	rm -rf $(shell find ${SRC_DIR} -name '*.so')
 	rm -rf ${DIST_DIR} ${WHEELHOUSE_DIR}
