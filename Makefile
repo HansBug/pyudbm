@@ -103,7 +103,7 @@ build:
 uversion:
 	$(PYTHON) -m tools.udbm_version -i "${UDBM_DIR}" -o "${SRC_DIR}/config/meta.py"
 clean:
-	rm -rf $(shell find ${SRC_DIR} -name '*.so')
+	rm -rf $(shell find ${SRC_DIR} \( -name '*.so' -o -name '*.pyd' -o -name '*.dll' -o -name '*.dylib' \))
 	rm -rf ${DIST_DIR} ${WHEELHOUSE_DIR}
 	rm -rf ${BUILD_DIR}/temp.*
 clean_x:

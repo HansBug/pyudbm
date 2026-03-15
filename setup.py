@@ -64,6 +64,7 @@ class CMakeBuild(build_ext):
 
         extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
         cmake_args = ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + extdir,
+                      '-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=' + extdir,
                       '-DPYTHON_EXECUTABLE=' + sys.executable]
 
         cfg = os.environ.get('CTEST_CFG') or 'Debug' if self.debug else 'Release'
@@ -71,6 +72,7 @@ class CMakeBuild(build_ext):
 
         if platform.system() == "Windows":
             cmake_args += ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), extdir)]
+            cmake_args += ['-DCMAKE_RUNTIME_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), extdir)]
             if sys.maxsize > 2 ** 32:
                 cmake_args += ['-A', 'x64']
             else:
@@ -115,12 +117,11 @@ setup(
     # environment
     python_requires=">=3.7",
     ext_modules=[
-        CMakeExtension('pyudbm._core.__init__'),
+        CMakeExtension('pyudbm._binding'),
     ],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
     install_requires=requirements,
-    tests_require=group_requirements['test'],
     extras_require=group_requirements,
     classifiers=[
         'Development Status :: 5 - Production/Stable',
