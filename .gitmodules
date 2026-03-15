@@ -1,6 +1,6 @@
 [submodule "UDBM"]
 	path = UDBM
-	url = git@github.com:UPPAALModelChecker/UDBM.git
+	url = https://github.com/UPPAALModelChecker/UDBM.git
 [submodule "UUtils"]
 	path = UUtils
-	url = git@github.com:HansBug/UUtils.git
+	url = https://github.com/HansBug/UUtils.git
