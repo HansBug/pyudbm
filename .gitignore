@@ -108,6 +108,8 @@ gen
 
 # Portable Document Format
 *.pdf
+!papers/**/*.pdf
+!papers/**/*.bib
 
 # X BitMap
 *.xbm
