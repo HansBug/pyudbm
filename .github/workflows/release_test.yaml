@@ -15,8 +15,11 @@ jobs:
       matrix:
         os:
           - 'ubuntu-22.04'
+#          - 'ubuntu-22.04-arm'  # Linux aarch64/ppc64le/s390x wheels are already covered via cibuildwheel + QEMU
           - 'windows-2022'
-          - 'macos-14'
+          - 'macos-14'        # public macOS arm64 runner
+          - 'macos-15-intel'  # public macOS x86_64 runner
+#          - 'windows-11-arm' # not enabled yet: Windows build chain is still validated only for AMD64
         python:
           - '3.7'
           - '3.8'
@@ -76,17 +79,37 @@ jobs:
             python: '3.8'
           - os: macos-14  # python3.7 doesn't have macOS arm64 supported version
             python: '3.7'
+          - os: macos-15-intel
+            architecture: aarch64
+          - os: macos-15-intel
+            architecture: AMD64
+          - os: macos-15-intel
+            architecture: arm64
+          - os: macos-15-intel
+            architecture: i686
+          - os: macos-15-intel
+            architecture: ppc64le
+          - os: macos-15-intel
+            architecture: s390x
+          - os: macos-15-intel
+            architecture: armv7l
+          - os: macos-15-intel  # new Intel macOS runner images only guarantee non-EOL CPython majors
+            python: '3.7'
+          - os: macos-15-intel  # new Intel macOS runner images only guarantee non-EOL CPython majors
+            python: '3.8'
+          - os: macos-15-intel  # Python 3.9 is EOL and not guaranteed on fresh Intel macOS runner images
+            python: '3.9'
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
         with:
           fetch-depth: 20
           submodules: 'recursive'
 
       - name: Set up QEMU
         if: ${{ runner.os == 'Linux' }}
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v3
         with:
           platforms: all
       - name: Check the Arch on macOS
@@ -96,7 +119,7 @@ jobs:
           uname -m
           [ "$(uname -m)" = "${{ matrix.architecture }}" ] || { echo "The architecture is not ${{ matrix.architecture }}."; exit 1; }
       - name: Set up python ${{ matrix.python }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
       - name: Prime cibuildwheel cache
