@@ -1,7 +1,7 @@
 .PHONY: help info build clean clean_x package zip test unittest \
 	uutils_build uutils_test uutils_install uutils_clean uutils uutils_notest \
 	udbm_build udbm_test udbm_install udbm_clean udbm udbm_notest \
-	bin_clean bin bin_notest docs_prepare docs docs_en docs_zh pdocs rst_auto uversion
+	bin_clean bin bin_notest docs docs_en docs_zh pdocs rst_auto uversion
 
 PYTHON := $(shell which python)
 CC     ?= $(shell which gcc)
@@ -164,21 +164,13 @@ bin_clean: uutils_clean udbm_clean
 bin: uutils udbm
 bin_notest: uutils_notest udbm_notest
 
-docs:
-	$(MAKE) docs_prepare
+docs: bin clean build
 	$(MAKE) -C "${DOC_DIR}" build
-docs_prepare:
-	$(MAKE) bin_notest
-	$(MAKE) build
-	$(MAKE) rst_auto
-docs_en:
-	$(MAKE) docs_prepare
+docs_en: bin clean build
 	READTHEDOCS_LANGUAGE=en $(MAKE) -C "${DOC_DIR}" build
-docs_zh:
-	$(MAKE) docs_prepare
+docs_zh: bin clean build
 	READTHEDOCS_LANGUAGE=zh-cn $(MAKE) -C "${DOC_DIR}" build
-pdocs:
-	$(MAKE) docs_prepare
+pdocs: bin clean build
 	$(MAKE) -C "${DOC_DIR}" prod
 
 rst_auto: ${RST_DOC_FILES} ${RST_NONM_FILES} auto_rst_top_index.py

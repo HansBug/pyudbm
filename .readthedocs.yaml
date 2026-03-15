@@ -21,7 +21,7 @@ build:
     post_install:
       - python -m pip install natsort
     pre_build:
-      - make docs_prepare
+      - make bin clean build
       - make -C docs contents
 
 sphinx:
