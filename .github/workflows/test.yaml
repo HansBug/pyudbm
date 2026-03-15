@@ -195,6 +195,18 @@ jobs:
             architecture: AMD64
           - os: ubuntu-22.04
             architecture: arm64
+          - os: ubuntu-22.04  # keep the full Linux aarch64 version sweep in Release Test; smoke low/mid/high here
+            python: '3.9'
+            architecture: aarch64
+          - os: ubuntu-22.04  # keep the full Linux aarch64 version sweep in Release Test; smoke low/mid/high here
+            python: '3.10'
+            architecture: aarch64
+          - os: ubuntu-22.04  # keep the full Linux aarch64 version sweep in Release Test; smoke low/mid/high here
+            python: '3.12'
+            architecture: aarch64
+          - os: ubuntu-22.04  # keep the full Linux aarch64 version sweep in Release Test; smoke low/mid/high here
+            python: '3.13'
+            architecture: aarch64
           - os: windows-2022
             architecture: arm64
           - os: windows-2022
