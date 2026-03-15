@@ -229,7 +229,7 @@ jobs:
           ls -al "$CIBW_CACHE_PATH"
       - name: Build wheels
         env:
-          CIBW_SKIP: "pp*"
+          CIBW_SKIP: "pp* cp31?t-*"
           CIBW_ARCHS: ${{ matrix.architecture }}
           CIBW_PROJECT_REQUIRES_PYTHON: ~=${{ matrix.python }}.0
         shell: bash

@@ -7,7 +7,8 @@ requires = [
 ]
 
 [tool.cibuildwheel]
-skip = ["pp*"] # Do not build for PyPy
+# Free-threaded 3.13/3.14 wheels are not supported by the current build chain.
+skip = ["pp*", "cp31?t-*"] # Do not build for PyPy or free-threaded CPython
 
 ## Windows build configuration
 [tool.cibuildwheel.windows]
