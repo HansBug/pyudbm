@@ -169,7 +169,7 @@ jobs:
     needs:
       - wheel_build
     permissions:
-      id-token: write
+      contents: write
 
     steps:
       - name: Download packed files to artifacts
@@ -182,7 +182,18 @@ jobs:
         shell: bash
         run: |
           ls -al ./dist
-      - name: Publish distributions to PyPI
+      - name: Publish distribution to real PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: ./dist
+          password: ${{ secrets.PYPI_PASSWORD }}
+          verbose: true
+          skip-existing: true
+          packages-dir: dist/
+      - name: Upload distribution to GitHub release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: dist/*
+          tag: ${{ github.ref }}
+          overwrite: false
+          file_glob: true
