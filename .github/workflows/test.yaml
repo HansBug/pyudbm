@@ -121,6 +121,9 @@ jobs:
       matrix:
         include:
           - os: 'ubuntu-22.04'
+            python: '3.7'
+            architecture: 'x86_64'
+          - os: 'ubuntu-22.04'
             python: '3.8'
             architecture: 'x86_64'
           - os: 'ubuntu-22.04'
@@ -129,6 +132,9 @@ jobs:
           - os: 'ubuntu-22.04'
             python: '3.14'
             architecture: 'x86_64'
+          - os: 'windows-2022'
+            python: '3.7'
+            architecture: 'AMD64'
           - os: 'windows-2022'
             python: '3.8'
             architecture: 'AMD64'
