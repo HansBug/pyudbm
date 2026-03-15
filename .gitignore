@@ -1209,7 +1209,8 @@ fabric.properties
 /docs/source/**/*.sh.err
 /docs/source/**/*.sh.exitcode
 /docs/source/**/*.dat.*
-/docs/source/**/*.auto.rst
+/docs/source/**/*.result.ipynb
+/docs/source/index.rst
 /*_build
 /bin_install
 
