@@ -2,9 +2,129 @@ name: Release Test
 
 on:
 #  push:
+  workflow_call:
   workflow_dispatch:
 
 jobs:
+  unittest:
+    name: Full unittest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - 'ubuntu-22.04'
+          - 'ubuntu-22.04-arm'  # native Linux arm64 runner for non-EOL CPython majors
+          - 'windows-2022'
+          - 'macos-14'          # public macOS arm64 runner
+          - 'macos-15-intel'    # public macOS x86_64 runner
+        python-version:
+          - '3.7'
+          - '3.8'
+          - '3.9'
+          - '3.10'
+          - '3.11'
+          - '3.12'
+          - '3.13'
+          - '3.14'
+        exclude:
+          - os: ubuntu-22.04-arm  # new ARM runner images only guarantee non-EOL CPython majors
+            python-version: '3.7'
+          - os: ubuntu-22.04-arm  # new ARM runner images only guarantee non-EOL CPython majors
+            python-version: '3.8'
+          - os: ubuntu-22.04-arm  # Python 3.9 is EOL and not guaranteed on fresh ARM runner images
+            python-version: '3.9'
+          - os: macos-14  # arm64 runner image has no usable 3.7 installer via setup-python
+            python-version: '3.7'
+          - os: macos-14  # arm64 runner image has no usable 3.8 installer via setup-python
+            python-version: '3.8'
+          - os: macos-15-intel  # new Intel macOS runner images only guarantee non-EOL CPython majors
+            python-version: '3.7'
+          - os: macos-15-intel  # new Intel macOS runner images only guarantee non-EOL CPython majors
+            python-version: '3.8'
+          - os: macos-15-intel  # Python 3.9 is EOL and not guaranteed on fresh Intel macOS runner images
+            python-version: '3.9'
+
+    steps:
+      - name: Get system version for Linux
+        if: ${{ contains(matrix.os, 'ubuntu') }}
+        shell: bash
+        run: |
+          echo "OS_NAME=Linux" >> $GITHUB_ENV
+          echo "IS_WIN=" >> $GITHUB_ENV
+          echo "IS_MAC=" >> $GITHUB_ENV
+      - name: Get system version for Windows
+        if: ${{ contains(matrix.os, 'windows') }}
+        shell: bash
+        run: |
+          echo "OS_NAME=Windows" >> $GITHUB_ENV
+          echo "IS_WIN=1" >> $GITHUB_ENV
+          echo "IS_MAC=" >> $GITHUB_ENV
+      - name: Get system version for MacOS
+        if: ${{ contains(matrix.os, 'macos') }}
+        shell: bash
+        run: |
+          echo "OS_NAME=MacOS" >> $GITHUB_ENV
+          echo "IS_WIN=" >> $GITHUB_ENV
+          echo "IS_MAC=1" >> $GITHUB_ENV
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 20
+          submodules: 'recursive'
+      - name: Set up system dependencies on Linux
+        if: ${{ env.OS_NAME == 'Linux' }}
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tree cloc wget curl make
+          sudo apt-get install -y git ninja-build make gcc g++
+      - name: Set up system dependencies on Windows
+        if: ${{ env.OS_NAME == 'Windows' }}
+        shell: bash
+        run: |
+          choco install tree cloc wget curl make
+          choco install ninja make mingw
+      - name: Kill Primitive CMake on MacOS
+        if: ${{ env.OS_NAME == 'MacOS' }}
+        shell: bash
+        run: |
+          ./macos_kill_cmake.sh
+      - name: Set up system dependencies on MacOS
+        if: ${{ env.OS_NAME == 'MacOS' }}
+        shell: bash
+        run: |
+          brew install tree cloc wget curl make
+          brew install git ninja make gcc
+      - name: Set up python ${{ matrix.python-version }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Set up pybind11
+        shell: bash
+        run: |
+          pip install "pybind11[global]"
+          pip install -U 'cmake<4'
+      - name: Build native dependencies
+        shell: bash
+        run: |
+          CC=gcc CXX=g++ CTEST_CFG=Release make bin
+      - name: Prepare Python env
+        shell: bash
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-test.txt
+          pip install -r requirements-build.txt
+      - name: Build and run unittest
+        env:
+          CI: 'true'
+          LINETRACE: 1
+        shell: bash
+        run: |
+          make build
+          make clean_x
+          make unittest
+
   wheel_build:
     name: Try build
     runs-on: ${{ matrix.os }}
@@ -167,6 +287,7 @@ jobs:
     name: Fake Publish
     runs-on: ubuntu-22.04
     needs:
+      - unittest
       - wheel_build
     strategy:
       fail-fast: false

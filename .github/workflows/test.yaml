@@ -12,38 +12,26 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - 'ubuntu-22.04'
-          - 'ubuntu-22.04-arm'  # native Linux arm64 runner for non-EOL CPython majors
-          - 'windows-2022'
-          - 'macos-14'          # public macOS arm64 runner
-          - 'macos-15-intel'    # public macOS x86_64 runner
-        python-version:
-          - '3.7'
-          - '3.8'
-          - '3.9'
-          - '3.10'
-          - '3.11'
-          - '3.12'
-          - '3.13'
-          - '3.14'
-        exclude:
-          - os: ubuntu-22.04-arm  # new ARM runner images only guarantee non-EOL CPython majors
+        include:
+          - os: 'ubuntu-22.04'
             python-version: '3.7'
-          - os: ubuntu-22.04-arm  # new ARM runner images only guarantee non-EOL CPython majors
-            python-version: '3.8'
-          - os: ubuntu-22.04-arm  # Python 3.9 is EOL and not guaranteed on fresh ARM runner images
-            python-version: '3.9'
-          - os: macos-14  # arm64 runner image has no usable 3.7 installer via setup-python
+          - os: 'ubuntu-22.04'
+            python-version: '3.11'
+          - os: 'ubuntu-22.04'
+            python-version: '3.14'
+          - os: 'windows-2022'
             python-version: '3.7'
-          - os: macos-14  # arm64 runner image has no usable 3.8 installer via setup-python
-            python-version: '3.8'
-          - os: macos-15-intel  # new Intel macOS runner images only guarantee non-EOL CPython majors
-            python-version: '3.7'
-          - os: macos-15-intel  # new Intel macOS runner images only guarantee non-EOL CPython majors
-            python-version: '3.8'
-          - os: macos-15-intel  # Python 3.9 is EOL and not guaranteed on fresh Intel macOS runner images
-            python-version: '3.9'
+          - os: 'windows-2022'
+            python-version: '3.11'
+          - os: 'windows-2022'
+            python-version: '3.14'
+          # Keep Code Test on the public macOS arm64 runner; broader macOS coverage moves to Release Test.
+          - os: 'macos-14'
+            python-version: '3.10'
+          - os: 'macos-14'
+            python-version: '3.12'
+          - os: 'macos-14'
+            python-version: '3.14'
 
     steps:
       - name: Get system version for Linux
@@ -67,16 +55,6 @@ jobs:
           echo "OS_NAME=MacOS" >> $GITHUB_ENV
           echo "IS_WIN=" >> $GITHUB_ENV
           echo "IS_MAC=1" >> $GITHUB_ENV
-      - name: Set environment for Cpython
-        if: ${{ !contains(matrix.python-version, 'pypy') }}
-        shell: bash
-        run: |
-          echo "IS_PYPY=" >> $GITHUB_ENV
-      - name: Set environment for PyPy
-        if: ${{ contains(matrix.python-version, 'pypy') }}
-        shell: bash
-        run: |
-          echo "IS_PYPY=1" >> $GITHUB_ENV
       - name: Checkout code
         uses: actions/checkout@v5
         with:
@@ -88,7 +66,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y tree cloc wget curl make
-          sudo apt-get install -y git ninja-build make gcc g++
+          sudo apt-get install -y git ninja-build gcc g++
       - name: Set up system dependencies on Windows
         if: ${{ env.OS_NAME == 'Windows' }}
         shell: bash
@@ -102,6 +80,7 @@ jobs:
           ./macos_kill_cmake.sh
       - name: Set up system dependencies on MacOS
         if: ${{ env.OS_NAME == 'MacOS' }}
+        shell: bash
         run: |
           brew install tree cloc wget curl make
           brew install git ninja make gcc
@@ -114,125 +93,63 @@ jobs:
         run: |
           pip install "pybind11[global]"
           pip install -U 'cmake<4'
-      - name: Test the basic environment
-        shell: bash
-        run: |
-          python -V
-          cmake --version
-          which gcc
-          gcc --version
-          which g++
-          g++ --version
-          ls -al
-      - name: Build The Binaries
+      - name: Build native dependencies
         shell: bash
         run: |
           CC=gcc CXX=g++ CTEST_CFG=Release make bin
-          tree bin_install
-      - name: Prepare Python Env
+      - name: Prepare Python env
         shell: bash
         run: |
           pip install -r requirements.txt
           pip install -r requirements-test.txt
           pip install -r requirements-build.txt
-      - name: Test the Python environment
-        shell: bash
-        run: |
-          python -V
-          pip --version
-          pip list
-          cloc pyudbm
-          cloc test
-      - name: Build And Run Unittest
+      - name: Build and run unittest
         env:
           CI: 'true'
           LINETRACE: 1
         shell: bash
         run: |
           make build
-          tree pyudbm
-          ls -al $(find pyudbm -type f)
           make clean_x
           make unittest
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./coverage.xml
-          flags: unittests
-          name: codecov-umbrella
-          fail_ci_if_error: false
 
   test_wheel_build:
-    name: Try build
+    name: Build smoke
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 5
     if: "!contains(github.event.head_commit.message, 'ci skip')"
-    env:
-      CIBW_CACHE_PATH: ./.cibw-cache
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - 'ubuntu-22.04'
-          - 'windows-2022'
-          - 'macos-14'
-          - 'macos-15-intel'  # x86_64 macOS wheel smoke builds
-        python:
-          - '3.8'
-          - '3.9'
-          - '3.10'
-          - '3.11'
-          - '3.12'
-          - '3.13'
-          - '3.14'
-        architecture:
-          - x86_64
-          - aarch64
-          - arm64
-          - AMD64
-        exclude:
-          - os: ubuntu-22.04
-            architecture: AMD64
-          - os: ubuntu-22.04
-            architecture: arm64
-          - os: ubuntu-22.04  # keep the full Linux aarch64 version sweep in Release Test; smoke low/mid/high here
-            python: '3.9'
-            architecture: aarch64
-          - os: ubuntu-22.04  # keep the full Linux aarch64 version sweep in Release Test; smoke low/mid/high here
+        include:
+          - os: 'ubuntu-22.04'
+            python: '3.8'
+            architecture: 'x86_64'
+          - os: 'ubuntu-22.04'
+            python: '3.11'
+            architecture: 'x86_64'
+          - os: 'ubuntu-22.04'
+            python: '3.14'
+            architecture: 'x86_64'
+          - os: 'windows-2022'
+            python: '3.8'
+            architecture: 'AMD64'
+          - os: 'windows-2022'
+            python: '3.11'
+            architecture: 'AMD64'
+          - os: 'windows-2022'
+            python: '3.14'
+            architecture: 'AMD64'
+          # Keep quick build smoke on the public macOS arm64 runner; Intel/macOS breadth lives in Release Test.
+          - os: 'macos-14'
             python: '3.10'
-            architecture: aarch64
-          - os: ubuntu-22.04  # keep the full Linux aarch64 version sweep in Release Test; smoke low/mid/high here
+            architecture: 'arm64'
+          - os: 'macos-14'
             python: '3.12'
-            architecture: aarch64
-          - os: ubuntu-22.04  # keep the full Linux aarch64 version sweep in Release Test; smoke low/mid/high here
-            python: '3.13'
-            architecture: aarch64
-          - os: windows-2022
-            architecture: arm64
-          - os: windows-2022
-            architecture: x86_64
-          - os: windows-2022
-            architecture: aarch64
-          - os: macos-14
-            architecture: AMD64
-          - os: macos-14
-            architecture: x86_64
-          - os: macos-14
-            architecture: aarch64
-          - os: macos-14
-            python: '3.8'
-            architecture: arm64
-          - os: macos-15-intel
-            architecture: AMD64
-          - os: macos-15-intel
-            architecture: arm64
-          - os: macos-15-intel
-            architecture: aarch64
-          - os: macos-15-intel  # new Intel macOS runner images only guarantee non-EOL CPython majors
-            python: '3.8'
-          - os: macos-15-intel  # Python 3.9 is EOL and not guaranteed on fresh Intel macOS runner images
-            python: '3.9'
-            architecture: x86_64
+            architecture: 'arm64'
+          - os: 'macos-14'
+            python: '3.14'
+            architecture: 'arm64'
 
     steps:
       - name: Checkout code
@@ -240,83 +157,69 @@ jobs:
         with:
           fetch-depth: 20
           submodules: 'recursive'
-
-      - name: Set up QEMU
-        if: ${{ runner.os == 'Linux' }}
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: all
-      - name: Check the Arch on macOS
-        if: ${{ runner.os == 'macOS' }}
-        shell: bash
-        run: |
-          uname -m
-          [ "$(uname -m)" = "${{ matrix.architecture }}" ] || { echo "The architecture is not ${{ matrix.architecture }}."; exit 1; }
       - name: Set up python ${{ matrix.python }}
         uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
-      - name: Prime cibuildwheel cache
-        if: ${{ runner.os == 'Windows' || runner.os == 'macOS' }}
+      - name: Verify macOS arch
+        if: ${{ runner.os == 'macOS' }}
         shell: bash
         run: |
-          case "${{ matrix.python }}" in
-            3.7) VIRTUALENV_VERSION=20.21.1 ;;
-            *) VIRTUALENV_VERSION=20.30.0 ;;
-          esac
-          mkdir -p "$CIBW_CACHE_PATH"
-          TARGET="$CIBW_CACHE_PATH/virtualenv-${VIRTUALENV_VERSION}.pyz"
-          URL="https://raw.githubusercontent.com/pypa/get-virtualenv/${VIRTUALENV_VERSION}/public/virtualenv.pyz"
-          if [ ! -f "$TARGET" ]; then
-            curl -fL --retry 8 --retry-all-errors --retry-delay 5 -o "$TARGET" "$URL"
-          fi
-          ls -al "$CIBW_CACHE_PATH"
-      - name: Build wheels
-        env:
-          CIBW_SKIP: "pp* cp31?t-*"
-          CIBW_ARCHS: ${{ matrix.architecture }}
-          CIBW_PROJECT_REQUIRES_PYTHON: ~=${{ matrix.python }}.0
+          [ "$(uname -m)" = "${{ matrix.architecture }}" ]
+      - name: Prepare build frontend
         shell: bash
         run: |
-          pip install cibuildwheel
-          python -m cibuildwheel --output-dir wheelhouse
-      - name: Show the buildings
+          python -m pip install -U pip
+          pip install build "cmake<4" "pybind11[global]"
+      - name: Kill Primitive CMake on MacOS
+        if: ${{ runner.os == 'macOS' }}
         shell: bash
         run: |
-          ls -al ./wheelhouse
-          mv wheelhouse dist
-      - name: Upload packed files to artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts-${{ runner.os }}-cp${{ matrix.python }}-${{ matrix.architecture }}
-          path: ./dist/*
-#      - name: Upload packed files to artifacts
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: build-artifacts-all
-#          path: ./dist/*
-
-  # the publishing can only be processed on linux system
-  fake_publish:
-    name: Fake Publish
-    runs-on: ubuntu-22.04
-    if: "!contains(github.event.head_commit.message, 'ci skip')"
-    needs:
-      - test_wheel_build
-    strategy:
-      fail-fast: false
-      matrix:
-        python:
-          - '3.8'
-
-    steps:
-      - name: Download packed files to artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: build-artifacts-*
-          path: ./dist
-          merge-multiple: true
-      - name: Show the buildings
+          ./macos_kill_cmake.sh
+      - name: Build native dependencies on Linux
+        if: ${{ runner.os == 'Linux' }}
         shell: bash
         run: |
-          ls -al ./dist
+          cmake -S UUtils -B UUtils_build -DCMAKE_BUILD_TYPE=Release
+          cmake --build UUtils_build --config Release --parallel 2
+          cmake --install UUtils_build --prefix bin_install --config Release
+          cmake -S UDBM -B UDBM_build -DCMAKE_BUILD_TYPE=Release -DUUtils_DIR="$PWD/bin_install/lib/cmake/UUtils"
+          cmake --build UDBM_build --config Release --parallel 2
+          cmake --install UDBM_build --prefix bin_install --config Release
+      - name: Build native dependencies on Windows
+        if: ${{ runner.os == 'Windows' }}
+        shell: bash
+        run: |
+          UUTILS_DIR_WIN=$(cygpath -w "$PWD/bin_install/lib/cmake/UUtils")
+          cmake -S UUtils -B UUtils_build -DCMAKE_BUILD_TYPE=Release
+          cmake --build UUtils_build --config Release --parallel 2
+          cmake --install UUtils_build --prefix bin_install --config Release
+          cmake -S UDBM -B UDBM_build -DCMAKE_BUILD_TYPE=Release -DUUtils_DIR="$UUTILS_DIR_WIN"
+          cmake --build UDBM_build --config Release --parallel 2
+          cmake --install UDBM_build --prefix bin_install --config Release
+      - name: Build native dependencies on MacOS
+        if: ${{ runner.os == 'macOS' }}
+        shell: bash
+        run: |
+          cmake -S UUtils -B UUtils_build \
+            -DCMAKE_OSX_ARCHITECTURES="${{ matrix.architecture }}" \
+            -DCMAKE_SYSTEM_PROCESSOR="${{ matrix.architecture }}" \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TRY_COMPILE_OSX_ARCHITECTURES="${{ matrix.architecture }}"
+          cmake --build UUtils_build --config Release --parallel 2
+          cmake --install UUtils_build --prefix bin_install --config Release
+          cmake -S UDBM -B UDBM_build \
+            -DUUtils_DIR="$PWD/bin_install/lib/cmake/UUtils" \
+            -DCMAKE_OSX_ARCHITECTURES="${{ matrix.architecture }}" \
+            -DCMAKE_SYSTEM_PROCESSOR="${{ matrix.architecture }}" \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TRY_COMPILE_OSX_ARCHITECTURES="${{ matrix.architecture }}"
+          cmake --build UDBM_build --config Release --parallel 2
+          cmake --install UDBM_build --prefix bin_install --config Release
+      - name: Smoke build wheel
+        shell: bash
+        run: |
+          python -m build --wheel --no-isolation --outdir dist
+          ls -al dist

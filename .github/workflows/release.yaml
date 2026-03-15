@@ -1,0 +1,12 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  release:
+    types:
+      - published
+
+jobs:
+  full_release_validation:
+    uses: ./.github/workflows/release_test.yaml
+    secrets: inherit
