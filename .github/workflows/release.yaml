@@ -1,13 +1,8 @@
 name: Release
 
 on:
-  workflow_dispatch:
   release:
-    types:
-      - published
-
-permissions:
-  contents: read
+    types: [ published ]
 
 jobs:
   # PyPI publishing should stay in a normal workflow job instead of a reusable workflow.
@@ -195,5 +190,5 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: dist/*
           tag: ${{ github.ref }}
-          overwrite: false
+          overwrite: true
           file_glob: true
