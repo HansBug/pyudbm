@@ -76,8 +76,6 @@ jobs:
             architecture: armv7l
           - os: macos-14
             architecture: x86_64
-          - os: macos-14  # python3.8 doesn't have macOS arm64 supported version
-            python: '3.8'
           - os: macos-14  # python3.7 doesn't have macOS arm64 supported version
             python: '3.7'
           - os: macos-15-intel

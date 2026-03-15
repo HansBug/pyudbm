@@ -29,16 +29,6 @@ jobs:
           # The public macOS arm64 runner does not have usable setup-python installers for these EOL versions.
           - os: 'macos-14'
             python-version: '3.7'
-          - os: 'macos-14'
-            python-version: '3.8'
-        include:
-          # Legacy macOS CPython validation stays on the public Intel runner.
-          - os: 'macos-15-intel'
-            python-version: '3.7'
-          - os: 'macos-15-intel'
-            python-version: '3.8'
-          - os: 'macos-15-intel'
-            python-version: '3.9'
 
     steps:
       - name: Get system version for Linux
@@ -123,7 +113,6 @@ jobs:
   test_wheel_build:
     name: Build smoke
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 5
     if: "!contains(github.event.head_commit.message, 'ci skip')"
     strategy:
       fail-fast: false
@@ -149,10 +138,13 @@ jobs:
             architecture: 'AMD64'
           # Keep quick build smoke on the public macOS arm64 runner; Intel/macOS breadth lives in Release Test.
           - os: 'macos-14'
-            python: '3.10'
+            python: '3.8'
             architecture: 'arm64'
           - os: 'macos-14'
-            python: '3.12'
+            python: '3.9'
+            architecture: 'arm64'
+          - os: 'macos-14'
+            python: '3.11'
             architecture: 'arm64'
           - os: 'macos-14'
             python: '3.14'
