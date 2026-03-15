@@ -36,6 +36,19 @@ __all__ = [
 LOGGER = logging.getLogger("pyudbm")
 
 
+def _is_exact_int(value: Any) -> bool:
+    """Return whether ``value`` is a plain ``int`` and not a subclass such as ``bool``."""
+
+    return type(value) is int
+
+
+def _is_exact_int_or_float(value: Any) -> bool:
+    """Return whether ``value`` is a plain ``int`` or ``float``."""
+
+    value_type = type(value)
+    return value_type is int or value_type is float
+
+
 class Clock:
     """
     Symbolic clock inside a :class:`Context`.
@@ -69,32 +82,32 @@ class Clock:
         return VariableDifference([self, other])
 
     def __le__(self, bound: Any) -> Any:
-        if not isinstance(bound, int):
+        if not _is_exact_int(bound):
             return NotImplemented
         return Federation(Constraint(self, None, bound, False))
 
     def __ge__(self, bound: Any) -> Any:
-        if not isinstance(bound, int):
+        if not _is_exact_int(bound):
             return NotImplemented
         return Federation(Constraint(None, self, -bound, False))
 
     def __lt__(self, bound: Any) -> Any:
-        if not isinstance(bound, int):
+        if not _is_exact_int(bound):
             return NotImplemented
         return Federation(Constraint(self, None, bound, True))
 
     def __gt__(self, bound: Any) -> Any:
-        if not isinstance(bound, int):
+        if not _is_exact_int(bound):
             return NotImplemented
         return Federation(Constraint(None, self, -bound, True))
 
     def __eq__(self, bound: Any) -> Any:
-        if isinstance(bound, int):
+        if _is_exact_int(bound):
             return Federation(Constraint(self, None, bound, False)) & Federation(Constraint(None, self, -bound, False))
         return self is bound
 
     def __ne__(self, bound: Any) -> Any:
-        if isinstance(bound, int):
+        if _is_exact_int(bound):
             return Federation(Constraint(self, None, bound, True)) | Federation(Constraint(None, self, -bound, True))
         return not self.__eq__(bound)
 
@@ -167,7 +180,7 @@ class IntValuation(Valuation):
     """
 
     def __setitem__(self, key: Union[str, Clock], value: Any) -> None:
-        if not isinstance(value, int):
+        if not _is_exact_int(value):
             raise TypeError("Integer valuations require integer values.")
         super().__setitem__(key, value)
 
@@ -181,7 +194,7 @@ class FloatValuation(Valuation):
     """
 
     def __setitem__(self, key: Union[str, Clock], value: Any) -> None:
-        if not isinstance(value, (int, float)):
+        if not _is_exact_int_or_float(value):
             raise TypeError("Float valuations require int or float values.")
         super().__setitem__(key, value)
 
@@ -204,34 +217,34 @@ class VariableDifference:
         self.context = variables[0].context
 
     def __le__(self, bound: Any) -> Any:
-        if not isinstance(bound, int):
+        if not _is_exact_int(bound):
             return NotImplemented
         return Federation(Constraint(self.vars[0], self.vars[1], bound, False))
 
     def __ge__(self, bound: Any) -> Any:
-        if not isinstance(bound, int):
+        if not _is_exact_int(bound):
             return NotImplemented
         return Federation(Constraint(self.vars[1], self.vars[0], -bound, False))
 
     def __lt__(self, bound: Any) -> Any:
-        if not isinstance(bound, int):
+        if not _is_exact_int(bound):
             return NotImplemented
         return Federation(Constraint(self.vars[0], self.vars[1], bound, True))
 
     def __gt__(self, bound: Any) -> Any:
-        if not isinstance(bound, int):
+        if not _is_exact_int(bound):
             return NotImplemented
         return Federation(Constraint(self.vars[1], self.vars[0], -bound, True))
 
     def __eq__(self, bound: Any) -> Any:
-        if not isinstance(bound, int):
+        if not _is_exact_int(bound):
             return False
         return Federation(Constraint(self.vars[0], self.vars[1], bound, False)) & Federation(
             Constraint(self.vars[1], self.vars[0], -bound, False)
         )
 
     def __ne__(self, bound: Any) -> Any:
-        if not isinstance(bound, int):
+        if not _is_exact_int(bound):
             return True
         return Federation(Constraint(self.vars[0], self.vars[1], bound, True)) | Federation(
             Constraint(self.vars[1], self.vars[0], -bound, True)
@@ -392,6 +405,10 @@ class Federation:
         return self
 
     def freeClock(self, clock: Clock) -> "Federation":
+        if not isinstance(clock, Clock):
+            raise TypeError("freeClock expects a Clock instance.")
+        if clock.context is not self.context:
+            raise ValueError("freeClock requires a clock from the same context.")
         ret = self.copy()
         ret._fed.free_clock(clock.dbm_index)
         return ret
@@ -469,11 +486,7 @@ class Federation:
         return self._fed.size()
 
     def extrapolateMaxBounds(self, bounds: Mapping[Clock, int]) -> "Federation":
-        if len(bounds) != len(self.context.clocks):
-            LOGGER.error("extrapolateMaxBounds called without bounds for every clock.")
-
-        ret = self.copy()
-        vector = [0] * (len(self.context.clocks) + 1)
+        normalized_bounds = {}
         for key, value in bounds.items():
             if isinstance(key, str):
                 clock = self.context[key]
@@ -484,7 +497,18 @@ class Federation:
 
             if clock.context is not self.context:
                 raise ValueError("Bounds clocks must belong to the same context.")
-            vector[clock.dbm_index] = int(value)
+            if clock in normalized_bounds:
+                raise ValueError("Duplicate bounds provided for clock: {0}".format(clock.name))
+            normalized_bounds[clock] = int(value)
+
+        missing_clocks = [clock for clock in self.context.clocks if clock not in normalized_bounds]
+        if missing_clocks:
+            raise ValueError("extrapolateMaxBounds requires bounds for every clock.")
+
+        ret = self.copy()
+        vector = [0] * (len(self.context.clocks) + 1)
+        for clock in self.context.clocks:
+            vector[clock.dbm_index] = normalized_bounds[clock]
 
         ret._fed.extrapolate_max_bounds(vector)
         return ret

@@ -244,6 +244,21 @@ class TestBindingApi:
         with pytest.raises(TypeError):
             _ = context.x > 1.5
 
+        with pytest.raises(TypeError):
+            _ = context.x <= True
+
+        with pytest.raises(TypeError):
+            _ = context.x >= False
+
+        with pytest.raises(TypeError):
+            _ = context.x < True
+
+        with pytest.raises(TypeError):
+            _ = context.x > False
+
+        assert (context.x == True) is False
+        assert (context.x != True) is True
+
     def test_valuation_public_edge_cases(self, caplog):
         context = Context(["x", "y"])
         other = Context(["x"])
@@ -274,8 +289,16 @@ class TestBindingApi:
         assert "Clock y is not present in the clock valuation." in caplog.text
 
         float_valuation = FloatValuation(context)
+        int_valuation = IntValuation(context)
+
+        with pytest.raises(TypeError):
+            int_valuation["x"] = True
+
         with pytest.raises(TypeError):
             float_valuation["x"] = "1.0"
+
+        with pytest.raises(TypeError):
+            float_valuation["x"] = True
 
     def test_variable_difference_public_edge_cases(self):
         context = Context(["x", "y"])
@@ -301,8 +324,22 @@ class TestBindingApi:
         with pytest.raises(TypeError):
             _ = difference > 0.5
 
+        with pytest.raises(TypeError):
+            _ = difference <= True
+
+        with pytest.raises(TypeError):
+            _ = difference >= False
+
+        with pytest.raises(TypeError):
+            _ = difference < True
+
+        with pytest.raises(TypeError):
+            _ = difference > False
+
         assert not (difference == object())
         assert difference != object()
+        assert not (difference == True)
+        assert difference != True
 
     def test_constraint_public_validation(self):
         context = Context(["x", "y"])
@@ -349,16 +386,25 @@ class TestBindingApi:
         with pytest.raises(ValueError):
             federation.updateValue(other.x, 1)
 
-    def test_extrapolate_max_bounds_public_validation(self, caplog):
+        with pytest.raises(TypeError):
+            federation.freeClock("x")
+
+        with pytest.raises(ValueError):
+            federation.freeClock(other.x)
+
+    def test_extrapolate_max_bounds_public_validation(self):
         context = Context(["x", "y", "z"])
         other = Context(["x"])
         federation = (context.x - context.y <= 1) & (context.x < 150) & (context.z < 150) & (context.x - context.z <= 1000)
 
-        with caplog.at_level("ERROR", logger="pyudbm"):
-            result = federation.extrapolateMaxBounds({"x": 100})
+        result = federation.extrapolateMaxBounds({"x": 100, "y": 300, "z": 400})
+        assert result == ((context.x - context.y <= 1) & (context.z < 150))
 
-        assert "extrapolateMaxBounds called without bounds for every clock." in caplog.text
-        assert isinstance(result, Federation)
+        with pytest.raises(ValueError, match="requires bounds for every clock"):
+            federation.extrapolateMaxBounds({"x": 100})
+
+        with pytest.raises(ValueError, match="Duplicate bounds provided for clock: x"):
+            federation.extrapolateMaxBounds({"x": 100, context.x: 200, context.y: 300, context.z: 400})
 
         with pytest.raises(TypeError):
             federation.extrapolateMaxBounds({context.x: 100, context.y: 200, 1: 300})

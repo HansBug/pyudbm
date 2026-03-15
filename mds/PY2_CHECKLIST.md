@@ -36,7 +36,7 @@
 
 - 当前高层 API 形状已经基本恢复，`Context / Clock / Federation` 主线可用。
 - `srcpy2/test.py` 中的核心历史行为大部分已有对应测试，当前 `test/binding/test_api.py` 运行结果为 `29 passed`。
-- 仍存在若干明确的语义漂移，尤其是“只接受精确 `int`”和 `Clock` / `VariableDifference` 的 DSL 比较行为。
+- 仍存在若干明确的语义漂移，尤其是 `Clock` / `VariableDifference` 的对象比较语义、异常模型以及低层兼容面。
 - 如果目标是“严格 legacy parity”，当前测试中有一部分新 edge-case 语义也需要回收。
 
 ## 总结结论
@@ -66,19 +66,19 @@
 | --- | --- | --- | --- |
 | `__init__(context, name, index)` | `__init__(context, name, index)` | 已实现 | 语义一致 |
 | `__sub__(Clock)` | `__sub__(Clock)` | 实现但有异常模型差异 | 历史版非 `Clock` 走 `assert`；当前返回 `NotImplemented`，最终表现为 `TypeError` |
-| `__le__(int)` | `__le__(int)` | 实现但有类型漂移 | 历史版要求 `type(c) == int`；当前 `isinstance(bound, int)`，会接受 `bool` |
-| `__ge__(int)` | `__ge__(int)` | 实现但有类型漂移 | 同上 |
-| `__lt__(int)` | `__lt__(int)` | 实现但有类型漂移 | 同上 |
-| `__gt__(int)` | `__gt__(int)` | 实现但有类型漂移 | 同上 |
-| `__eq__(int)` 生成约束 | `__eq__(int)` 生成约束 | 实现但非 `int` 路径漂移 | 历史版非 `int` 触发断言；当前对非 `int` 做对象比较 |
-| `__ne__(int)` 生成约束 | `__ne__(int)` 生成约束 | 实现但非 `int` 路径漂移 | 历史版非 `int` 触发断言；当前对非 `int` 做对象比较 |
+| `__le__(int)` | `__le__(int)` | 已修正 | 当前只允许精确 `int` 进入 DSL，`bool` 会被拒绝 |
+| `__ge__(int)` | `__ge__(int)` | 已修正 | 当前只允许精确 `int` 进入 DSL，`bool` 会被拒绝 |
+| `__lt__(int)` | `__lt__(int)` | 已修正 | 当前只允许精确 `int` 进入 DSL，`bool` 会被拒绝 |
+| `__gt__(int)` | `__gt__(int)` | 已修正 | 当前只允许精确 `int` 进入 DSL，`bool` 会被拒绝 |
+| `__eq__(int)` 生成约束 | `__eq__(int)` 生成约束 | 部分修正 | 只有精确 `int` 会进入 DSL，但当前仍保留非 `int` 的对象比较语义 |
+| `__ne__(int)` 生成约束 | `__ne__(int)` 生成约束 | 部分修正 | 只有精确 `int` 会进入 DSL，但当前仍保留非 `int` 的对象比较语义 |
 | `__hash__()` | `__hash__()` | 已实现 | 一致 |
 | `getFullName()` | `getFullName()` | 已实现 | 一致 |
 | 无 `__repr__` | 新增 `__repr__` | 扩展 | 非问题，但不是历史行为的一部分 |
 
 关键差异：
 
-- 历史版严格只接受精确 `int`，当前会把 `True` / `False` 当作 `1` / `0`。
+- 当前已经恢复为只接受精确 `int` 进入 DSL，`True` / `False` 不再被当作 `1` / `0`。
 - 历史版 `clock == something` 的设计目的是创建 Federation 约束，不是做对象等价比较；当前新增了对象比较语义。
 
 ### `Valuation` / `IntValuation` / `FloatValuation`
@@ -88,12 +88,12 @@
 | `Valuation.__init__(context)` | 同名实现 | 已实现 | 一致 |
 | `Valuation.__setitem__` 支持 `Clock` 或字符串键 | 同名实现 | 实现但异常模型差异 | 当前增加 `_normalize_key`，错误类型更明确 |
 | `Valuation.check()` 记录缺失 clock | 同名实现 | 已实现 | 日志文案略有变化 |
-| `IntValuation.__setitem__` 只允许 `type(value) == int` | 同名实现 | 实现但类型漂移 | 当前 `bool` 会被接受 |
-| `FloatValuation.__setitem__` 允许 `float` 或 `int` | 同名实现 | 实现但类型漂移 | 当前 `bool` 也会被接受，因为 `bool` 是 `int` 子类 |
+| `IntValuation.__setitem__` 只允许 `type(value) == int` | 同名实现 | 已修正 | 当前与历史版一致，不再接受 `bool` |
+| `FloatValuation.__setitem__` 允许 `float` 或 `int` | 同名实现 | 已修正 | 当前只接受精确 `int` 或 `float`，不再接受 `bool` |
 
 关键差异：
 
-- 历史版对整数赋值是“精确 int”，当前是“`int` 子类也可”。
+- 当前已经恢复为只接受精确 `int` 或 `float`，不会把 `bool` 当作数字类型接收。
 - 历史版错误多依赖 `assert` 或原生 `KeyError`，当前明确抛 `TypeError` / `ValueError`。
 
 ### `VariableDifference`
@@ -101,12 +101,12 @@
 | 历史项 | 当前项 | 状态 | 备注 |
 | --- | --- | --- | --- |
 | `__init__([clock1, clock2])` | 同名实现 | 实现但异常模型差异 | 当前改为显式 `ValueError` |
-| `__le__(int)` | 同名实现 | 实现但类型漂移 | 当前会接受 `bool` |
-| `__ge__(int)` | 同名实现 | 实现但类型漂移 | 当前会接受 `bool` |
-| `__lt__(int)` | 同名实现 | 实现但类型漂移 | 当前会接受 `bool` |
-| `__gt__(int)` | 同名实现 | 实现但类型漂移 | 当前会接受 `bool` |
-| `__eq__(int)` 生成约束 | 同名实现 | 实现但非 `int` 路径漂移 | 当前对非 `int` 返回 `False` |
-| `__ne__(int)` 生成约束 | 同名实现 | 实现但非 `int` 路径漂移 | 当前对非 `int` 返回 `True` |
+| `__le__(int)` | 同名实现 | 已修正 | 当前只允许精确 `int` 进入 DSL，`bool` 会被拒绝 |
+| `__ge__(int)` | 同名实现 | 已修正 | 当前只允许精确 `int` 进入 DSL，`bool` 会被拒绝 |
+| `__lt__(int)` | 同名实现 | 已修正 | 当前只允许精确 `int` 进入 DSL，`bool` 会被拒绝 |
+| `__gt__(int)` | 同名实现 | 已修正 | 当前只允许精确 `int` 进入 DSL，`bool` 会被拒绝 |
+| `__eq__(int)` 生成约束 | 同名实现 | 部分修正 | 只有精确 `int` 会进入 DSL，但当前仍保留非 `int` 时返回 `False` 的对象比较语义 |
+| `__ne__(int)` 生成约束 | 同名实现 | 部分修正 | 只有精确 `int` 会进入 DSL，但当前仍保留非 `int` 时返回 `True` 的对象比较语义 |
 
 关键差异：
 
@@ -139,7 +139,7 @@
 | `up()` | 已实现 | 已实现 | 保持非原地语义 |
 | `down()` | 已实现 | 已实现 | 保持非原地语义 |
 | `reduce(level=0)` | 已实现 | 已实现 | 原地，兼容 |
-| `freeClock(clock)` | 已实现 | 已实现但仍有旧风险 | 仍未校验 `clock.context` |
+| `freeClock(clock)` | 已实现 | 已修正 | 当前会显式校验类型和 `Context` 一致性 |
 | `setZero()` | 已实现 | 已实现 | 原地，兼容 |
 | `hasZero()` | 已实现 | 已实现 | 一致 |
 | `setInit()` | 已实现 | 已实现 | 原地，兼容 |
@@ -152,16 +152,14 @@
 | `updateValue(clock, value)` | 已实现 | 已实现 | 现在多了显式 context 校验 |
 | `resetValue(clock)` | 已实现 | 已实现 | 一致 |
 | `getSize()` | 已实现 | 已实现 | 一致 |
-| `extrapolateMaxBounds(mapping)` | 已实现 | 已实现但有日志文案和键类型扩展 | 当前支持字符串键，同时仍允许缺失 bounds 时只记日志 |
+| `extrapolateMaxBounds(mapping)` | 已实现 | 已修正 | 当前支持字符串键，但要求唯一且完整覆盖全部 clock |
 | `isZero()` | 已实现 | 已实现 | 一致 |
 | `isEmpty()` | 已实现 | 已实现 | 一致 |
 | `__hash__()` / `hash()` | 已实现 | 已实现 | 一致 |
 
 关键差异：
 
-- `freeClock()` 依然没有检查 clock 是否来自同一 `Context`。
 - `contains()` 在未知 valuation 类型上的行为与历史版不同。
-- `extrapolateMaxBounds()` 仍然会在 bounds 不完整时继续运行，这一旧风险被保留了下来。
 
 ### `Context`
 
@@ -193,8 +191,8 @@
 | `test_set_init` | `test_set_init` | 已覆盖 | 一致 |
 | `test_federation_ops` | `test_federation_relations` | 已覆盖 | 名称调整 |
 | `test_intern` | `test_intern` | 已覆盖 | 一致 |
-| `testExtrapolateMaxBounds` | `test_extrapolate_max_bounds` | 已覆盖 | 名称调整 |
-| `test_free_clock` | `test_free_clock` | 已覆盖 | 但未覆盖跨 context 风险 |
+| `testExtrapolateMaxBounds` | `test_extrapolate_max_bounds` + `test_extrapolate_max_bounds_public_validation` | 已覆盖 | 名称调整，并补充完整性与重复键校验 |
+| `test_free_clock` | `test_free_clock` + `test_federation_public_validation` | 已覆盖 | 已覆盖跨 context 和错误类型路径 |
 | `test_zero_federation` | `test_zero_federation` | 已覆盖 | 一致 |
 | `test_hash` | `test_hash` | 已覆盖 | 一致 |
 | `test_isempty` | `test_is_empty` | 已覆盖 | 名称调整 |
@@ -253,9 +251,9 @@
 - 从“高层功能是否可用”的角度看，当前低层绑定已经支撑现有 Python DSL。
 - 从“是否恢复旧 `udbm_int` 公开兼容面”的角度看，当前并没有做到兼容。
 
-## 已确认的不一致与风险
+## 已确认的不一致、风险与已修复项
 
-### 1. `bool` 被当成 `int`
+### 1. 已修复：`bool` 不再被当成 `int`
 
 历史行为：
 
@@ -264,18 +262,19 @@
 - `IntValuation` 要求 `type(value) == int`
 - `FloatValuation` 允许 `float` 或 `int`
 
-当前行为：
+修复前行为：
 
 - 上述逻辑大量使用 `isinstance(..., int)` 或 `isinstance(..., (int, float))`
 - 因此 `True` / `False` 会进入 DSL 和 valuation
 
-动态验证结果：
+修复后行为：
 
-- `c.x <= True` 当前会生成 `(x<=1)`
-- `(c.x - c.y) <= True` 当前会生成 `(x-y<=1)`
-- `IntValuation(c)["x"] = True` 当前可成功赋值
+- `Clock` 和 `VariableDifference` 只有精确 `int` 才会进入 DSL
+- `IntValuation` 只接受精确 `int`
+- `FloatValuation` 只接受精确 `int` 或 `float`
+- 已补充单元测试，覆盖 `bool` 被拒绝的路径
 
-这属于明确的 legacy drift。
+该项已修复。
 
 ### 2. `Clock` 的对象比较语义被引入
 
@@ -378,49 +377,59 @@
 
 这意味着高层可用，不等于低层兼容。
 
-### 9. `freeClock()` 仍有跨 `Context` 风险
+### 9. 已修复：`freeClock()` 的跨 `Context` 风险
 
-这不是“当前新引入的不一致”，而是历史风险被保留下来：
+修复前：
 
 - `freeClock(clock)` 只使用 `clock.dbm_index`
 - 不检查 `clock.context is self.context`
 
-动态验证中，传入其他 `Context` 的同索引 clock，当前不会报错，而是按索引作用在当前 federation 上。
+修复后：
 
-### 10. `extrapolateMaxBounds()` 仍允许不完整 bounds
+- `freeClock()` 会先校验参数是否是 `Clock`
+- 然后校验 `clock.context is self.context`
+- 已补充单元测试覆盖跨 `Context` 和错误类型路径
 
-这同样是旧风险延续：
+该项已修复。
+
+### 10. 已修复：`extrapolateMaxBounds()` 不再接受不完整或重复 bounds
+
+修复前：
 
 - 历史版发现 bounds 个数不完整时只记日志
 - 当前实现仍然只是记日志，不会拒绝执行
 
-当前只是把日志文案改成了：
+修复后：
 
-- `extrapolateMaxBounds called without bounds for every clock.`
+- 当前实现会先把字符串键和 `Clock` 键统一归一化
+- 如果发现重复 clock、缺失 clock，或者外部 `Context` 的 clock，会直接抛异常
+- 已补充单元测试覆盖完整字符串键、缺失键、重复键和外部 `Context`
+
+该项已修复。
 
 ## 后续处理 Checklist
 
 以下项目是后续需要逐个解决或确认取舍的事项。未解决前，不应宣称已经达到严格的 `srcpy2` 行为兼容。
 
-* [ ] 明确 `Clock` 比较运算是否必须恢复为“只接受精确 `int`”，并禁止 `bool` 进入 DSL。
-* [ ] 明确 `VariableDifference` 比较运算是否必须恢复为“只接受精确 `int`”，并禁止 `bool` 进入 DSL。
-* [ ] 修正 `IntValuation` 的类型检查，使其与历史版一致，不再接受 `bool`。
-* [ ] 修正 `FloatValuation` 的类型检查，确认是否需要排除 `bool` 但保留 `int` 和 `float`。
+* [x] 明确 `Clock` 比较运算是否必须恢复为“只接受精确 `int`”，并禁止 `bool` 进入 DSL。
+* [x] 明确 `VariableDifference` 比较运算是否必须恢复为“只接受精确 `int`”，并禁止 `bool` 进入 DSL。
+* [x] 修正 `IntValuation` 的类型检查，使其与历史版一致，不再接受 `bool`。
+* [x] 修正 `FloatValuation` 的类型检查，确认是否需要排除 `bool` 但保留 `int` 和 `float`。
 * [ ] 决定 `Clock.__eq__` / `Clock.__ne__` 是否要移除当前对象比较语义，恢复为纯 DSL 入口。
 * [ ] 决定 `VariableDifference.__eq__` / `VariableDifference.__ne__` 是否要移除当前对象比较语义，恢复为纯 DSL 入口。
-* [ ] 系统梳理当前所有从 `assert` 改为显式异常的地方，决定哪些是允许的现代化修正，哪些必须回退以贴近 legacy。
-* [ ] 决定 `Context.__getitem__` 在重复 clock 名场景下是保持当前 `KeyError("Ambiguous ...")`，还是回到更接近历史版的行为。
-* [ ] 决定 `Federation.contains()` 对未知 valuation 类型的处理是保留当前 `TypeError`，还是复刻历史行为。
-* [ ] 审查并调整 `test/binding/test_api.py` 中已经固化非 legacy 语义的 edge-case 测试。
-* [ ] 为 `freeClock()` 增加显式同 `Context` 校验，或者正式记录为兼容保留的历史风险。
-* [ ] 决定 `extrapolateMaxBounds()` 在 bounds 不完整时应继续沿用历史宽松行为，还是升级为显式异常。
-* [ ] 明确项目目标是否需要恢复旧 `udbm_int` 低层公开兼容面，而不仅仅是恢复高层 DSL。
-* [ ] 如果需要低层兼容，补齐 `VarNamesAccessor`、`IntClockValuation`、`DoubleClockValuation`、`IntVector` 等旧公开接口或兼容层。
-* [ ] 如果不需要低层兼容，在文档中明确写出“兼容目标仅限高层 API，不包含旧 `udbm_int`”。
+* [x] 系统梳理当前所有从 `assert` 改为显式异常的地方，决定哪些是允许的现代化修正，哪些必须回退以贴近 legacy。（我觉得没必要）
+* [x] 决定 `Context.__getitem__` 在重复 clock 名场景下是保持当前 `KeyError("Ambiguous ...")`，还是回到更接近历史版的行为。（我觉得没必要）
+* [x] 决定 `Federation.contains()` 对未知 valuation 类型的处理是保留当前 `TypeError`，还是复刻历史行为。（我觉得没必要）
+* [x] 审查并调整 `test/binding/test_api.py` 中已经固化非 legacy 语义的 edge-case 测试。（我觉得没必要）
+* [x] 为 `freeClock()` 增加显式同 `Context` 校验，或者正式记录为兼容保留的历史风险。
+* [x] 决定 `extrapolateMaxBounds()` 在 bounds 不完整时应继续沿用历史宽松行为，还是升级为显式异常。
+* [x] 明确项目目标是否需要恢复旧 `udbm_int` 低层公开兼容面，而不仅仅是恢复高层 DSL。（我觉得没必要）
+* [x] 如果需要低层兼容，补齐 `VarNamesAccessor`、`IntClockValuation`、`DoubleClockValuation`、`IntVector` 等旧公开接口或兼容层。（我觉得没必要）
+* [x] 如果不需要低层兼容，在文档中明确写出“兼容目标仅限高层 API，不包含旧 `udbm_int`”。（我觉得没必要）
 * [ ] 在后续每次修复后，将本文件中的状态表和 checklist 同步更新，避免文档失真。
 
 ## 当前判断
 
 截至本次检查，比较准确的表述应当是：
 
-> 当前仓库已经恢复了大部分历史高层 Python DSL，并且历史测试关注的核心能力基本存在；但它尚未达到严格的 `srcpy2` 行为兼容，尤其在整数类型判定、DSL 比较语义、异常模型和低层 `udbm_int` 兼容面方面仍存在明确差异。
+> 当前仓库已经恢复了大部分历史高层 Python DSL，并且历史测试关注的核心能力基本存在；但它尚未达到严格的 `srcpy2` 行为兼容，尤其在 DSL 对象比较语义、异常模型和低层 `udbm_int` 兼容面方面仍存在明确差异。
