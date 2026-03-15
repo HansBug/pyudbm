@@ -185,6 +185,8 @@ jobs:
           - os: macos-14
             architecture: AMD64
           - os: macos-14
+            architecture: x86_64
+          - os: macos-14
             python: '3.8'
             architecture: arm64
 
