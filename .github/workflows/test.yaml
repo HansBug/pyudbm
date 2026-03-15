@@ -111,9 +111,11 @@ jobs:
           make unittest
 
   test_wheel_build:
-    name: Build smoke
+    name: Try Build
     runs-on: ${{ matrix.os }}
     if: "!contains(github.event.head_commit.message, 'ci skip')"
+    env:
+      CIBW_CACHE_PATH: ./.cibw-cache
     strategy:
       fail-fast: false
       matrix:
@@ -156,6 +158,9 @@ jobs:
         with:
           fetch-depth: 20
           submodules: 'recursive'
+      - name: Set up QEMU
+        if: ${{ runner.os == 'Linux' }}
+        uses: docker/setup-qemu-action@v3
       - name: Set up python ${{ matrix.python }}
         uses: actions/setup-python@v6
         with:
@@ -165,60 +170,38 @@ jobs:
         shell: bash
         run: |
           [ "$(uname -m)" = "${{ matrix.architecture }}" ]
-      - name: Prepare build frontend
+      - name: Prime cibuildwheel cache
+        if: ${{ runner.os == 'Windows' || runner.os == 'macOS' }}
+        shell: bash
+        run: |
+          case "${{ matrix.python }}" in
+            3.7) VIRTUALENV_VERSION=20.21.1 ;;
+            *) VIRTUALENV_VERSION=20.30.0 ;;
+          esac
+          mkdir -p "$CIBW_CACHE_PATH"
+          TARGET="$CIBW_CACHE_PATH/virtualenv-${VIRTUALENV_VERSION}.pyz"
+          URL="https://raw.githubusercontent.com/pypa/get-virtualenv/${VIRTUALENV_VERSION}/public/virtualenv.pyz"
+          if [ ! -f "$TARGET" ]; then
+            curl -fL --retry 8 --retry-all-errors --retry-delay 5 -o "$TARGET" "$URL"
+          fi
+          ls -al "$CIBW_CACHE_PATH"
+      - name: Build wheels
+        env:
+          CIBW_SKIP: "pp* cp31?t-*"
+          CIBW_ARCHS: ${{ matrix.architecture }}
+          CIBW_PROJECT_REQUIRES_PYTHON: ~=${{ matrix.python }}.0
         shell: bash
         run: |
           python -m pip install -U pip
-          pip install setuptools wheel build "cmake<4" "pybind11[global]"
-      - name: Kill Primitive CMake on MacOS
-        if: ${{ runner.os == 'macOS' }}
+          pip install cibuildwheel
+          python -m cibuildwheel --output-dir wheelhouse
+      - name: Show the buildings
         shell: bash
         run: |
-          ./macos_kill_cmake.sh
-      - name: Build native dependencies on Linux
-        if: ${{ runner.os == 'Linux' }}
-        shell: bash
-        run: |
-          cmake -S UUtils -B UUtils_build -DCMAKE_BUILD_TYPE=Release
-          cmake --build UUtils_build --config Release --parallel 2
-          cmake --install UUtils_build --prefix bin_install --config Release
-          cmake -S UDBM -B UDBM_build -DCMAKE_BUILD_TYPE=Release -DUUtils_DIR="$PWD/bin_install/lib/cmake/UUtils"
-          cmake --build UDBM_build --config Release --parallel 2
-          cmake --install UDBM_build --prefix bin_install --config Release
-      - name: Build native dependencies on Windows
-        if: ${{ runner.os == 'Windows' }}
-        shell: bash
-        run: |
-          UUTILS_DIR_WIN=$(cygpath -w "$PWD/bin_install/lib/cmake/UUtils")
-          cmake -S UUtils -B UUtils_build -DCMAKE_BUILD_TYPE=Release
-          cmake --build UUtils_build --config Release --parallel 2
-          cmake --install UUtils_build --prefix bin_install --config Release
-          cmake -S UDBM -B UDBM_build -DCMAKE_BUILD_TYPE=Release -DUUtils_DIR="$UUTILS_DIR_WIN"
-          cmake --build UDBM_build --config Release --parallel 2
-          cmake --install UDBM_build --prefix bin_install --config Release
-      - name: Build native dependencies on MacOS
-        if: ${{ runner.os == 'macOS' }}
-        shell: bash
-        run: |
-          cmake -S UUtils -B UUtils_build \
-            -DCMAKE_OSX_ARCHITECTURES="${{ matrix.architecture }}" \
-            -DCMAKE_SYSTEM_PROCESSOR="${{ matrix.architecture }}" \
-            -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_TRY_COMPILE_OSX_ARCHITECTURES="${{ matrix.architecture }}"
-          cmake --build UUtils_build --config Release --parallel 2
-          cmake --install UUtils_build --prefix bin_install --config Release
-          cmake -S UDBM -B UDBM_build \
-            -DUUtils_DIR="$PWD/bin_install/lib/cmake/UUtils" \
-            -DCMAKE_OSX_ARCHITECTURES="${{ matrix.architecture }}" \
-            -DCMAKE_SYSTEM_PROCESSOR="${{ matrix.architecture }}" \
-            -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_TRY_COMPILE_OSX_ARCHITECTURES="${{ matrix.architecture }}"
-          cmake --build UDBM_build --config Release --parallel 2
-          cmake --install UDBM_build --prefix bin_install --config Release
-      - name: Smoke build wheel
-        shell: bash
-        run: |
-          python -m build --wheel --no-isolation --outdir dist
-          ls -al dist
+          ls -al ./wheelhouse
+          mv wheelhouse dist
+      - name: Upload packed files to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts-${{ runner.os }}-cp${{ matrix.python }}-${{ matrix.architecture }}
+          path: ./dist/*
