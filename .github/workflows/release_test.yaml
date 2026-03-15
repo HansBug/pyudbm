@@ -163,7 +163,6 @@ jobs:
     name: Fake Publish
     runs-on: ubuntu-22.04
     needs:
-      - unittest
       - wheel_build
     strategy:
       fail-fast: false
