@@ -101,7 +101,7 @@ Use this path when the goal is to understand the native UDBM implementation itse
 - `dill89`
   Early dense-time symbolic verification precursor.
 - `ad90`
-  Original timed-automata source paper.
+  Original timed-automata source paper; the local entry now also has a full scanned `paper.pdf` and a refined `content.md`.
 - `rokicki93`
   Historical citation point in the normalization line; full text is not locally available here.
 
@@ -205,6 +205,23 @@ Main UDBM support:
 - why `mingraph` exists
 - why canonical DBMs are not always the best stored form
 
+What the currently refined local reading version already contains:
+
+- the abstract and introduction preserved as a coherent motivation story from timed-automata reachability into the paper's two concrete goals: compact constraint storage and global passed-list reduction
+- the timed-automata and symbolic-semantics preliminaries kept in readable form, so the paper can now be followed locally without constantly jumping back out to reconstruct the meaning of states, zones, and DBM closure
+- the DBM reminder together with Fig. 3's running graph example, including the move from raw constraint graph to shortest-path closure to the final reduced graph
+- the full reduction story for weighted graphs: redundant-edge intuition, zero-cycle complications, zero-equivalence classes, quotient/expansion construction, and the main shortest-path-reduction theorem
+- the global-reduction section covering dynamic loops, statical loops, entry nodes, covering states, and the theorem that justifies saving only covering states for termination
+- all four paper figures normalized as `figure-1.png` through `figure-4.png`, plus `table-1.png` kept both as a visual asset and as a readable Markdown transcription
+- the appendix proofs for Lemma 1, Theorem 2, and Theorem 3 retained in the local reading version instead of being dropped at the end as extractor noise
+
+Why this extra detail matters in practice:
+
+- it gives a repository-local explanation of `mingraph` that is much closer to the actual UDBM implementation than a generic "DBMs can be compressed" summary
+- it ties compact DBM storage directly to the two costs that matter in tooling: memory used by the passed list and the cost of later inclusion checks against stored states
+- it is the clearest local source for understanding why a canonical closed DBM is ideal for manipulation but not necessarily the form you want to serialize, cache, or store densely
+- it also preserves the paper's second contribution, which matters because `mingraph` is only half the story here; the authors were explicitly optimizing both individual symbolic states and the total number of states kept during search
+
 ### `bengtsson02`
 
 Role:
@@ -277,6 +294,19 @@ Main UDBM support:
 
 - the clock / guard / reset model underneath later symbolic techniques
 - the formal timed-automaton object that zone and DBM methods later encode
+
+What the currently refined local reading version already contains:
+
+- the full 14-page chapter is now locally available as a scanned `paper.pdf`, rather than only a short preview
+- a manually refined `content.md` covering the abstract, the trace-semantics setup, timed traces, timed automata, closure properties, region-based emptiness reasoning, undecidable inclusion, and deterministic timed Muller automata
+- the small automaton examples used in the paper to explain bounded response and exact-distance timing properties
+- the region-equivalence illustration from the emptiness section, kept as a visual asset alongside the transcription
+
+Why this extra detail matters in practice:
+
+- it gives a repository-local source for the pre-zone semantics that the wrapper is supposed to preserve when rebuilding the historical `Context` / `Clock` / `Federation` style API
+- it is the clearest local place to verify that clocks, guards, resets, timed traces, and timed-language questions are the semantic object underneath later DBM manipulations rather than an optional presentation layer
+- it also helps explain why a clock-oriented high-level Python surface is not just convenience syntax, but a faithful reflection of the original model
 
 ### `rokicki93`
 

@@ -44,8 +44,7 @@ It is also a useful reminder that the later zone literature is a semantic optimi
 Read it before `by04` if you want the historical origin first, or after `by04` if you want to backfill the formal roots of the model.
 
 Availability note:
-the local `paper.pdf` in this directory is only the Springer preview PDF from the chapter landing page:
+the local `paper.pdf` in this directory is now a 14-page scanned copy of the full chapter, and `content.md` is a manually refined Markdown transcription based on that scan.
 
-- https://page-one.springer.com/pdf/preview/10.1007/BFb0032042
-
-It is not the full chapter PDF. A lawful public full-text PDF for the exact ICALP 1990 chapter was not found during collection.
+Practical caveat:
+this is still a scan of an old proceedings chapter rather than a born-digital PDF, so keeping the diagram crops alongside the refined transcription is important for checking notation and automaton structure against the source pages.

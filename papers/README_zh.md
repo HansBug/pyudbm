@@ -101,7 +101,7 @@
 - `dill89`
   更早的 dense-time symbolic verification 前驱。
 - `ad90`
-  原始 timed automata 源头论文。
+  原始 timed automata 源头论文；本地条目现在还补齐了完整扫描版 `paper.pdf` 和精修后的 `content.md`。
 - `rokicki93`
   normalization 文献线上的历史引用点；本地没有可读全文。
 
@@ -205,6 +205,23 @@
 - 为什么会有 `mingraph`
 - 为什么 canonical DBM 虽然适合运算，但不一定是最佳存储形式
 
+当前已经精修完成的本地阅读稿还具体包含：
+
+- 摘要和引言已经整理成一条完整的动机线，从 timed automata reachability 一直过渡到论文的两个具体目标：紧凑的 constraint storage，以及对 passed list 的全局缩减
+- timed automata 与 symbolic semantics 的预备内容已经保留下来，因此现在可以在本地稿里直接读懂 paper 里的 states、zones 和 DBM closure，而不用不断跳回别处补定义
+- DBM 回顾和 Fig. 3 那个贯穿全文的图论例子都已经整理好，从原始 constraint graph、shortest-path closure 一直到最后的 reduced graph 都在
+- weighted graph reduction 的主线已经完整保住，包括 redundant edge 的直觉、zero-cycle 带来的困难、zero-equivalence class、quotient / expansion 构造，以及核心的 shortest-path-reduction theorem
+- global reduction 那一半也没有被丢掉：dynamic loops、statical loops、entry nodes、covering states，以及“只保存 covering states 也足以保证 termination”的定理都已经保留
+- 论文里的 4 张图现在都已经规范化成 `figure-1.png` 到 `figure-4.png`，而 `table-1.png` 不只是保留成截图，还额外做了可读的 Markdown 转写
+- 附录里 Lemma 1、Theorem 2 和 Theorem 3 的证明也被保留进本地阅读稿，而不是像粗抽取稿那样在结尾被当成噪声丢掉
+
+这些补充内容为什么对实现特别有用：
+
+- 它给 `mingraph` 提供了一份仓库内就地可读的解释，而且和 UDBM 真实实现的距离比一句泛泛的“DBM 可以压缩存储”要近得多
+- 它把紧凑 DBM 存储和两个真正影响工具性能的成本直接连起来了：passed list 占用的内存，以及后续拿已存状态做 inclusion checking 的代价
+- 当你要理解“canonical closed DBM 很适合运算，但不一定适合作为序列化、缓存或密集存储格式”时，它是本地论文集中最直接的一篇
+- 它还保住了论文的第二个贡献，这一点很重要，因为这里只看 `mingraph` 只看到了半篇论文；作者同时还在优化单个 symbolic state 的大小和搜索中需要保留的 state 总数
+
 ### `bengtsson02`
 
 作用：
@@ -277,6 +294,19 @@ timed automata 的原始语言论源头。
 
 - 后来各种 symbolic technique 底下的 `clock / guard / reset` 模型
 - zone 与 DBM 方法后来实际编码的 formal timed-automaton 对象
+
+当前已经精修出来的本地阅读版本，具体包含：
+
+- 现在本地已经有完整的 14 页扫描版 `paper.pdf`，不再只是一个很短的 preview
+- 一份人工精修的 `content.md`，覆盖了摘要、trace semantics 的铺垫、timed traces、timed automata、closure properties、基于 region 的 emptiness 推导、inclusion 的不可判定性，以及 deterministic timed Muller automata
+- 论文里用来解释 bounded response 和精确时间间隔性质的几个小 automaton 示例
+- emptiness 小节里的 region equivalence 示意图，并将其作为可对照的图片资源保留下来
+
+这些补充内容为什么对实现特别有用：
+
+- 它给仓库内部提供了一份就地可读的“zone 之前的语义源头”，有助于在重建历史 `Context` / `Clock` / `Federation` 风格 API 时不偏离原模型
+- 当你要确认 clocks、guards、resets、timed traces 与 timed-language 问题才是后来 DBM 操作真正服务的对象时，它是最直接的一份本地材料
+- 它也能更直接地说明：Python 高层接口保持 clock-oriented，不只是为了语法好看，而是为了忠实反映原始 timed automata 模型
 
 ### `rokicki93`
 
