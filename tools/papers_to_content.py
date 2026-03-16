@@ -113,7 +113,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         required=True,
         help="Output markdown file path in text mode, or output directory in image mode.",
     )
-    parser.add_argument("-d", "--dpi", type=int, default=150, help="DPI for rendered or extracted images.")
+    parser.add_argument("-d", "--dpi", type=int, default=350, help="DPI for rendered or extracted images.")
     parser.add_argument(
         "-n",
         "--no-page-separators",
