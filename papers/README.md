@@ -33,6 +33,7 @@ When adding or updating a paper entry in this directory:
 - keep `README.md` and `README_zh.md` paired, cross-linked, and structurally aligned
 - keep the paper-level guides focused on repository-relevant reading advice: position in the stack, what to extract, where it maps into the codebase, and why it matters for UDBM
 - if you create `content.md`, treat it as a human-facing reading artifact rather than a raw extractor dump
+- treat figure and table assets as a first-class part of refinement work, not as an afterthought; every referenced screenshot must be visually checked and, when necessary, manually re-cropped
 - keep `content_assets/` limited to assets actually referenced by `content.md`
 - update this top-level `papers/README.md` and `papers/README_zh.md` whenever new papers are added or the reading paths change
 
@@ -309,12 +310,26 @@ Do not accept "mostly readable" output. If a formula, symbol, or paragraph is am
 
 All figures and tables referenced in `content.md` must be checked against the PDF visually, and this check must also be driven by the LLM's direct reading of the rendered pages rather than by automatic heuristics.
 
+Figures are a high-priority acceptance item. A paper is not "refined" if the prose was cleaned up but the screenshots are still poorly cropped, incomplete, missing captions, or inserted at the wrong textual location.
+
 In particular:
 
 - verify that the extracted screenshot matches the intended figure or table
-- verify that the crop is complete and does not cut away axes, labels, legends, or table borders
-- verify that the caption is present, correct, and placed near the referenced image
-- verify that the figure or table appears at a reasonable point relative to the surrounding text
+- verify that the crop is complete on every edge and does not cut away axes, labels, legends, table borders, rightmost nodes, top headers, bottom rows, or any other semantically relevant content
+- verify that the crop is not too loose; avoid carrying unrelated paragraphs, neighboring figures, section headings, or page furniture when the target figure can be isolated more precisely
+- verify that the original caption is included inside the image crop whenever the PDF layout allows it
+- also preserve a readable Markdown caption immediately below the image in `content.md`; the image caption and the text caption should both exist so humans can verify the match quickly and LLMs can retrieve figures reliably
+- verify that the figure or table is inserted at the strictly corresponding point in the surrounding discussion, not merely somewhere in the same section
+- if one PDF page contains multiple separately discussed figures, split them into separate assets instead of keeping a combined screenshot unless the paper itself presents them as one inseparable figure
+
+Practical screenshot workflow:
+
+- inspect each referenced asset at full size, not only as a small thumbnail
+- compare the asset against the source page and check all four edges deliberately
+- if any side is clipped or if extra context is leaking in, re-crop and replace the asset rather than tolerating a "good enough" screenshot
+- after replacing assets, update `content.md` if the figure split, order, or placement changed
+- remove superseded assets that are no longer referenced
+- finish with a consistency check that every image referenced in `content.md` exists in `content_assets/` and that `content_assets/` does not retain stale unused screenshots
 
 The extraction script may produce incorrect screenshots or poor crops. When that happens, do not keep the bad asset. Re-screenshot or re-crop the page content manually, replace the asset in `content_assets/`, and update `content.md` to reference the corrected file.
 
@@ -330,7 +345,7 @@ That means:
 
 - use normal Markdown headings and paragraph spacing
 - use LaTeX for inline and display formulas when needed
-- keep figure and table captions readable and explicit
+- keep figure and table captions readable and explicit, and preserve the "caption in image + caption in Markdown" pattern whenever a figure asset is used
 - preserve the logical order of the paper
 - avoid raw page markers, extraction diagnostics, or internal tool noise
 
