@@ -51,9 +51,9 @@ However, a restriction of the existing normalisation algorithms is that clock co
 
 A normalisation algorithm based on region equivalence treats clock values above a certain constant as equivalent. This is correct only when no guard of the form $x - y \sim n$ is allowed in an automaton. Otherwise the normalisation operation may enlarge a zone so that the guard, that is, a difference constraint, labelled on a transition is made true and thus incorrectly enables the transition. For automata containing difference constraints as guards, we need a finer partitioning, since the difference constraints introduce diagonal lines that split the entire clock space, even above the maximum constants for clocks. The partitioning and related normalisation operation based on region construction is too crude.
 
-We demonstrate this by an example. Consider the example shown in Figure 1. The final location of the automaton is not reachable according to the semantics. This is because in location $S_2$, the clock zone is $(x > 1 \land z < y)$, where the guard is $(x - z < 1 \land z - y < 1)$, which is equivalent to $(x - z < 1 \land z - y < 1 \land x - y < 2)$, and can never be true. Thus the last transition is disabled.
+We demonstrate this by an example. Consider the example shown in Figure 1. The final location of the automaton is not reachable according to the semantics. This is because in location $S_2$, the clock zone is $(x - y > 2 \land x > 2)$ where the guard is $(x - z < 1 \land z - y < 1)$ which is equivalent to $(x - z < 1 \land z - y < 1 \land x - y < 2)$ can never be true and thus disables the last transition.
 
-However, because the maximal constant for clock $x$ is $1$ and for $y$ is $2$, the zone in location $S_2$, namely $(x > 1 \land z < y)$, will be normalised to $(x > 1)$ by the maximal constant for $x$, which enables the guard $(x - z < 1 \land z - y < 1)$ leading to the final location. Thus symbolic reachability analysis based on a standard normalisation algorithm would incorrectly conclude that the last location is reachable.
+However, because the maximal constants for clock $x$ is $1$ (and $2$ for $y$), the zone in location $S_2$: $(x - y > 2 \land x > 2)$ will be normalised to $(x - y > 1 \land x > 1)$ by the maximal constant $1$ for $x$, which enables the guard $(x - z < 1 \land z - y < 1)$ leading to the final location. Thus the symbolic reachability analysis based on a standard normalisation algorithm would incorrectly conclude that the last location is reachable.
 
 In [BDGP98], it has been proved that a timed automaton with constraints on clock differences can be transformed to an equivalent automaton without constraints on differences. However, this approach is impractical in the existing tools that support debugging of models because the transformation changes the syntax of the original automaton.
 
@@ -120,11 +120,11 @@ It can be shown that the set of constraint systems is closed under these operati
 
 ### 2.2 Reachability Analysis
 
-Given a timed automaton with symbolic initial state $\langle l_0, D_0 \rangle$ and a symbolic state $\langle l, D \rangle$, the state $\langle l, D \rangle$ is said to be reachable if $\langle l_0, D_0 \rangle \leadsto^\ast \langle l, D_n \rangle$ and $D \cap D_n \ne \emptyset$ for some $D_n$. This problem may be solved using a standard reachability algorithm for graphs. However, unbounded clock values may yield an infinite zone graph and the reachability algorithm might not terminate. The solution is to obtain a finite symbolic semantics by normalising states with respect to the maximum constant each clock is compared to in the automaton.
+Given a timed automaton with symbolic initial-state $\langle l_0, D_0 \rangle$ and a symbolic state $\langle l, D \rangle$, $\langle l, D \rangle$ is said to be reachable if $\langle l_0, D_0 \rangle \leadsto^\ast \langle l, D_n \rangle$ and $D \cap D_n \ne \emptyset$ for some $D_n$. This problem may be solved using a standard reachability algorithm for graphs. However the unbounded clock values may render an infinite zone graph and thus might the reachability algorithm not terminate. The solution to this problem is to obtain a finite symbolic semantics by normalising the states with respect to the maximum constant each clock is compared to in the automaton. For details we refer the reader to [Pet99, Rok93] but the main fact and the intuition behind it is described here.
 
 <!-- page: 52 -->
 
-To describe this, we first introduce the notion of *closed* constraint systems. A constraint system $D$ is *closed under entailment*, or simply *closed*, if no constraint in $D$ can be strengthened without reducing the solution set.
+In order to do this we first have to introduce the notion of *closed* constraint systems. We say that a constraint system $D \in B(C)$ is *closed under entailment* or just *closed*, for short, if no constraint in $D$ can be strengthened without reducing the solution set.
 
 **Proposition 1.** For each constraint system $D \in B(C)$ there is a unique constraint system $D' \in B(C)$ such that $D$ and $D'$ have exactly the same solution set and $D'$ is closed under entailment.
 
@@ -206,13 +206,13 @@ Since the number of regions defined by $\sim$ is finite and there are only finit
 
 ### 4.2 The Core of Normalisation
 
-We can now use the refined region equivalence from Definition 3 to obtain the core of a normalisation algorithm. From the region equivalence we get the need to ensure that if a difference constraint is not satisfied by any point in the unnormalised zone $D$, then it should not be satisfied by any point in the normalised zone $\operatorname{norm}_A(D)$; and if all points in $D$ satisfy a difference constraint, then so should all points in $\operatorname{norm}_A(D)$. This leads to a core normalisation algorithm consisting of three stages:
+We can now use the refined region equivalence from Definition 3 to obtain the core of a normalisation algorithm. From the region equivalence we get the need to ensure that if a difference constraint is not satisfied by any point in the unnormalised zone, $D$, then it should not be satisfied by any point in the normalised zone, $\operatorname{norm}_A(D)$, and if all points in $D$ satisfy a difference constraint then so should all points in $\operatorname{norm}_A(D)$. This leads to a core normalisation algorithm consisting of three stages:
 
-1. collect all difference constraints from $A$ that are not satisfied by any point in the zone, together with the negation of all difference constraints that are satisfied by all points in the zone,
-2. perform normalisation with respect to the maximum constants of $A$, and
+1. collect all difference constraints from $A$ that are not satisfied by any point in the zone and the negation of all difference constraints that are satisfied by all points in the zone,
+2. perform normalisation with respect to the maximum constants of $A$,
 3. apply the negation of all the collected constraints to the normalised zone to make sure that none of the collected constraints are satisfied after normalisation.
 
-In Algorithm 2 this core normalisation is given as pseudo-code. The set $G_d$ referred to in the algorithm is the set of difference constraints in $A$, and the operation $\operatorname{norm}_k$ refers to normalisation with respect to the maximum constants of $A$.
+In Algorithm 2 this core normalisation is given as pseudo code. The set $G_d$ referred to in the algorithm is the set of difference constraints in $A$ and the operation $\operatorname{norm}_k$ refers to normalisation with respect to the maximum constants of $A$.
 
 <!-- page: 57 -->
 
@@ -232,17 +232,17 @@ end for
 return D
 ```
 
-However, there are cases where this algorithm is incorrect with respect to the equivalence classes. For some cases when a difference constraint splits the zone to be normalised, the perfect normalisation may not be representable using a single zone. One instance of such a zone is the "Leaving S1" zone in our running example. If this zone were extended to contain the set of equivalence classes from which it contains points, it would be the whole clock space except for the small triangle defined by $y \le 1 \land x \le y$. The main difference between the two proposed algorithms is how this is resolved.
+However, there are cases where this algorithm is incorrect with respect to the equivalence classes. For some cases when a difference constraint split the zone to be normalised, the perfect normalisation may not be representable using a single zone. One instance of such a zone is the "leaving $S_1$" zone in our running example. If this zone was extended to contain the set of equivalence classes, from which it contains points, it would be the whole clock space except for the small triangle defined by $y \le 1 \land x \le y$. The main difference between the two proposed algorithms is how this is resolved.
 
 ### 4.3 Algorithm: Normalisation without Zone Splitting
 
-The first normalisation algorithm is based on the observation that, due to the geometry of the equivalence classes, the problem only occurs when the zone is stretched downwards, that is, when the lower bound of the zone is lowered down to the maximum constant. Thus, if the zones are not stretched downwards when normalising, the problem can be avoided. This gives an algorithm that is similar to the core normalisation in Algorithm 2, with the only exception that the step of replacing constraints of the form $x > m$, $x \ge m$, $x - y > m$, and $x - y \ge m$ for $m > k_x$ is removed from the $\operatorname{norm}_k$ operation.
+The first normalisation algorithm is based on the observation that due to the geometry of the equivalence classes, the problem will only occur when the zone is stretched downwards, i.e. when the lower bound of the zone is lowered down to the maximum constant. Thus, if the zones are not stretched downwards when normalising the problem can be avoided. This gives an algorithm that is similar to core normalisation presented in Algorithm 2, with the only exception that the step of replacing constraints of the form $x > m$, $x \ge m$, $x - y > m$ and $x - y \ge m$ for $m > k_x$ is removed from the $\operatorname{norm}_k$-operation.
 
-The problem with this solution is that the normalised zone graph is no longer finite, since delay may cause the lower bound of the zone to increase unboundedly. However, the normalised zones are well quasi-ordered with respect to zone inclusion and thus termination of the reachability algorithm can still be guaranteed [ACJT00].
+The problem with this solution is that the normalised zone graph is no longer finite, since delay may cause the lower bound of the zone to increase unboundedly. However, the normalised zones are well quasi-ordered with respect to zone inclusion and thus the termination of the reachability algorithm can be guaranteed [ACJT00].
 
 <!-- page: 58 -->
 
-Using this normalisation procedure for our example automaton yields the zones presented in Figure 5. We note from the figure that the normalised zones no longer contain time assignments from equivalence classes not in the corresponding unnormalised zone. Further, the zones are not expanded to fill all the equivalence classes where they have points.
+Using this normalisation procedure for our example automaton will give the zones presented in Figure 5. We note from the figure that now the normalised zones does not contain time assignments from equivalence classes not in the corresponding unnormalised zone. Further we see that the zones are not expanded to fill all the equivalence classes where it has points.
 
 ![](content_assets/figure-5.png)
 
@@ -250,7 +250,7 @@ Using this normalisation procedure for our example automaton yields the zones pr
 
 ### 4.4 Algorithm: Normalisation with Zone Splitting
 
-The second normalisation procedure is based on the observation that the problem only occurs when a difference constraint divides the unnormalised zone, that is, when some of the time assignments in the zone satisfy the difference constraint and some do not. Thus, if all such zones are split along dividing difference constraints, for example by Algorithm 3, before normalisation, the problem can be avoided.
+The second normalisation procedure is based on the observation that the problem only occurs when a difference constraint divides the unnormalised zone, i.e. some of the time assignments in the zone satisfy the difference constraint and some do not. Thus, if all such zones are split along dividing difference constraints, e.g. using Algorithm 3, before normalisation this problem can be avoided.
 
 **Algorithm 3. Zone splitting algorithm**
 
@@ -270,9 +270,9 @@ end for
 return Q
 ```
 
-The full normalisation procedure is presented in Algorithm 4. The splitting, denoted by `split` in the description, is used as a preprocessing step and then the basic normalisation algorithm $\operatorname{norm}_k$ is applied to all resulting zones. We use $\operatorname{norm}_s$ to denote this normalisation operation and use it to define a normalised symbolic transition relation.
+The full normalisation procedure is presented in Algorithm 4. The splitting, denoted by `split` in the description, is used as a preprocessing step and then the basic normalisation algorithm, $\operatorname{norm}_k$, is applied to all the resulting zones. We use $\operatorname{norm}_s$ to denote this normalisation operation and we use this operation to define a normalised symbolic transition relation.
 
-**Definition 4.** Let $A$ be a timed automaton with symbolic semantics $\leadsto$. The $s$-normalised version of $\leadsto$, denoted $\leadsto_s$, for $A$ is defined by: whenever $\langle l, D \rangle \leadsto \langle l', D'' \rangle$, then $\langle l, D \rangle \leadsto_s \langle l', D' \rangle$ for all $D' \in \operatorname{norm}_s(D'')$.
+**Definition 4.** Let $A$ be a timed automaton with the symbolic semantics $\leadsto$. The $s$-normalised version of $\leadsto$ ($\leadsto_s$) for $A$ is defined by: whenever $\langle l, D \rangle \leadsto \langle l', D' \rangle$ then $\langle l, D \rangle \leadsto_s \langle l', D'' \rangle$ for all $D'' \in \operatorname{norm}_s(D')$.
 
 <!-- page: 59 -->
 
@@ -286,12 +286,12 @@ end for
 return Q
 ```
 
-To demonstrate the normalisation procedure, we apply it to our running example. In Figure 6 we see the zones from the $s$-normalised transition relation. The first two states are not affected by normalisation, so they are the same as in the unnormalised semantics. The zone for the next state, the "Leaving S1" state, contains both time assignments satisfying the constraint $x \le y$ and time assignments satisfying $x > y$. Thus we have to split the state before normalisation. The two resulting states are
+To demonstrate the normalisation procedure we apply it to our running example. In Figure 6 we see the zones from the $s$-normalised transition relation. The two first states are not affected by normalisation so they are the same as in the unnormalised semantics. The zone for the next state, the "Leaving $S_1$" state, have both time assignments satisfying the constraint $x \le y$ and time assignment satisfying $x > y$. Thus we have to split the state before normalisation. The two resulting states are
 
 $$
 \langle S_1, x \ge 2 \land y \ge x \rangle
 \quad \text{and} \quad
-\langle S_1, x \ge 2 \land 0 < x - y \le 2 \rangle.
+\langle S_2, x \ge 2 \land 0 < x - y \le 2 \rangle.
 $$
 
 When normalising these states we get
@@ -299,10 +299,10 @@ When normalising these states we get
 $$
 \langle S_1, x > 0 \land y > 1 \land y \ge x \rangle
 \quad \text{and} \quad
-\langle S_1, x > 0 \land x > y \rangle,
+\langle S_2, x > 0 \land x > y \rangle,
 $$
 
-respectively. After the next step only one of the states remains; the other does not satisfy the guard on the transition. The surviving state is then
+respectively. After the next step only one of the states remain, the other did not satisfy the guard on the transition. The state is now
 
 $$
 \langle S_2, x > 0 \land y < 1 \land x > y \rangle.
@@ -318,28 +318,30 @@ This state does not satisfy the constraint $x \le y$, and thus location $S_3$ is
 
 Before proving the correctness of the $s$-normalised transition relation, we need to establish some properties of the $\operatorname{norm}_s$ operator.
 
-**Lemma 1.** Assume a timed automaton $A$, with associated $\operatorname{norm}_s$ operator. For any zone $D$ the following holds:
+**Lemma 1.** Assume a timed automaton $A$, with associated $\operatorname{norm}_s$ operator. For any zone $D$ the following holds.
 
-1. for all constraints $g$ mentioned in $A$,
+1. For all constraints $g$ mentioned in $A$,
    $$
-   \operatorname{norm}_s(D \wedge g) = \{\, D' \wedge g \mid D' \in \operatorname{norm}_s(D) \,\},
+   \operatorname{norm}_s(D \land g) = \{ D' \land g \mid D' \in \operatorname{norm}_s(D) \}
    $$
 2. 
    $$
-   \operatorname{norm}_s(D^\uparrow) = \{\, (D')^\uparrow \mid D' \in \operatorname{norm}_s(D) \,\},
+   \operatorname{norm}_s(D^\uparrow) = \{ (D')^\uparrow \mid D' \in \operatorname{norm}_s(D) \}
    $$
-3. if $D' \in \operatorname{norm}_s(D)$, then
+3. 
    $$
-   \operatorname{norm}_s(r(D')) \subseteq \operatorname{norm}_s(r(D)).
+   D' \in \operatorname{norm}_s(D) \Rightarrow \operatorname{norm}_s(r(D')) \subseteq \operatorname{norm}_s(r(D))
    $$
 
-*Proof sketch.* These properties are proved by reasoning about how the $\wedge$, $\uparrow$, and $r$ operations modify zones with respect to the two types of constraints that affect normalisation, namely non-difference constraints with bounds above the maximum constants and difference constraints.
+*Proof.* (sketch) These properties are proved by reasoning about how the $\land$, $\uparrow$ and $r$ operations modify the zones with respect to the two types of constraints that effect normalisation, i.e. non-difference constraints with bounds above the maximum constants and difference constraints.
 
-For (1), adding a guard of the form $x - y \sim n$ cuts the zone along one of the normalisation split lines. If this is done before normalisation, the result is that normalisation produces a subset of the zones it would otherwise have produced. If the guard is added after normalisation, a number of entire zones from the normalisation are removed, giving the same final result. Adding a guard of the form $x \sim n$ instead cuts away a part of the zone that is not affected by normalisation since, by definition, $n \le k_x$.
+1. Adding a guard of the form $x_i - x_j \sim n$ will cut the zone along one of the normalisation split lines. If this is done before normalisation the result will be that normalisation produce a subset of the zones that it would originally have produced. If the guard is added after normalisation a number of entire zones from the normalisation will be removed giving the same final result.
 
-For (2), difference constraints are not affected at all by the $\uparrow$ operation. Further, $\uparrow$ does not introduce any new non-difference constraints.
+   Adding a guard of the form $x_i \sim n$ will cut away a part of the zone that is not affected by the normalisation since, by definition, $n \le k_i$.
 
-For (3), the operations $r(D)$ are projections of a zone $D$ on a hyperplane defined by $r$. This projection has the property that points added by normalisation are mapped to points that would also be added by re-normalisation.
+2. Difference constraints are not effected at all by the $\uparrow$ operation. Further $\uparrow$ do not introduce any new non-difference constraints.
+
+3. $r(D)$ operations are projections of a $D$ on a hyperplane defined by $r$. This projection has the property that points that were added by normalisation are mapped to other that would be added by renormalisation.
 
 <!-- page: 60 -->
 
@@ -347,50 +349,132 @@ Finally we prove that the $s$-normalised transition relation is correct.
 
 **Theorem 1.** Let $A$ be a timed automaton and for each clock $x_i \in C$ let $k_i$ be the largest number $x_i$ is compared to in $A$.
 
-- *(Soundness).* Whenever $\langle l_0, \{u_0\} \rangle \leadsto_s^\ast \langle l_f, D_f \rangle$, then $(l_0, u_0) \to^\ast (l_f, u_f)$ for all $u_f \in D_f$ such that $u_f(x_i) \le k_i$.
-- *(Completeness).* Whenever $(l_0, u_0) \to^\ast (l_f, u_f)$, then $\langle l_0, \{u_0\} \rangle \leadsto_s^\ast \langle l_f, D_f \rangle$ for some $D_f$ such that $u_f \in D_f$.
+- *(Soundness)* whenever $\langle l_0, \{u_0\} \rangle \leadsto_s^\ast \langle l_f, D_f \rangle$ then $\langle l_0, u_0 \rangle \to^\ast \langle l_f, u_f \rangle$ for all $u_f \in D_f$ such that $u_f(x_i) \le k_i$
+- *(Completeness)* whenever $\langle l_0, u_0 \rangle \to^\ast \langle l_f, u_f \rangle$ then $\langle l_0, \{u_0\} \rangle \leadsto_s^\ast \langle l_f, D_f \rangle$ for some $D_f$ such that $u_f \in D_f$
 
-*Proof.* Both soundness and completeness are proved by induction on the length of the transition sequences.
+*Proof.* Both soundness and completeness are proven by induction on the length of the transition sequences.
 
-*(Soundness).* As induction hypothesis, assume $\langle l_0, \{u_0\} \rangle \leadsto_s^n \langle l_n, D_n \rangle$ and $D \in \operatorname{norm}_s(D_n)$. Further assume $\langle l_n, D \rangle \leadsto_s \langle l_{n+1}, D_{n+1} \rangle$. We need to prove that there exists a zone $D_n'$ such that $D \in \operatorname{norm}_s(D_n')$, $\langle l_n, D_n' \rangle \leadsto \langle l_{n+1}, D_{n+1}' \rangle$, and $D_{n+1} \in \operatorname{norm}_s(D_{n+1}')$. There are two cases: delay transitions and action transitions.
-
-For delay transitions, by the assumption $\langle l_n, D_n' \rangle \leadsto_s \langle l_n, D_{n+1} \rangle$ by delay, and by the definition of $\leadsto_s$, we get
+*(Soundness)* As induction hypothesis, assume
 
 $$
-D_{n+1} \in \operatorname{norm}_s(D^\uparrow \wedge I(l_n)).
+\langle l_0, \{u_0\} \rangle \leadsto_s^n \langle l_n, D_n^s \rangle \Rightarrow \exists D_n
 $$
 
-Combining this with Lemma 1(1) and Lemma 1(2) yields the expected correspondence between the concrete delayed successor and the delayed successors of the normalised split zones. Since $D$ is already normalised, the resulting zone is exactly the delayed and invariant-constrained successor of $D$.
-
-For action transitions, by assumption we have $\langle l_n, D \rangle \leadsto_s \langle l_{n+1}, D_{n+1} \rangle$ by some edge $l_n \xrightarrow{g,a,r} l_{n+1}$. From the definitions of $\operatorname{norm}_s$ and $\leadsto$ we derive that
+such that
 
 $$
-D_{n+1} \in \operatorname{norm}_s(r(D \wedge g) \wedge I(l_{n+1})).
+\langle l_0, \{u_0\} \rangle \leadsto^n \langle l_n, D_n \rangle
+\quad \text{and} \quad
+D_n^s \in \operatorname{norm}_s(D_n).
 $$
 
-Expanding this by Lemma 1(1) and using Lemma 1(3), we obtain the required action successor $D_{n+1}'$ such that $D_{n+1} \in \operatorname{norm}_s(D_{n+1}')$.
+Further assume
+
+$$
+\langle l_n, D_n^s \rangle \leadsto_s \langle l_{n+1}, D_{n+1}^s \rangle.
+$$
+
+We now need to prove that $\exists D_{n+1}$ such that $D_n^s \in \operatorname{norm}_s(D_n)$, $\langle l_n, D_n \rangle \leadsto \langle l_{n+1}, D_{n+1} \rangle$ and $D_{n+1}^s \in \operatorname{norm}_s(D_{n+1})$. We have two cases: delay transitions and action transitions.
+
+- *(Delay)* By the assumption $\langle l_n, D_n^s \rangle \leadsto_s \langle l_n, D_{n+1}^s \rangle$ by delay, and the definition of $\leadsto_s$ we get
+
+$$
+D_{n+1}^s \in \operatorname{norm}_s(D_n^{s\uparrow} \land I(l_n)).
+$$
+
+Combining this with Lemma 1 (1+2) gives
+
+$$
+D_{n+1}^s \in \operatorname{norm}_s(\{ D \land I(l_n) \mid D \in \{ (D')^\uparrow \mid D' \in \operatorname{norm}_s(D_n^s) \} \}),
+$$
+
+and since $D_n^s$ is already normalised we get
+
+$$
+D_{n+1}^s \in \{ D_n^{s\uparrow} \land I(l_n) \},
+$$
+
+i.e.
+
+$$
+D_{n+1}^s = D_n^{s\uparrow} \land I(l_n).
+$$
+
+Now assume that for all $D_n^i$ such that $D_n^s \in \operatorname{norm}_s(D_n^i)$ and $\langle l_n, D_n^i \rangle \leadsto \langle l_n, D_{n+1} \rangle$ by delay, $D_{n+1}^s \notin \operatorname{norm}_s(D_{n+1})$. By the definition of $\leadsto$ we have $D_{n+1} = D_n^{i\uparrow} \land I(l_n)$, which gives
+
+$$
+\operatorname{norm}_s(D_{n+1}) = \operatorname{norm}_s(D_n^{i\uparrow} \land I(l_n)).
+$$
+
+Expansion using Lemma 1 (1+2) yields
+
+$$
+\operatorname{norm}_s(D_{n+1}) = \{ D \land I(l_n) \mid D \in \{ (D')^\uparrow \mid D' \in \operatorname{norm}_s(D_n^i) \} \}.
+$$
+
+By our assumption, $D_n^s \in \operatorname{norm}_s(D_n^i)$ and $D_{n+1}^s \notin \operatorname{norm}_s(D_{n+1})$, for all $D_n^i$, but this lead to a contradiction.
+
+- *(Action)* By assumption we know that $\langle l_n, D_n^s \rangle \leadsto_s \langle l_{n+1}, D_{n+1}^s \rangle$ by $l_n \xrightarrow{g,a,r} l_{n+1}$. From the definitions of $\operatorname{norm}_s$ and $\leadsto$ we can derive that for all $D_n^i$ such that $D_n^s \in \operatorname{norm}_s(D_n^i)$, $\langle l_n, D_n^i \rangle \leadsto \langle l_{n+1}, D_{n+1} \rangle$ by $l_n \xrightarrow{g,a,r} l_{n+1}$. Now we need to prove that $\exists D_{n+1}$ such that $D_{n+1}^s \in \operatorname{norm}_s(D_{n+1})$. By the definition of $\leadsto$,
+
+$$
+\operatorname{norm}_s(D_{n+1}) = \operatorname{norm}_s(r(D_n^i \land g) \land I(l_{n+1})).
+$$
+
+Expansion by Lemma 1(1) gives
+
+$$
+\operatorname{norm}_s(D_{n+1}) = \{ D \land I(l_{n+1}) \mid D \in \operatorname{norm}_s(r(D_n^i \land g)) \}.
+$$
+
+According to Lemma 1(1+3) and $D_n^s \in \operatorname{norm}_s(D_n^i)$ we have
+
+$$
+\operatorname{norm}_s(r(D_n^s \land g)) \subseteq \operatorname{norm}_s(r(D_n^i \land g)).
+$$
+
+And since we know, by the definition of $\leadsto_s$, that $D_{n+1}^s \in \operatorname{norm}_s(r(D_n^s \land g) \land I(l_{n+1}))$ we conclude that $D_{n+1}^s \in \operatorname{norm}_s(D_{n+1})$.
 
 <!-- page: 61 -->
 
-*(Completeness).* As induction hypothesis, assume $(l_0, u_0) \to^n (l_n, u_n)$ and that there exists $D_n$ such that $\langle l_0, \{u_0\} \rangle \leadsto_s^n \langle l_n, D_n \rangle$ and $u_n \in D_n$. Further assume $(l_n, u_n) \to (l_{n+1}, u_{n+1})$. We need to prove that there exists $D_{n+1}$ such that $u_{n+1} \in D_{n+1}$ and $\langle l_n, D_n \rangle \leadsto_s \langle l_{n+1}, D_{n+1} \rangle$.
-
-If the last step is a delay transition, then $u_n + d \in I(l_n)$ for the relevant delay $d$, hence
+*(Completeness)* As induction hypothesis, assume
 
 $$
-u_{n+1} \in \{\, u + d \mid u \in D_n \land u + d \in I(l_n) \,\}.
+\langle l_0, u_0 \rangle \to^n \langle l_n, u_n \rangle \Rightarrow \exists D_n
 $$
 
-By definition of $\leadsto_s$, any zone in $\operatorname{norm}_s(D_n^\uparrow \wedge I(l_n))$ that contains $u_{n+1}$ may be chosen as $D_{n+1}$.
-
-If the last step is an action transition along some $l_n \xrightarrow{g,a,r} l_{n+1}$, then $u_n \in g$ and $[r]u_n \in I(l_{n+1})$. Hence
+such that
 
 $$
-u_{n+1} \in \{\, [r]u \mid u \in D_n \land u \in g \land [r]u \in I(l_{n+1}) \,\}.
+\langle l_0, \{u_0\} \rangle \leadsto_s^n \langle l_n, D_n \rangle
+\quad \text{and} \quad
+u_n \in D_n.
 $$
 
-Again by the definition of $\leadsto_s$, there exists some zone $D_{n+1} \in \operatorname{norm}_s(r(D_n \wedge g) \wedge I(l_{n+1}))$ such that $u_{n+1} \in D_{n+1}$.
+Further assume
 
-Therefore both soundness and completeness follow.
+$$
+\langle l_n, u_n \rangle \xrightarrow{\alpha} \langle l_{n+1}, u_{n+1} \rangle.
+$$
+
+We need to prove that $\exists D_{n+1}$ such that $\langle l_n, D_n \rangle \leadsto_s \langle l_{n+1}, D_{n+1} \rangle$ and $u_{n+1} \in D_{n+1}$. There are two cases, $\alpha = \epsilon(d)$ or $\alpha \in \Sigma$.
+
+- *( $\alpha = \epsilon(d)$ )* By the assumption $\langle l_n, u_n \rangle \xrightarrow{\epsilon(d)} \langle l_n, u_n + d \rangle$ we know $(u_n + d) \in I(l_n)$, i.e. $u_n \in D_n \land u_n + d \in I(l_n)$. From the definition of $\leadsto_s$ we have $\langle l_n, D_n \rangle \leadsto_s \langle l_n, D_{n+1} \rangle$ by delay, if $D_{n+1} \in \operatorname{norm}_s(D_n^\uparrow \land I(l_n))$. Expansion by the definition of $\uparrow$ yields
+
+$$
+D_{n+1} \in \operatorname{norm}_s(\{ u + d \mid u \in D_n \land u + d \in I(l_n) \}).
+$$
+
+By the definition of $\operatorname{norm}_s$ we know that for all zones $D$, $D \Rightarrow \bigwedge_{D' \in \operatorname{norm}_s(D)} D'$. Thus there is a zone $D_{n+1} \in \operatorname{norm}_s(D_n^\uparrow \land I(l_n))$ such that $u_{n+1} \in D_{n+1}$.
+
+- *( $\alpha \in \Sigma$ )* By the assumption $\langle l_n, u_n \rangle \xrightarrow{\alpha} \langle l_{n+1}, [r]u_n \rangle$ we know $l_n \xrightarrow{g,\alpha,r} l_{n+1}$, $u_n \in g$, $[r]u_n \in I(l_{n+1})$. From the definition of $\leadsto_s$ we have $\langle l_n, D_n \rangle \leadsto_s \langle l_{n+1}, D_{n+1} \rangle$ by $l_n \xrightarrow{g,\alpha,r} l_{n+1}$ if $D_{n+1} \in \operatorname{norm}_s(r(D_n \land g) \land I(l_{n+1}))$. Expanding this by the definition of the $r$-operation yields
+
+$$
+D_{n+1} \in \operatorname{norm}_s(\{ [r]u \mid u \in D_n \land u \in g \land [r]u \in I(l_{n+1}) \}).
+$$
+
+By the definition of $\operatorname{norm}_s$ we know that for all zones $D$, $D \Rightarrow \bigwedge_{D' \in \operatorname{norm}_s(D)} D'$. Thus there is a zone $D_{n+1} \in \operatorname{norm}_s(r(D_n \land g) \land I(l_{n+1}))$ such that $u_{n+1} \in D_{n+1}$.
+
+<!-- page: 62 -->
 
 ![](content_assets/figure-6.png)
 

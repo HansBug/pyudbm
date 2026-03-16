@@ -33,6 +33,7 @@ When adding or updating a paper entry in this directory:
 - keep `README.md` and `README_zh.md` paired, cross-linked, and structurally aligned
 - keep the paper-level guides focused on repository-relevant reading advice: position in the stack, what to extract, where it maps into the codebase, and why it matters for UDBM
 - if you create `content.md`, treat it as a human-facing reading artifact rather than a raw extractor dump
+- if you create or refine `content.md`, the result must be strictly checked against the visual content of the PDF page by page; make sure the text and formulas are not missing, and perform explicit proofreading instead of assuming the extractor output is already accurate
 - treat figure and table assets as a first-class part of refinement work, not as an afterthought; every referenced screenshot must be visually checked and, when necessary, manually re-cropped
 - when refining a paper substantially, do not stop at cleaning the screenshots that already exist; also verify that materially relevant figures and tables from the covered pages have actually been included, and supplement any missing assets
 - keep `content_assets/` limited to assets actually referenced by `content.md`
