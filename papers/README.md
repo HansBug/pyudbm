@@ -158,6 +158,22 @@ Main UDBM support:
 - why extrapolation can force termination
 - why multiple extrapolation schemes exist
 
+What the currently refined local reading version already contains:
+
+- the motivating introduction with the Fig. 1 example, which makes clear why separating lower and upper bounds can collapse a large family of symbolic states without losing reachability precision
+- the preliminaries needed to read the rest of the paper in one place: TA syntax, concrete semantics, symbolic semantics, abstraction terminology, and the DBM reminder used by the later extrapolation sections
+- the classical maximal-bound abstraction, the LU-preorder, and the semantic abstraction `a_{≺LU}`, including the simulation-vs-bisimulation shift that explains why the paper can be strictly coarser while staying exact for reachability
+- the full extrapolation section with all four operators discussed in the paper: classical `Extra_M`, diagonal `Extra_M^+`, LU-based `Extra_LU`, and diagonal LU-based `Extra_LU^+`, together with their small geometric illustrations and the inclusion picture in Fig. 3
+- the successor-acceleration section, including LU-form DBMs, the cost breakdown of successor computation, and the `LU-Canonize` replacement for the Floyd-Warshall-style closure step
+- the implementation and experiment section with the prototype-in-UPPAAL story preserved, plus Table 1 kept both as a visual asset and as a readable Markdown transcription
+- the concluding discussion about asymmetric DBM storage, which is directly relevant when thinking about why lower/upper-bounded clocks may matter not only semantically but also for storage and performance design
+
+Why this extra detail matters in practice:
+
+- it gives paper-level grounding not only for public extrapolation methods such as `extrapolateMaxBounds`, but also for why there should be multiple extrapolation variants in the binding surface instead of one opaque "normalize harder" operation
+- it is the local paper that most directly connects extrapolation semantics to implementation-facing concerns such as closure cost, sparse LU-form structure, and the possibility of asymmetric DBM storage
+- if you are trying to explain why LU-bounds are more than a small optimization, this paper is the clearest repository-local source because it ties together correctness, finiteness, and measured performance impact
+
 ### `llpy97`
 
 Role:
@@ -354,6 +370,7 @@ In particular:
 - verify that the extracted screenshot matches the intended figure or table
 - verify that the crop is complete on every edge and does not cut away axes, labels, legends, table borders, rightmost nodes, top headers, bottom rows, or any other semantically relevant content
 - verify that the crop is not too loose; avoid carrying unrelated paragraphs, neighboring figures, section headings, or page furniture when the target figure can be isolated more precisely
+- verify that the asset orientation is correct for human reading; if the source page contains a sideways or rotated figure/table, rotate or otherwise remake the asset so the final inserted image is upright and directly readable instead of leaving it sideways
 - verify that the original caption is included inside the image crop whenever the PDF layout allows it
 - also preserve a readable Markdown caption immediately below the image in `content.md`; the image caption and the text caption should both exist so humans can verify the match quickly and LLMs can retrieve figures reliably
 - verify that the figure or table is inserted at the strictly corresponding point in the surrounding discussion, not merely somewhere in the same section
@@ -368,6 +385,7 @@ Practical screenshot workflow:
 - when adding missing figures, make rough candidate crops first, review them as a set, and then inspect each candidate again at full size before accepting it
 - compare the asset against the source page and check all four edges deliberately
 - if any side is clipped or if extra context is leaking in, re-crop and replace the asset rather than tolerating a "good enough" screenshot
+- if the figure or table is sideways because of page layout, correct the reading direction during remake; do not keep a vertically placed or rotated asset in `content.md` when it can be normalized to an upright reading orientation
 - if a figure spans a page boundary in the Markdown structure, move the page marker and the image placement so the insertion remains faithful to the PDF flow
 - after replacing assets, update `content.md` if the figure split, order, or placement changed
 - when new figures are added, insert both the image and an explicit Markdown caption at the exact point where the surrounding prose begins to discuss that figure
@@ -383,6 +401,7 @@ In particular, treat the following as mandatory repair cases:
 - the extracted screenshot is simply the wrong target
 - the crop cuts away semantically relevant content on any edge
 - the crop is too loose and drags in unrelated prose, neighboring figures, or page furniture
+- the asset is left in the wrong reading orientation, for example a sideways table or figure copied from a rotated page without correcting it
 - the original PDF caption should have been preserved in the image but was omitted
 - one original figure was broken into fragments that no longer preserve the intended whole
 - multiple separately discussed figures were incorrectly left fused into one screenshot

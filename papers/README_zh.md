@@ -158,6 +158,22 @@
 - 为什么 extrapolation 能帮助保证终止
 - 为什么会存在多种外推方案
 
+当前已经精修完成的本地阅读稿还具体包含：
+
+- 引言部分连同 Fig. 1 的动机例子都已经整理好，这一段直接说明了为什么把 lower / upper bounds 分开以后，可以在不丢失 reachability 精确性的前提下大幅压缩符号状态
+- 阅读后文所需的预备内容已经补齐在同一份本地稿里：TA syntax、具体语义、符号语义、abstraction 的基本术语，以及后面 extrapolation 小节要用到的 DBM 回顾
+- classical maximal-bound abstraction、LU-preorder 和语义抽象 `a_{≺LU}` 都已经完整保留，包括从 bisimulation 转向 simulation 的关键语义变化；这正是论文能做到“更粗但对 reachability 仍然精确”的核心
+- 第 4 节的四种 extrapolation operator 都已经在本地稿里：经典 `Extra_M`、对角线增强版 `Extra_M^+`、LU 版 `Extra_LU`、以及对角线 LU 版 `Extra_LU^+`，并且保留了对应的小几何示意图和 Fig. 3 的包含关系图
+- successor acceleration 那一节也已经整理出来，包括 LU-form DBM、successor computation 的成本拆解，以及用 `LU-Canonize` 替代 Floyd-Warshall 式 closure 的实现思路
+- 实现与实验部分已经保留完整的 prototype-in-UPPAAL 叙述，而且 Table 1 不只是保留成图片资源，还额外做了可读的 Markdown 转写
+- 最后的 concluding discussion 也已经覆盖到 asymmetric DBM storage，这一点对理解 lower/upper bounded clocks 为什么会同时影响语义、存储和性能设计很有帮助
+
+这些补充内容为什么对实现特别有用：
+
+- 它给出的依据不只是公开的外推方法，例如 `extrapolateMaxBounds`，还解释了为什么 binding surface 里应该存在多种外推变体，而不是只给一个含糊的“更强 normalize”操作
+- 在本地论文集中，它是把 extrapolation 语义和实现侧问题直接连起来最清楚的一篇，包括 closure 代价、LU-form 的稀疏结构，以及 asymmetric DBM storage 的可能性
+- 如果你需要说明 LU-bounds 不是一个“小优化开关”，而是同时关联 correctness、finiteness 和实测性能的设计点，这篇论文就是最直接的本地材料
+
 ### `llpy97`
 
 作用：
@@ -354,6 +370,7 @@ python -m tools.papers_to_content \
 - 抽取出的截图是否真的是目标图或目标表
 - 裁剪在四个边上是否都完整，不能截掉坐标轴、标签、图例、表格边框、最右侧节点、顶部标题、底部行等任何语义上重要的内容
 - 裁剪是否过松，不能把无关段落、相邻图、章节标题、页眉页脚等多余上下文一并带进来；如果目标图可以单独裁干净，就不要保留大块无关区域
+- 资源的阅读方向是否正确；如果原 PDF 里某个图或表因为页面横置、竖排等原因是侧着的，就必须在最终资源里旋正或重做，不能把一个侧着的图表原样插进 `content.md`
 - 原始 PDF 里的 caption 在版面允许时是否已经一并裁进图片
 - `content.md` 里图片下方是否也保留了一份清晰可读的 Markdown caption；也就是说，图内 caption 和正文 caption 都应当存在，方便人类核查，也方便 LLM 检索定位
 - 图表在正文中的插入位置是否与讨论它的原文位置严格对应，而不是只要放在同一节里就算通过
@@ -368,6 +385,7 @@ python -m tools.papers_to_content \
 - 对缺失图，先做一轮粗裁候选，再成组检查一遍，最后逐张原尺寸复核后再定稿
 - 把资源和源页面逐一对照，并且有意识地检查四条边
 - 只要某一边有残缺，或者混入了多余上下文，就重新裁切并替换资源，不接受“差不多能看”的结果
+- 如果图或表因为原页面布局而是侧着的，重做时要一并纠正阅读方向；不要把一个竖着放、横着看的资源直接塞进 `content.md`
 - 如果图像插入点横跨了 Markdown 的分页结构，要同时调整页标与图片落位，使整体顺序继续忠实于 PDF
 - 如果重裁后图的拆分方式、顺序或位置发生变化，要同步更新 `content.md`
 - 新增图片时，要在原文开始讨论该图的位置同时补上图片引用和明确的 Markdown caption
@@ -383,6 +401,7 @@ python -m tools.papers_to_content \
 - 抽取出来的截图根本不是目标图或目标表
 - 任意一条边裁残了语义上重要的内容
 - 裁切过松，把无关正文、相邻图、页眉页脚等多余内容一起带了进来
+- 资源保留成了错误的阅读方向，例如来自横页或竖排版面的图表仍然侧着，没有被旋正
 - 原 PDF 里的 caption 本来应该随图保留，但当前资源没保住
 - 一个原本应当整体呈现的单个图，被错误拆成了零散碎片
 - 多个应当分开讨论的图，被错误保留成了一张混合截图

@@ -2,3 +2,5 @@ ruff
 hbllmutils
 natsort
 natsort
+PyMuPDF
+pymupdf4llm

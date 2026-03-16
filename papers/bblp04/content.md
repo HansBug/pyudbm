@@ -1,374 +1,436 @@
-## **Lower and Upper Bounds in Zone Based Abstractions of Timed Automata**
+# Lower and Upper Bounds in Zone Based Abstractions of Timed Automata
 
-Gerd Behrmann[1] , Patricia Bouyer[2] _[⋆]_ , Kim G. Larsen[1] , and Radek Pel´anek[3] _[⋆⋆]_
+Gerd Behrmann, Patricia Bouyer[^author-star], Kim G. Larsen, and Radek Pelánek[^author-starstar]
 
-> 1 BRICS, Aalborg University, Denmark
+1. BRICS, Aalborg University, Denmark  
+   `{behrmann,kgl}@cs.auc.dk`
+2. LSV, CNRS & ENS de Cachan, UMR 8643, France  
+   `bouyer@lsv.ens-cachan.fr`
+3. Masaryk University Brno, Czech Republic  
+   `xpelanek@informatics.muni.cz`
 
-_{_ behrmann,kgl _}_ @cs.auc.dk 2 LSV, CNRS & ENS de Cachan, UMR 8643, France bouyer@lsv.ens-cachan.fr 3 Masaryk University Brno, Czech Republic xpelanek@informatics.muni.cz
+## Abstract
 
-**Abstract.** Timed automata have an infinite semantics. For verification purposes, one usually uses zone based abstractions w.r.t. the maximal constants to which clocks of the timed automaton are compared. We show that by distinguishing maximal lower and upper bounds, significantly coarser abstractions can be obtained. We show soundness and completeness of the new abstractions w.r.t. reachability. We demonstrate how information about lower and upper bounds can be used to optimise the algorithm for bringing a difference bound matrix into normal form. Finally, we experimentally demonstrate that the new techniques dramatically increases the scalability of the real-time model checker Uppaal.
+Timed automata have an infinite semantics. For verification purposes, one usually uses zone based abstractions w.r.t. the maximal constants to which clocks of the timed automaton are compared. We show that by distinguishing maximal lower and upper bounds, significantly coarser abstractions can be obtained. We show soundness and completeness of the new abstractions w.r.t. reachability. We demonstrate how information about lower and upper bounds can be used to optimise the algorithm for bringing a difference bound matrix into normal form. Finally, we experimentally demonstrate that the new techniques dramatically increase the scalability of the real-time model checker UPPAAL.
 
-## **1 Introduction**
+## 1 Introduction
 
-Since their introduction by Alur and Dill [AD90,AD94], timed automata (TA) have become one of the most well-established models for real-time systems with well-studied underlying theory and development of mature model-checking tools, _e.g._ Uppaal [LPY97] and Kronos [BDM[+] 98]. By their very definition TA describe (uncountable) infinite state-spaces. Thus, algorithmic verification relies on the existence of exact finite abstractions. In the original work by Alur and Dill, the so-called region-graph construction provided a “universal” such abstraction. However, whereas well-suited for establishing decidability of problems related to TA, the region-graph construction is highly impractical from a toolimplementation point of view. Instead, most real-time verification tools apply abstractions based on so-called zones, which in practise provide much coarser (and hence smaller) abstractions.
+Since their introduction by Alur and Dill [AD90, AD94], timed automata (TA) have become one of the most well-established models for real-time systems with well-studied underlying theory and development of mature model-checking tools, e.g. UPPAAL [LPY97] and Kronos [BDM+98]. By their very definition TA describe (uncountable) infinite state spaces. Thus, algorithmic verification relies on the existence of exact finite abstractions. In the original work by Alur and Dill, the so-called region-graph construction provided a "universal" such abstraction. However, whereas well suited for establishing decidability of problems related to TA, the region-graph construction is highly impractical from a tool-implementation point of view. Instead, most real-time verification tools apply abstractions based on so-called zones, which in practice provide much coarser (and hence smaller) abstractions.
 
-To ensure finiteness, it is essential that the given abstraction (region as well as zone based) takes into account the actual constants with which clocks are compared. In particular, the abstraction could identify states which are identical except for the clock values which exceed the _maximum_ such constants.
+To ensure finiteness, it is essential that the given abstraction (region as well as zone based) takes into account the actual constants with which clocks are compared. In particular, the abstraction could identify states which are identical except for the clock values which exceed the maximum such constants.
 
-- _⋆_ Partially supported by ACI Cortos. Work partly done while visiting CISS, Aalborg University.
+![](content_assets/figure-1.png)
 
-- _⋆⋆_ Partially supported by GA ˇCR grant no. 201/03/0509.
+*Figure 1. A small timed automaton. The state space of the automaton when in location $\ell$ is shown. The area to the right is the abstraction of the last zone.*
 
-> K. Jensen and A. Podelski (Eds.): TACAS 2004, LNCS 2988, pp. 312–326, 2004.
+Obviously, the smaller we may choose these maximum constants, the coarser the resulting abstraction will be. Allowing clocks to be assigned different (maximum) constants is an obvious first step in this direction, and in [BBFL03] this idea has been (successfully) taken further by allowing the maximum constants not only to depend on the particular clock but also on the particular location of the TA. In all cases the exactness is established by proving that the abstraction respects bisimilarity, i.e. states identified by the abstraction are bisimilar.
 
-_⃝_ c Springer-Verlag Berlin Heidelberg 2004
+Consider now the timed automaton of Fig. 1. Clearly $10^6$ is the maximum constant for $x$ and $1$ is the maximum constant for $y$. Thus, abstractions based on maximum constants will distinguish all states where $x \le 10^6$ and $y \le 1$. In particular, a forward computation of the full state space will, regardless of the search order, create an excessive number of abstract (symbolic) states including all abstract states of the form $(\ell, x - y = k)$ where $0 \le k \le 10^6$ as well as $(\ell, x - y > 10^6)$. However, assuming that we are only interested in reachability properties (as is often the case in UPPAAL), the application of downwards closure with respect to simulation will lead to an exact abstraction which could potentially be substantially coarser than closure under bisimilarity. Observing that $10^6$ is an upper bound on the edge from $\ell$ to $\ell_2$ in Fig. 1, it is clear that for any state where $x \ge 10$, increasing $x$ will only lead to "smaller" states with respect to simulation preorder. In particular, applying this downward closure results in the radically smaller collection of abstract states, namely $(\ell, x - y = k)$ where $0 \le k \le 10$ and $(\ell, x - y > 10)$.
 
---- end of page.page_number=1 ---
+The fact that $10^6$ is an upper bound in the example of Fig. 1 is crucial for the reduction we obtained above. In this paper we present new, substantially coarser yet still exact abstractions which are based on two maximum constants obtained by distinguishing lower and upper bounds. In all cases the exactness (w.r.t. reachability) is established by proving that the abstraction respects downwards closure w.r.t. simulation, i.e. for each state in the abstraction there is an original state simulating it. The variety of abstractions comes from the additional requirements to effective representation and efficient computation and manipulation. In particular we insist that zones can form the basis of our abstractions; in fact the suggested abstractions are defined in terms of low-complexity transformations of the difference bound matrix (DBM) representation of zones.
 
-Lower and Upper Bounds in Zone Based Abstractions 313
+Furthermore, we demonstrate how information about lower and upper bounds can be used to optimise the algorithm for bringing a DBM into normal form. Finally, we experimentally demonstrate the significant speedups obtained by our new abstractions, comparable with the convex hull over-approximation supported by UPPAAL. Here, the distinction between lower and upper bounds is combined with the orthogonal idea of location dependency of [BBFL03].
 
+## 2 Preliminaries
 
-![](content_assets/paper.pdf-0002-01.png)
+Although we perform our experiments in UPPAAL, we describe the theory on the basic TA model. Variables, committed locations, networks, and other things supported by UPPAAL are not important with respect to the presented ideas, and the technique can easily be extended for these "richer" models. Let $X$ be a set of non-negative real-valued variables called clocks. The set of guards $G(X)$ is defined by the grammar
 
+$$
+g := x \bowtie c \mid g \land g,
+$$
 
-**Fig. 1.** A small timed automaton. The state space of the automaton when in location _ℓ_ is shown. The area to the right is the abstraction of the last zone.
+where $x \in X$, $c \in \mathbb{N}$, and $\bowtie \in \{<, \le, \ge, >\}$.
 
-Obviously, the smaller we may choose these maximum constants, the coarser the resulting abstraction will be. Allowing clocks to be assigned different (maximum) constants is an obvious first step in this direction, and in [BBFL03] this idea has been (successfully) taken further by allowing the maximum constants not only to depend of the particular clock but also of the particular location of the TA. In all cases the _exactness_ is established by proving that the abstraction respects _bisimilarity_ , _i.e._ states identified by the abstraction are bisimilar.
+**Definition 1 (TA Syntax).** A timed automaton is a tuple $A = (L, X, \ell_0, E, I)$, where $L$ is a finite set of locations, $X$ is a finite set of clocks, $\ell_0 \in L$ is an initial location, $E \subseteq L \times G(X) \times 2^X \times L$ is a set of edges labelled by guards and a set of clocks to be reset, and $I : L \to G(X)$ assigns invariants to clocks.
 
-Consider now the timed automaton of Fig. 1. Clearly 10[6] is the maximum constant for _x_ and 1 is the maximum constant for _y_ . Thus, abstractions based on maximum constants will distinguish all states where _x ≤_ 10[6] and _y ≤_ 1. In particular, a forward computation of the full state space will – regardless of the search-order – create an excessive number of abstract (symbolic) states including all abstract states of the form ( _ℓ, x − y_ = _k_ ) where 0 _≤ k ≤_ 10[6] as well as ( _ℓ, x − y >_ 10[6] ). However, assuming that we are only interested in _reachability_ properties (as is often the case in Uppaal), the application of downwards closure with respect to _simulation_ will lead to an exact abstraction which could potentially be substantially coarser than closure under bisimilarity. Observing that 10[6] is an _upper_ bound on the edge from _ℓ_ to _ℓ_ 2 in Fig. 1, it is clear that for any state where _x ≥_ 10, increasing _x_ will only lead to “smaller” states with respect to simulation preorder. In particular, applying this downward closure results in the radically smaller collection of abstract states, namely ( _ℓ, x − y_ = _k_ ) where 0 _≤ k ≤_ 10 and ( _ℓ, x − y >_ 10).
+A clock valuation is a function $\nu : X \to \mathbb{R}_{\ge 0}$. If $\delta \in \mathbb{R}_{\ge 0}$ then $\nu + \delta$ denotes the valuation such that for each clock $x \in X$, $(\nu + \delta)(x) = \nu(x) + \delta$. If $Y \subseteq X$ then $\nu[Y := 0]$ denotes the valuation such that for each clock $x \in X \setminus Y$, $\nu[Y := 0](x) = \nu(x)$ and for each clock $x \in Y$, $\nu[Y := 0](x) = 0$. The satisfaction relation $\nu \models g$ for $g \in G(X)$ is defined in the natural way.
 
-The fact that 10[6] is an _upper_ bound in the example of Fig. 1 is crucial for the reduction we obtained above. In this paper we present new, substantially coarser yet still exact abstractions which are based on _two_ maximum constants obtained by distinguishing lower and upper bounds. In all cases the exactness (w.r.t. reachability) is established by proving that the abstraction respects downwards closure w.r.t. simulation, _i.e._ for each state in the abstraction there is an original state simulating it. The variety of abstractions comes from the additional requirements to _effective_ representation and _efficient_ computation and manipulation. In particular we insist that zones can form the basis of our abstractions; in fact the suggested abstractions are defined in terms of low-complexity transformations of the difference bound matrix (DBM) representation of zones.
+**Definition 2 (TA Semantics).** The semantics of a timed automaton $A = (L, X, \ell_0, E, I)$ is defined by a transition system $S_A = (S, s_0, \to)$, where $S = L \times \mathbb{R}_{\ge 0}^X$ is the set of states, $s_0 = (\ell_0, \nu_0)$ is the initial state, $\nu_0(x) = 0$ for all $x \in X$, and $\to \subseteq S \times S$ is the set of transitions defined by
 
---- end of page.page_number=2 ---
+$$
+(\ell, \nu) \xrightarrow{\epsilon(\delta)} (\ell, \nu + \delta)
+\quad \text{if } \forall 0 \le \delta' \le \delta : (\nu + \delta') \models I(\ell),
+$$
 
-314 G. Behrmann et al.
+and
 
-Furthermore, we demonstrate how information about lower and upper bounds can be used to optimise the algorithm for bringing a DBM into normal form. Finally, we experimentally demonstrate the significant speedups obtained by our new abstractions, to be comparable with the convex hull over-approximation supported by Uppaal. Here, the distinction between lower and upper bounds is combined with the orthogonal idea of location-dependency of [BBFL03].
+$$
+(\ell, \nu) \to (\ell', \nu[Y := 0])
+\quad \text{if there exists } (\ell, g, Y, \ell') \in E \text{ such that }
+\nu \models g \text{ and } \nu[Y := 0] \models I(\ell').
+$$
 
-## **2 Preliminaries**
+The reachability problem for an automaton $A$ and a location $\ell$ is to decide whether there is a state $(\ell, \nu)$ reachable from $(\ell_0, \nu_0)$ in the transition system $S_A$. As usual, for verification purposes, we define a symbolic semantics for TA. For universality, the definition uses arbitrary sets of clock valuations.
 
-Although we perform our experiments in Uppaal, we describe the theory on the basic TA model. Variables, committed locations, networks, and other things supported by Uppaal are not important with respect to presented ideas and the technique can easily be extended for these ”richer” models. Let _X_ be a set of nonnegative real-valued variables called _clocks_ . The set of guards _G_ ( _X_ ) is defined by the grammar _g_ := _x ▷◁c | g ∧ g_ , where _x ∈ X, c ∈_ N and _▷◁ ∈{<, ≤, ≥, >}_ .
+**Definition 3 (Symbolic Semantics).** Let $A = (L, X, \ell_0, E, I)$ be a timed automaton. The symbolic semantics of $A$ is based on the abstract transition system $(S, s_0, \Rightarrow)$, where $S = L \times 2^{\mathbb{R}_{\ge 0}^X}$, and `$\Rightarrow$` is defined by the following two rules:
 
-**Definition 1 (TA Syntax).** _A_ timed automaton _is a tuple A_ = ( _L, X, ℓ_ 0 _, E, I_ ) _, where L is a finite set of locations, X is a finite set of clocks, ℓ_ 0 _∈ L is an initial location, E ⊆ L × G_ ( _X_ ) _×_ 2 _[X] × L is a set of edges labelled by guards and a set of clocks to be reset, and I_ : _L → G_ ( _X_ ) _assigns invariants to clocks._
+**Delay**
 
-A _clock valuation_ is a function _ν_ : _X →_ R _≥_ 0. If _δ ∈_ R _≥_ 0 then _ν_ + _δ_ denotes the valuation such that for each clock _x ∈ X_ , ( _ν_ + _δ_ )( _x_ ) = _ν_ ( _x_ ) + _δ_ . If _Y ⊆ X_ then _ν_ [ _Y_ := 0] denotes the valuation such that for each clock _x ∈ X_ ∖ _Y_ , _ν_ [ _Y_ := 0]( _x_ ) = _ν_ ( _x_ ) and for each clock _x ∈ Y_ , _ν_ [ _Y_ := 0]( _x_ ) = 0. The satisfaction relation _ν |_ = _g_ for _g ∈ G_ ( _X_ ) is defined in the natural way.
+$$
+(\ell, W) \Rightarrow (\ell, W')
+$$
 
-**Definition 2 (TA Semantics).** _The semantics of a timed automaton A_ = ( _L, X, ℓ_ 0 _, E, I_ ) _is defined by a transition system SA_ = ( _S, s_ 0 _, −→_ ) _, where S_ = _L ×_ R _[X] ≥_ 0 _[is][the][set][of][states,][s]_[0][=][(] _[ℓ]_[0] _[, ν]_[0][)] _[is][the][initial][state,][ν]_[0][(] _[x]_[)][=][0] _[for][all] x ∈ X, and −→⊆ S × S is the set of transitions defined by:_
+where
 
+$$
+W' = \left\{ \nu + d \mid \nu \in W \land d \ge 0 \land \forall 0 \le d' \le d : (\nu + d') \models I(\ell) \right\}.
+$$
 
-![](content_assets/paper.pdf-0003-07.png)
+**Action**
 
+$$
+(\ell, W) \Rightarrow (\ell', W')
+$$
 
-The _reachability problem_ for an automaton _A_ and a location _ℓ_ is to decide whether there is a state ( _ℓ, ν_ ) reachable from ( _ℓ_ 0 _, ν_ 0) in the transition system _SA_ . As usual, for verification purposes, we define a symbolic semantics for TA. For universality, the definition uses arbitrary sets of clock valuations.
+if there exists a transition $\ell \xrightarrow{g,Y} \ell'$ in $A$, such that
 
-**Definition 3 (Symbolic Semantics).** _Let A_ = ( _L, X, ℓ_[0] _, E, I_ ) _be a timed automaton. The symbolic semantics of A is based on the abstract transition system_ ( _S, s_ 0 _,_ = _⇒_ ) _, where S_ = _L ×_ 2[R] _≥[X]_ 0 _, and ’_ = _⇒’ is defined by the following two rules:_
+$$
+W' = \left\{ \nu' \mid \exists \nu \in W : \nu \models g \land \nu' = \nu[Y := 0] \land \nu' \models I(\ell') \right\}.
+$$
 
-_**Delay:**_ ( _ℓ, W_ ) = _⇒_ ( _ℓ, W[′]_ ) _, where W[′]_ = � _ν_ + _d | ν ∈ W ∧ d ≥_ 0 _∧∀_ 0 _≤ d[′] ≤ d_ : ( _ν_ + _d[′]_ ) _|_ = _I_ ( _ℓ_ )� _**Action:**_ ( _ℓ, W_ ) = _⇒_ ( _ℓ[′] , W[′]_ ) _if there exists a transition ℓ −−−→g,Y ℓ[′] in A, such that W[′]_ = � _ν[′] | ∃ν ∈ W_ : _ν |_ = _g ∧ ν[′]_ = _ν_ [ _Y_ := 0] _∧ ν[′] |_ = _I_ ( _ℓ[′]_ )� _._
+The symbolic semantics of a timed automaton may induce an infinite transition system. To obtain a finite graph one may, as suggested in [BBFL03], apply some abstraction $a : \mathcal{P}(\mathbb{R}_{\ge 0}^X) \to \mathcal{P}(\mathbb{R}_{\ge 0}^X)$ such that $W \subseteq a(W)$. The abstract transition system `$\Rightarrow_a$` is then given by the following inference rule:
 
---- end of page.page_number=3 ---
+$$
+\frac{(\ell, W) \Rightarrow (\ell', W')}{(\ell, W) \Rightarrow_a (\ell', a(W'))}
+\qquad \text{if } W = a(W).
+$$
 
-Lower and Upper Bounds in Zone Based Abstractions 315
+A simple way to ensure that the reachability graph induced by `$\Rightarrow_a$` is finite is to establish that there is only a finite number of abstractions of sets of valuations; that is, the set $\{a(W) \mid a \text{ defined on } W\}$ is finite. In this case $a$ is said to be a finite abstraction. Moreover, `$\Rightarrow_a$` is said to be sound and complete (w.r.t. reachability) whenever:
 
-The symbolic semantics of a timed automaton may induce an infinite transition system. To obtain a finite graph one may, as suggested in [BBFL03], apply some abstraction a : _P_ (R _[X] ≥_ 0[)] _[�][→P]_[(][R] _[X] ≥_ 0[),][such][that] _[W][⊆]_[a][(] _[W]_[).][The][abstract] transition system ’= _⇒_ a’ is then given by the following inference rule:
+- **Sound:** $(\ell_0, \{\nu_0\}) \Rightarrow_a^\ast (\ell, W)$ implies $\exists \nu \in W$ such that $(\ell_0, \nu_0) \to^\ast (\ell, \nu)$.
+- **Complete:** $(\ell_0, \nu_0) \to^\ast (\ell, \nu)$ implies $\exists W : \nu \in W$ and $(\ell_0, \{\nu_0\}) \Rightarrow_a^\ast (\ell, W)$.
 
+By language misuse, we say that an abstraction $a$ is sound (resp. complete) whenever `$\Rightarrow_a$` is sound (resp. complete). Completeness follows trivially from the definition of abstraction. Of course, if $a$ and $b$ are two abstractions such that for any set of valuations $W$, $a(W) \subseteq b(W)$, we prefer to use abstraction $b$ because the graph induced by it is a priori smaller than the one induced by $a$. Our aim is thus to propose an abstraction which is finite, as coarse as possible, and which induces a sound abstract transition system. We also require that abstractions are effectively representable and may be efficiently computed and manipulated.
 
-![](content_assets/paper.pdf-0004-02.png)
+A first step in finding an effective abstraction is realising that $W$ will always be a zone whenever $(\ell_0, \{\nu_0\}) \Rightarrow^\ast (\ell, W)$. A zone is a conjunction of constraints of the form $x \bowtie c$ or $x - y \bowtie c$, where $x$ and $y$ are clocks, $c \in \mathbb{Z}$, and $\bowtie$ is one of $\{\le, <, =, \ge, >\}$. Zones can be represented using Difference Bound Matrices (DBM). We will briefly recall the definition of DBMs, and refer to [Dil89, CGP99, Ben02, Bou02] for more details. A DBM is a square matrix $D = \langle c_{i,j}, \prec_{i,j} \rangle_{0 \le i,j \le n}$ such that $c_{i,j} \in \mathbb{Z}$ and $\prec_{i,j} \in \{<, \le\}$, or $c_{i,j} = \infty$ and $\prec_{i,j} = <$. The DBM $D$ represents the zone $\llbracket D \rrbracket$, which is defined by
 
+$$
+\llbracket D \rrbracket =
+\left\{ \nu \mid \forall 0 \le i,j \le n,\; \nu(x_i) - \nu(x_j) \prec_{i,j} c_{i,j} \right\},
+$$
 
+where $\{x_i \mid 1 \le i \le n\}$ is the set of clocks, and $x_0$ is a clock which is always $0$, i.e. for each valuation $\nu$, $\nu(x_0) = 0$. DBMs are not a canonical representation of zones, but a normal form can be computed by considering the DBM as an adjacency matrix of a weighted directed graph and computing all shortest paths. In particular, if $D = \langle c_{i,j}, \prec_{i,j} \rangle_{0 \le i,j \le n}$ is a DBM in normal form, then it satisfies the triangular inequality, that is, for every $0 \le i,j,k \le n$, we have $(c_{i,j}, \prec_{i,j}) \le (c_{i,k}, \prec_{i,k}) + (c_{k,j}, \prec_{k,j})$, where comparisons and additions are defined in a natural way (see [Bou02]). All operations needed to compute `$\Rightarrow$` can be implemented by manipulating the DBMs.
 
-![](content_assets/paper.pdf-0004-03.png)
+## 3 Maximum Bound Abstractions
 
+The abstraction used in real-time model checkers such as UPPAAL [LPY97] and Kronos [BDM+98] is based on the idea that the behaviour of an automaton is only sensitive to changes of a clock if its value is below a certain constant. That is, for each clock there is a maximum constant such that once the value of a clock has passed this constant, its exact value is no longer relevant; only the fact that it is larger than the maximum constant matters. Transforming a DBM to reflect this idea is often referred to as extrapolation [Bou03, BBFL03] or normalisation [DT98]. In the following we choose the term extrapolation.
 
-A simple way to ensure that the reachability graph induced by ’= _⇒_ a’ is finite is to establish that there is only a finite number of abstractions of sets of valuations; that is, the set _{_ a( _W_ ) _|_ a defined on _W }_ is finite. In this case a is said to be a _finite abstraction_ . Moreover, ’= _⇒_ a’ is said to be _sound_ and _complete_ (w.r.t. reachability) whenever:
+**Simulation & Bisimulation.** The notion of bisimulation has so far been the semantic tool for establishing soundness of suggested abstractions. In this paper we shall exploit the more liberal notion of simulation to allow for even coarser abstractions. Let us fix a timed automaton $A = (L, X, \ell_0, E, I)$. We consider a relation on $L \times \mathbb{R}_{\ge 0}^X$ satisfying the following transfer properties:
 
-_**Sound:**_ ( _ℓ_ 0 _, {ν_ 0 _}_ ) = _⇒[∗]_ a[(] _[ℓ, W]_[)][implies] _[∃][ν][∈][W]_[s.t.][(] _[ℓ]_[0] _[, ν]_[0][)] _[ −→][∗]_[(] _[l, ν]_[)] _**Complete:**_ ( _ℓ_ 0 _, ν_ 0) _−→[∗]_ ( _ℓ, ν_ ) implies _∃W_ : _ν ∈ W_ and ( _ℓ_ 0 _, {ν_ 0 _}_ ) = _⇒[∗]_ a[(] _[ℓ, W]_[)]
+1. if $(\ell_1, \nu_1) \preceq (\ell_2, \nu_2)$ then $\ell_1 = \ell_2$;
+2. if $(\ell_1, \nu_1) \preceq (\ell_2, \nu_2)$ and $(\ell_1, \nu_1) \to (\ell_1', \nu_1')$, then there exists $(\ell_2', \nu_2')$ such that $(\ell_2, \nu_2) \to (\ell_2', \nu_2')$ and $(\ell_1', \nu_1') \preceq (\ell_2', \nu_2')$;
+3. if $(\ell_1, \nu_1) \preceq (\ell_2, \nu_2)$ and $(\ell_1, \nu_1) \xrightarrow{\epsilon(\delta)} (\ell_1, \nu_1 + \delta)$, then there exists $\delta'$ such that $(\ell_2, \nu_2) \xrightarrow{\epsilon(\delta')} (\ell_2, \nu_2 + \delta')$ and $(\ell_1, \nu_1 + \delta) \preceq (\ell_2, \nu_2 + \delta')$.
 
-By language misuse, we say that an abstraction a is _sound_ (resp. _complete_ ) whenever ’= _⇒_ a’ is sound (resp. complete). Completeness follows trivially from the definition of abstraction. Of course, if a and b are two abstractions such that for any set of valuations _W_ , a( _W_ ) _⊆_ b( _W_ ), we prefer to use abstraction b because the graph induced by it is _a priori_ smaller than the one induced by a. Our aim is thus to propose an abstraction which is finite, as coarse as possible, and which induces a sound abstract transition system. We also require that abstractions are _effectively_ representable and may be _efficiently_ computed and manipulated.
+We call such a relation a (location-based) simulation relation or simply a simulation relation. A simulation relation $\preceq$ such that $\preceq^{-1}$ is also a simulation relation is called a (location-based) bisimulation relation.
 
-A first step in finding an effective abstraction is realising that _W_ will always be a zone whenever ( _ℓ_[0] _, {ν_ 0 _}_ ) = _⇒[∗]_ ( _ℓ, W_ ). A _zone_ is a conjunction of constraints of the form _x ▷◁c_ or _x − y ▷◁c_ , where _x_ and _y_ are clocks, _c ∈_ Z, and _▷◁_ is one of _{≤, ≤,_ = _, ≥, >}_ . Zones can be represented using _Difference Bound Matrices_ (DBM). We will briefly recall the definition of DBMs, and refer to [Dil89,CGP99,Ben02,Bou02] for more details. A DBM is a square matrix _D_ = _⟨ci,j, ≺i,j⟩_ 0 _≤i,j≤n_ such that _ci,j ∈_ Z and _≺i,j∈{<, ≤}_ or _ci,j_ = _∞_ and _≺i,j_ = _<_ . The DBM _D_ represents the zone � _D_ � which is defined by � _D_ � = _{ν | ∀_ 0 _≤ i, j ≤ n, ν_ ( _xi_ ) _− ν_ ( _xj_ ) _≺i,j ci,j}_ , where _{xi |_ 1 _≤ i ≤ n}_ is the set of clocks, and _x_ 0 is a clock which is always 0, ( _i.e._ for each valuation _ν_ , _ν_ ( _x_ 0) = 0). DBMs are not a canonical representation of zones, but a normal form can be computed by considering the DBM as an adjacency matrix of a weighted directed graph and computing all shortest paths. In particular, if _D_ = _⟨ci,j, ≺i,j⟩_ 0 _≤i,j≤n_ is a DBM in normal form, then it satisfies the _triangular inequality_ , that is, for every 0 _≤ i, j, k ≤ n_ , we have that ( _ci,j, ≺i,j_ ) _≤_ ( _ci,k, ≺i,k_ ) + ( _ck,j, ≺k,j_ ), where comparisons and additions are defined in a natural way (see [Bou02]). All operations needed to compute ’= _⇒_ ’ can be implemented by manipulating the DBMs.
+**Proposition 1.** Let $\preceq$ be a simulation relation, as defined above. If $(\ell, \nu_1) \preceq (\ell, \nu_2)$ and if a discrete state $\ell'$ is reachable from $(\ell, \nu_1)$, then it is also reachable from $(\ell, \nu_2)$.
 
-## **3 Maximum Bound Abstractions**
+Reachability is thus preserved by simulation as well as by bisimulation. However, in general the weaker notion of simulation preserves fewer properties than that of bisimulation. For example, deadlock properties as expressed in UPPAAL[^deadlock] are not preserved by simulation whereas they are preserved by bisimulation. In Fig. 1, $(\ell, x = 15, y = .5)$ is bisimilar to $(\ell, x = 115, y = .5)$, but not to $(\ell, x = 10^6 + 1, y = .5)$. However, $(\ell, x = 15, y = .5)$ simulates $(\ell, x = 115, y = .5)$ as well as $(\ell, x = 10^6 + 1, y = .5)$.
 
-The abstraction used in real-time model-checkers such as Uppaal [LPY97] and Kronos [BDM[+] 98], is based on the idea that the behaviour of an automaton
+**Classical Maximal Bounds.** The classical abstraction for timed automata is based on maximal bounds, one for each clock of the automaton. Let $A = (L, X, \ell_0, E, I)$ be a timed automaton. The maximal bound of a clock $x \in X$, denoted $M(x)$, is the maximal constant $k$ such that there exists a guard or invariant containing $x \bowtie k$ in $A$. Let $\nu$ and $\nu'$ be two valuations. We define the following relation:
 
---- end of page.page_number=4 ---
+$$
+\nu \equiv_M \nu'
+\overset{\text{def}}{\Longleftrightarrow}
+\forall x \in X:\;
+\nu(x) = \nu'(x)
+\;\text{or}\;
+\bigl(\nu(x) > M(x) \land \nu'(x) > M(x)\bigr).
+$$
 
-316 G. Behrmann et al.
+**Lemma 1.** The relation $R = \{((\ell, \nu), (\ell, \nu')) \mid \nu \equiv_M \nu'\}$ is a bisimulation relation.
 
-is only sensitive to changes of a clock if its value is below a certain constant. That is, for each clock there is a maximum constant such that once the value of a clock has passed this constant, its exact value is no longer relevant — only the fact that it is larger than the maximum constant matters. Transforming a DBM to reflect this idea is often referred to as _extrapolation_ [Bou03,BBFL03] or _normalisation_ [DT98]. In the following we will choose the term _extrapolation_ .
+We can now define the abstraction $a_{\equiv_M}$ w.r.t. $\equiv_M$. Let $W$ be a set of valuations. Then
 
-**Simulation & Bisimulation.** The notion of bisimulation has so far been the semantic tool for establishing soundness of suggested abstractions. In this paper we shall exploit the more liberal notion of simulation to allow for even coarser abstractions. Let us fix a timed automaton _A_ = ( _L, X, ℓ_ 0 _, E, I_ ). We consider a relation on _L ×_ R _[X] ≥_ 0[satisfying][the][following][transfer][properties:]
+$$
+a_{\equiv_M}(W) = \{\nu \mid \exists \nu' \in W,\; \nu' \equiv_M \nu\}.
+$$
 
-1. if ( _ℓ_ 1 _, ν_ 1) ≼ ( _ℓ_ 2 _, ν_ 2) then _ℓ_ 1 = _ℓ_ 2
-
-
-![](content_assets/paper.pdf-0005-04.png)
-
-
-We call such a relation a ( _location-based_ ) _simulation_ relation or simply a _simulation_ relation. A simulation relation ≼ such that ≼ _[−]_[1] is also a simulation relation, is called a (location-based) _bisimulation relation_ .
-
-**Proposition 1.** _Let_ ≼ _be a simulation relation, as defined above. If_ ( _ℓ, ν_ 1) ≼ ( _ℓ, ν_ 2) _and if a discrete state ℓ[′] is reachable from_ ( _ℓ, ν_ 1) _, then it is also reachable from_ ( _ℓ, ν_ 2) _._
-
-Reachability is thus preserved by simulation as well as by bisimulation. However, in general the weaker notion of simulation preserves fewer properties than that of bisimulation. For example, deadlock properties as expressed in Uppaal[1] are not preserved by simulation whereas it is preserved by bisimulation. In Fig. 1, ( _ℓ, x_ = 15 _, y_ = _._ 5) is bisimilar to ( _ℓ, x_ = 115 _, y_ = _._ 5), but not to ( _ℓ, x_ = 10[6] + 1 _, y_ = _._ 5). However, ( _ℓ, x_ = 15 _, y_ = _._ 5) simulates ( _ℓ, x_ = 115 _, y_ = _._ 5) as well as ( _ℓ, x_ = 10[6] + 1 _, y_ = _._ 5).
-
-**Classical Maximal Bounds.** The classical abstraction for timed automata is based on maximal bounds, one for each clock of the automaton. Let _A_ = ( _L, X, ℓ_ 0 _, E, I_ ) be a timed automaton. The _maximal bound_ of a clock _x ∈ X_ , denoted _M_ ( _x_ ), is the maximal constant _k_ such that there exists a guard or invariant containing _x ▷◁k_ in _A_ . Let _ν_ and _ν[′]_ be two valuations. We define the following relation:
-
-def _ν ≡M ν[′] ⇐⇒∀x ∈ X_ : either _ν_ ( _x_ ) = _ν[′]_ ( _x_ ) or ( _ν_ ( _x_ ) _> M_ ( _x_ ) and _ν[′]_ ( _x_ ) _> M_ ( _x_ )) **Lemma 1.** _The relation R_ = _{_ (( _ℓ, ν_ ) _,_ ( _ℓ, ν[′]_ )) _| ν ≡M ν[′] } is a bisimulation relation._
-
-- 1 There is a deadlock whenever there exists a state ( _ℓ, ν_ ) such that no further discrete transition can be taken.
-
---- end of page.page_number=5 ---
-
-Lower and Upper Bounds in Zone Based Abstractions 317
-
-We can now define the abstraction a _≡M_ w.r.t. _≡M_ . Let _W_ be a set of valuations, then a _≡M_ ( _W_ ) = _{ν | ∃ν[′] ∈ W, ν[′] ≡M ν}_ .
-
-**Lemma 2.** _The abstraction_ a _≡M is sound and complete._
+**Lemma 2.** The abstraction $a_{\equiv_M}$ is sound and complete.
 
 These two lemmas come from [BBFL03]. They will moreover be consequences of our main result.
 
-**Lower & Upper Maximal Bounds.** The new abstractions introduced in the following will be substantially coarser than a _≡M_ . It is no longer based on a single maximal bound per clock but rather on two maximal bounds per clock allowing lower and upper bounds to be distinguished.
+**Lower & Upper Maximal Bounds.** The new abstractions introduced in the following will be substantially coarser than $a_{\equiv_M}$. They are no longer based on a single maximal bound per clock but rather on two maximal bounds per clock allowing lower and upper bounds to be distinguished.
 
-**Definition 4.** _Let A_ = ( _L, X, ℓ_ 0 _, E, I_ ) _be a timed automaton. The_ maximal lower bound _denoted L_ ( _x_ ) _, (resp._ maximal upper bound _U_ ( _x_ ) _) of clock x ∈ X is the maximal constant k such that there exists a constraint x > k or x ≥ k (resp. x < k or x ≤ k) in a guard of some transition or in an invariant of some location of A. If such a constant does not exist, we set L_ ( _x_ ) _(resp. U_ ( _x_ ) _) to −∞._
+**Definition 4.** Let $A = (L, X, \ell_0, E, I)$ be a timed automaton. The maximal lower bound denoted $L(x)$, resp. maximal upper bound $U(x)$, of clock $x \in X$ is the maximal constant $k$ such that there exists a constraint $x > k$ or $x \ge k$, resp. $x < k$ or $x \le k$, in a guard of some transition or in an invariant of some location of $A$. If such a constant does not exist, we set $L(x)$, resp. $U(x)$, to $-\infty$.
 
-Let us fix for the rest of this section a timed automaton _A_ and bounds _L_ ( _x_ ), _U_ ( _x_ ) for each clock _x ∈ X_ as above. The idea of distinguishing lower and upper bounds is the following: if we know that the clock _x_ is between 2 and 4, and if we want to check that the constraint _x ≤_ 5 can be satisfied, the only relevant information is that the value of _x_ is greater than 2, and not that _x ≤_ 4. In other terms, checking the emptiness of the intersection between a non-empty interval [ _c, d_ ] and ] _−∞,_ 5] is equivalent to checking whether _c >_ 5; the value of _d_ is not useful. Formally, we define the LU-preorder as follows.
+Let us fix for the rest of this section a timed automaton $A$ and bounds $L(x)$, $U(x)$ for each clock $x \in X$ as above. The idea of distinguishing lower and upper bounds is the following: if we know that the clock $x$ is between $2$ and $4$, and if we want to check that the constraint $x \le 5$ can be satisfied, the only relevant information is that the value of $x$ is greater than $2$, and not that $x \le 4$. In other terms, checking the emptiness of the intersection between a non-empty interval $[c, d]$ and $]-\infty, 5]$ is equivalent to checking whether $c > 5$; the value of $d$ is not useful. Formally, we define the LU-preorder as follows.
 
-**Definition 5 (LU-preorder** _≺LU_ **).** _Let ν and ν[′] be two valuations. Then, we say that_
+**Definition 5 (LU-preorder $\preceq_{LU}$).** Let $\nu$ and $\nu'$ be two valuations. Then we say that
 
+$$
+\nu' \preceq_{LU} \nu
+\overset{\text{def}}{\Longleftrightarrow}
+\text{for each clock } x,\;
+\begin{cases}
+\nu'(x) = \nu(x), \\
+\text{or } L(x) < \nu'(x) < \nu(x), \\
+\text{or } U(x) < \nu(x) < \nu'(x).
+\end{cases}
+$$
 
-![](content_assets/paper.pdf-0006-08.png)
+**Lemma 3.** The relation $R = \{((\ell, \nu), (\ell, \nu')) \mid \nu' \preceq_{LU} \nu\}$ is a simulation relation.
 
-
-**Lemma 3.** _The relation R_ = _{_ (( _ℓ, ν_ ) _,_ ( _ℓ, ν[′]_ )) _| ν[′] ≺LU ν} is a simulation relation._
-
-_Proof._ The only non-trivial part in proving that _R_ indeed satisfies the three transfer properties of a simulation relation is to establish that if _g_ is a clock constraint, then “ _ν |_ = _g_ implies _ν[′] |_ = _g_ ”. Consider the constraint _x ≤ c_ . If _ν_ ( _x_ ) = _ν[′]_ ( _x_ ), then we are done. If _L_ ( _x_ ) _< ν[′]_ ( _x_ ) _< ν_ ( _x_ ), then _ν_ ( _x_ ) _≤ c_ implies _ν[′]_ ( _x_ ) _≤ c_ . If _U_ ( _x_ ) _< ν_ ( _x_ ) _< ν[′]_ ( _x_ ), then it is not possible that _ν |_ = _x ≤ c_ (because _c ≤ U_ ( _x_ )). Consider now the constraint _x ≥ c_ . If _ν_ ( _x_ ) = _ν[′]_ ( _x_ ), then we are done. If _U_ ( _x_ ) _< ν_ ( _x_ ) _< ν[′]_ ( _x_ ), then _ν_ ( _x_ ) _≥ c_ implies _ν[′]_ ( _x_ ) _≥ c_ . If _L_ ( _x_ ) _< ν[′]_ ( _x_ ) _< ν_ ( _x_ ), then it is not possible that _ν_ satisfies the constraint _x ≥ c_ because _c ≤ L_ ( _x_ ).
-
-
-![](content_assets/paper.pdf-0006-11.png)
-
+*Proof.* The only non-trivial part in proving that $R$ indeed satisfies the three transfer properties of a simulation relation is to establish that if $g$ is a clock constraint, then "$\nu \models g$ implies $\nu' \models g$". Consider the constraint $x \le c$. If $\nu(x) = \nu'(x)$, then we are done. If $L(x) < \nu'(x) < \nu(x)$, then $\nu(x) \le c$ implies $\nu'(x) \le c$. If $U(x) < \nu(x) < \nu'(x)$, then it is not possible that $\nu \models x \le c$ because $c \le U(x)$. Consider now the constraint $x \ge c$. If $\nu(x) = \nu'(x)$, then we are done. If $U(x) < \nu(x) < \nu'(x)$, then $\nu(x) \ge c$ implies $\nu'(x) \ge c$. If $L(x) < \nu'(x) < \nu(x)$, then it is not possible that $\nu$ satisfies the constraint $x \ge c$ because $c \le L(x)$.
 
 Using the above LU-preorder, we can now define a first abstraction based on the lower and upper bounds.
 
---- end of page.page_number=6 ---
+![](content_assets/figure-2.png)
 
-318 G. Behrmann et al.
+*Figure 2. Quality of $a_{\preceq_{LU}}$ compared with $a_{\equiv_M}$ for $M = \max(L, U)$.*
 
+**Definition 6 ($a_{\preceq_{LU}}$, abstraction w.r.t. $\preceq_{LU}$).** Let $W$ be a set of valuations. We define the abstraction w.r.t. $\preceq_{LU}$ as
 
-![](content_assets/paper.pdf-0007-01.png)
+$$
+a_{\preceq_{LU}}(W) = \{\nu \mid \exists \nu' \in W,\; \nu' \preceq_{LU} \nu\}.
+$$
 
+Before going further, we illustrate this abstraction in Fig. 2. There are several cases, depending on the relative positions of the two values $L(x)$ and $U(x)$ and of the valuation $\nu$ we are looking at. We represent with a plain line the value of $a_{\preceq_{LU}}(\{\nu\})$ and with a dashed line the value of $a_{\equiv_M}(\{\nu'\})$, where the maximal bound $M(x)$ corresponds to the maximum of $L(x)$ and $U(x)$. In each case, we indicate the "quality" of the new abstraction compared with the "old" one. We notice that the new abstraction is coarser in three cases and matches the old abstraction in the fourth case.
 
-**Fig. 2.** Quality of a _≺LU_ compared with a _≡M_ for _M_ = max( _L, U_ ).
+**Lemma 4.** Let $A$ be a timed automaton. Define the constants $M(x)$, $L(x)$, and $U(x)$ for each clock $x$ as described before. The abstraction $a_{\preceq_{LU}}$ is sound, complete, and coarser or equal to $a_{\equiv_M}$.
 
-**Definition 6 (** a _≺LU_ **, abstraction w.r.t.** _≺LU_ **).** _Let W be a set of valuations. We define the abstraction w.r.t. ≺LU as_ a _≺LU_ ( _W_ ) = _{ν | ∃ν[′] ∈ W, ν[′] ≺LU ν}._
+*Proof.* Completeness is obvious, and soundness comes from Lemma 3. Definitions of $a_{\preceq_{LU}}$ and $a_{\equiv_M}$ give the last result because for each clock $x$, $M(x) = \max(L(x), U(x))$.
 
-Before going further, we illustrate this abstraction in Fig. 2. There are several cases, depending on the relative positions of the two values _L_ ( _x_ ) and _U_ ( _x_ ) and of the valuation _ν_ we are looking at. We represent with a plain line the value of a _≺LU_ ( _{ν}_ ) and with a dashed line the value of a _≡M_ ( _{ν[′] }_ ), where the maximal bound _M_ ( _x_ ) corresponds to the maximum of _L_ ( _x_ ) and _U_ ( _x_ ). In each case, we indicate the “quality” of the new abstraction compared with the “old” one. We notice that the new abstraction is coarser in three cases and matches the old abstraction in the fourth case.
+This result could suggest using $a_{\preceq_{LU}}$ in real-time model checkers. However, we do not yet have an efficient method for computing the transition relation `$\Rightarrow_{a_{\preceq_{LU}}}$`. Indeed, even if $W$ is a zone, it might be the case that $a_{\preceq_{LU}}(W)$ is not even convex. For effectiveness and efficiency reasons we prefer abstractions which transform zones into zones because we can then use the DBM data structure. In the next section we present DBM-based extrapolation operators that will give abstractions which are sound, complete, finite, and also effective.
 
-**Lemma 4.** _Let A be a timed automaton. Define the constants M_ ( _x_ ) _, L_ ( _x_ ) _and U_ ( _x_ ) _for each clock x as described before. The abstraction_ a _≺LU is sound, complete, and coarser or equal to_ a _≡M ._
+## 4 Extrapolation Using Zones
 
-_Proof._ Completeness is obvious, and soundness comes from lemma 3. Definitions of a _≺LU_ and a _≡M_ give the last result because for each clock _x_ , _M_ ( _x_ ) = max ( _L_ ( _x_ ) _, U_ ( _x_ )). ■
+The sound and complete symbolic transition relations induced by abstractions considered so far unfortunately do not preserve convexity of sets of valuations. In order to allow sets of valuations to be represented efficiently as zones, we consider slightly finer abstractions $a_{Extra}$ such that for every zone $Z$,
 
-This result could suggest to use a _≺LU_ in real time model-checkers. However, we do not yet have an efficient method for computing the transition relation ’= _⇒_ a _≺LU_ ’. Indeed, even if _W_ is a zone, it might be the case that a _≺LU_ ( _W_ ) is not even convex (we urge the reader to construct such an example for herself). For effectiveness and efficiency reasons we prefer abstractions which transform zones into zones because we can then use the DBM data structure. In the next section we present DBM-based extrapolation operators that will give abstractions which are sound, complete, finite and also effective.
+$$
+Z \subseteq a_{Extra}(Z) \subseteq a_{\preceq_{LU}}(Z)
+\qquad
+\text{resp.}
+\qquad
+Z \subseteq a_{Extra}(Z) \subseteq a_{\equiv_M}(Z),
+$$
 
---- end of page.page_number=7 ---
+which ensures correctness, and $a_{Extra}(Z)$ is a zone, which gives an effective representation. These abstractions are defined in terms of extrapolation operators on DBMs. If $Extra$ is an extrapolation operator, it defines an abstraction $a_{Extra}$ on zones such that for every zone $Z$,
 
-Lower and Upper Bounds in Zone Based Abstractions 319
+$$
+a_{Extra}(Z) = \llbracket Extra(D_Z) \rrbracket,
+$$
 
-## **4 Extrapolation Using Zones**
+where $D_Z$ is the DBM in normal form which represents the zone $Z$.
 
-The (sound and complete) symbolic transition relations induced by abstractions considered so far unfortunately do not preserve convexity of sets of valuations. In order to allow for sets of valuations to be represented _efficiently_ as zones, we consider slightly finer abstractions a _Extra_ such that for every zone _Z_ , _Z ⊆_ a _Extra_ ( _Z_ ) _⊆_ a _≺LU_ ( _Z_ ) (resp. _Z ⊆_ a _Extra_ ( _Z_ ) _⊆_ a _≡M_ ( _Z_ )) (this ensures correctness) and a _Extra_ ( _Z_ ) is a zone (this gives an effective representation). These abstractions are defined in terms of _extrapolation_ operators on DBMs. If _Extra_ is an extrapolation operator, it defines an abstraction, a _Extra_ , on zones such that for every zone _Z_ , a _Extra_ ( _Z_ ) = � _Extra_ ( _DZ_ )�, where _DZ_ is the DBM in normal form which represents the zone _Z_ .
+In the remainder, we consider a timed automaton $A$ over a set of clocks $X = \{x_1, \ldots, x_n\}$ and we suppose we are given another clock $x_0$ which is always zero. For all these clocks, we define the constants $M(x_i)$, $L(x_i)$, $U(x_i)$ for $i = 1, \ldots, n$. For $x_0$, we set $M(x_0) = U(x_0) = L(x_0) = 0$; $x_0$ is always equal to zero, so we assume we are able to check whether $x_0$ is really zero. In our framework, a zone will be represented by DBMs of the form $\langle c_{i,j}, \prec_{i,j} \rangle_{i,j = 0,\ldots,n}$.
 
-In the remainder, we consider a timed automaton _A_ over a set of clocks _X_ = _{x_ 1 _, .., xn}_ and we suppose we are given another clock _x_ 0 which is always zero. For all these clocks, we define the constants _M_ ( _xi_ ), _L_ ( _xi_ ), _U_ ( _xi_ ) for _i_ = 1 _, ..., n_ . For _x_ 0, we set _M_ ( _x_ 0) = _U_ ( _x_ 0) = _L_ ( _x_ 0) = 0 ( _x_ 0 is always equal to zero, so we assume we are able to check whether _x_ 0 is really zero). In our framework, a zone will be represented by DBMs of the form _⟨ci,j, ≺i,j⟩i,j_ =0 _,... ,n_ .
+We now present several extrapolations starting from the classical one and improving it step by step. Each extrapolation is illustrated by a small picture representing a zone in black and its corresponding extrapolation in dashed form.
 
-We now present several extrapolations starting from the classical one and improving it step by step. Each extrapolation will be illustrated by a small picture representing a zone (in black) and its corresponding extrapolation (dashed).
+**Classical extrapolation based on maximal bounds $M(x)$.** Let $D$ be a DBM $\langle c_{i,j}, \prec_{i,j} \rangle_{i,j=0\ldots n}$. Then $Extra_M(D)$ is given by the DBM $\langle c'_{i,j}, \prec'_{i,j} \rangle_{i,j=0\ldots n}$ defined by
 
-**Classical extrapolation based on maximal bounds** _M_ ( _x_ ) **.** Let _D_ be a DBM _⟨ci,j, ≺i,j⟩i,j_ =0 _...n_ . Then _ExtraM_ ( _D_ ) is given by the DBM _⟨c[′] i,j[,][ ≺][′] i,j[⟩][i,j]_[=0] _[...n]_ and illustrated below:
+$$
+(c'_{i,j}, \prec'_{i,j}) =
+\begin{cases}
+\infty & \text{if } c_{i,j} > M(x_i), \\
+(-M(x_j), <) & \text{if } -c_{i,j} > M(x_j), \\
+(c_{i,j}, \prec_{i,j}) & \text{otherwise.}
+\end{cases}
+$$
 
+![](content_assets/other-1-extra-m-illustration.png)
 
-![](content_assets/paper.pdf-0008-06.png)
+*Illustration of the classical extrapolation based on maximal bounds $M(x)$.*
 
+This is the extrapolation operator used in the real-time model checkers UPPAAL and Kronos. This extrapolation removes bounds that are larger than the maximal constants. The correctness is based on the fact that $a_{Extra_M}(Z) \subseteq a_{\equiv_M}(Z)$ and is proved in [Bou03] and for the location-based version in [BBFL03].
 
-This is the extrapolation operator used in the real-time model-checkers Uppaal and Kronos. This extrapolation removes bounds that are larger than the maximal constants. The correctness is based on the fact that a _ExtraM_ ( _Z_ ) _⊆_ a _≡M_ ( _Z_ ) and is proved in [Bou03] and for the location-based version in [BBFL03].
+In the remainder, we propose several other extrapolations that improve the classical one, in the sense that the zones obtained with the new extrapolations are larger than the zones obtained with the classical extrapolation.
 
-In the remainder, we will propose several other extrapolations that will improve the classical one, in the sense that the zones obtained with the new extrapolations will be larger than the zones obtained with the classical extrapolation.
+**Diagonal extrapolation based on maximal constants $M(x)$.** The first improvement consists in noticing that if the whole zone is above the maximal bound of some clock, then we can remove some of the diagonal constraints of the zone, even if they are not themselves above the maximal bound. More formally, if $D = \langle c_{i,j}, \prec_{i,j} \rangle_{i,j=0,\ldots,n}$ is a DBM, $Extra_M^+(D)$ is given by $\langle c'_{i,j}, \prec'_{i,j} \rangle_{i,j=0,\ldots,n}$ defined as
 
-**Diagonal extrapolation based on maximal constants** _M_ ( _x_ ) **.** The first improvement consists in noticing that if the whole zone is above the maximal bound of some clock, then we can remove some of the diagonal constraints of the zones, even if they are not themselves above the maximal bound. More formally,
+$$
+(c'_{i,j}, \prec'_{i,j}) =
+\begin{cases}
+\infty & \text{if } c_{i,j} > M(x_i), \\
+\infty & \text{if } -c_{0,i} > M(x_i), \\
+\infty & \text{if } -c_{0,j} > M(x_j),\; i \ne 0, \\
+(-M(x_j), <) & \text{if } -c_{i,j} > M(x_j),\; i = 0, \\
+(c_{i,j}, \prec_{i,j}) & \text{otherwise.}
+\end{cases}
+$$
 
---- end of page.page_number=8 ---
+![](content_assets/other-2-extra-plus-m-illustration.png)
 
-320 G. Behrmann et al.
+*Illustration of the diagonal extrapolation based on maximal constants $M(x)$.*
 
-if _D_ = _⟨ci,j, ≺i,j⟩i,j_ =0 _,...,n_ is a DBM, _Extra_[+] _M_[(] _[D]_[)][is][given][by] _[⟨][c][′] i,j[,][ ≺][′] i,j[⟩][i,j]_[=0] _[,...,n]_ as:
+For every zone $Z$ it then holds that
 
+$$
+Z \subseteq a_{Extra_M}(Z) \subseteq a_{Extra_M^+}(Z).
+$$
 
-![](content_assets/paper.pdf-0009-02.png)
+**Extrapolation based on LU-bounds $L(x)$ and $U(x)$.** The second improvement uses the two bounds $L(x)$ and $U(x)$. If $D = \langle c_{i,j}, \prec_{i,j} \rangle_{i,j=0,\ldots,n}$ is a DBM, $Extra_{LU}(D)$ is given by $\langle c'_{i,j}, \prec'_{i,j} \rangle_{i,j=0,\ldots,n}$ defined as
 
+$$
+(c'_{i,j}, \prec'_{i,j}) =
+\begin{cases}
+\infty & \text{if } c_{i,j} > L(x_i), \\
+(-U(x_j), <) & \text{if } -c_{i,j} > U(x_j), \\
+(c_{i,j}, \prec_{i,j}) & \text{otherwise.}
+\end{cases}
+$$
 
-For every zone _Z_ it then holds that _Z ⊆_ a _ExtraM_ ( _Z_ ) _⊆_ a _Extra_ + _M_[(] _[Z]_[).]
+![](content_assets/other-3-extra-lu-illustration.png)
 
-**Extrapolation based on LU-bounds** _L_ ( _x_ ) **and** _U_ ( _x_ ) **.** The second improvement uses the two bounds _L_ ( _x_ ) and _U_ ( _x_ ). If _D_ = _⟨ci,j, ≺i,j⟩i,j_ =0 _,...,n_ is a DBM, _ExtraLU_ ( _D_ ) is given by _⟨c[′] i,j[,][ ≺][′] i,j[⟩][i,j]_[=0] _[,...,n]_[defined][as:]
+*Illustration of the extrapolation based on LU-bounds $L(x)$ and $U(x)$.*
 
+This extrapolation benefits from the properties of the two different maximal bounds. It does generalise the operator $a_{Extra_M}$. For every zone $Z$, it holds that
 
-![](content_assets/paper.pdf-0009-05.png)
+$$
+Z \subseteq a_{Extra_M}(Z) \subseteq a_{Extra_{LU}}(Z).
+$$
 
+**Diagonal extrapolation based on LU-bounds $L(x)$ and $U(x)$.** This last extrapolation is a combination of both the extrapolation based on LU-bounds and the improved extrapolation based on maximal constants. It is the most general one. If $D = \langle c_{i,j}, \prec_{i,j} \rangle_{i,j=0,\ldots,n}$ is a DBM, $Extra_{LU}^+(D)$ is given by the DBM $\langle c'_{i,j}, \prec'_{i,j} \rangle_{i,j=0,\ldots,n}$ defined as
 
-This extrapolation benefits from the properties of the two different maximal bounds. It does generalise the operator a _ExtraM_ . For every zone _Z_ , it holds that _Z ⊆_ a _ExtraM_ ( _Z_ ) _⊆_ a _ExtraLU_ ( _Z_ ).
+$$
+(c'_{i,j}, \prec'_{i,j}) =
+\begin{cases}
+\infty & \text{if } c_{i,j} > L(x_i), \\
+\infty & \text{if } -c_{0,i} > L(x_i), \\
+\infty & \text{if } -c_{0,j} > U(x_j),\; i \ne 0, \\
+(-U(x_j), <) & \text{if } -c_{0,j} > U(x_j),\; i = 0, \\
+(c_{i,j}, \prec_{i,j}) & \text{otherwise.}
+\end{cases}
+$$
 
-**Diagonal extrapolation based on LU-bounds** _L_ ( _x_ ) **and** _U_ ( _x_ ) **.** This last extrapolation is a combination of both the extrapolation based on LU-bounds and the improved extrapolation based on maximal constants. It is the most general one. If _D_ = _⟨ci,j, ≺i,j⟩i,j_ =0 _,...,n_ is a DBM, _Extra_[+] _LU_[(] _[D]_[)][is][given][by][the] DBM _⟨c[′] i,j[,][ ≺][′] i,j[⟩][i,j]_[=0] _[,...,n]_[defined][as:]
+![](content_assets/other-4-extra-plus-lu-illustration.png)
 
+*Illustration of the diagonal extrapolation based on LU-bounds $L(x)$ and $U(x)$.*
 
-![](content_assets/paper.pdf-0009-08.png)
+**Correctness of these Abstractions.** We know that all the above extrapolations are complete abstractions as they transform a zone into a clearly larger one. Finiteness also comes immediately, because we can do all the computations with DBMs and the coefficients after extrapolation can only take a finite number of values.
 
+![](content_assets/figure-3.png)
 
+*Figure 3. For any zone $Z$, we have the inclusions indicated by the arrows. The sets $a_{Extra_M^+}(Z)$ and $a_{Extra_{LU}}(Z)$ are incomparable. The $a_{Extra}$ operators are DBM based abstractions whereas the other two are semantic abstractions. The dashed arrow was proved in [BBFL03] whereas the dotted arrow is the main result of this paper.*
 
-![](content_assets/paper.pdf-0009-09.png)
+Effectiveness of the abstraction is obvious as extrapolation operators are directly defined on the DBM data structure. The only difficult point is to prove that the extrapolations we have presented are correct. To prove the correctness of all these abstractions, due to the inclusions shown in Fig. 3, it is sufficient to prove the correctness of the largest abstraction, viz. $a_{Extra_{LU}^+}$.
 
+**Proposition 2.** Let $Z$ be a zone. Then $a_{Extra_{LU}^+}(Z) \subseteq a_{\preceq_{LU}}(Z)$.
 
-**Correctness of these Abstractions.** We know that all the above extrapolations are complete abstractions as they transform a zone into a clearly larger one. Finiteness also comes immediately, because we can do all the computations with
+The proof of this proposition is quite technical, and is omitted here due to the page limit. Notice however that it is a key result. Using all that precedes we are able to claim the following theorem which states that $a_{Extra_{LU}^+}$ is an abstraction which can be used in the implementation of TA.
 
---- end of page.page_number=9 ---
+**Theorem 1.** $a_{Extra_{LU}^+}$ is sound, complete, finite and effectively computable.
 
-Lower and Upper Bounds in Zone Based Abstractions 321
+## 5 Acceleration of Successor Computation
 
+In the preceding section it was shown that the abstraction based on the new extrapolation operator is coarser than the one currently used in TA model checkers. This can result in a smaller symbolic representation of the state space of a timed automaton, but this is not the only consequence: sometimes clocks might only have lower bounds or only have upper bounds. We say that a clock $x$ is lower-bounded, resp. upper-bounded, if $L(x) > -\infty$, resp. $U(x) > -\infty$. Let $D$ be a DBM and $D' = Extra_{LU}^+(D)$. It follows directly from the definition of the extrapolation operator that for all $x_i$, $U(x_i) = -\infty$ implies $c'_{j,i} = +\infty$ and $L(x_i) = -\infty$ implies $c'_{i,j} = +\infty$. If we let
 
-![](content_assets/paper.pdf-0010-01.png)
+$$
+Low = \{i \mid x_i \text{ is lower bounded}\}
+\qquad\text{and}\qquad
+Up = \{i \mid x_i \text{ is upper bounded}\},
+$$
 
+then it follows that $D'$ can be represented with $O(|Low| \cdot |Up|)$ constraints, compared to $O(n^2)$, since all remaining entries in the DBM are $+\infty$. As we will see in this section, besides reducing the size of the zone representation, identifying lower- and upper-bounded clocks can be used to speed up the successor computation.
 
-**Fig. 3.** For any zone _Z_ , we have the inclusions indicated by the arrows. The sets a _Extra_ + _M_[(] _[Z]_[)][and][a] _[Extra][LU]_[ (] _[Z]_[)][are][incomparable.][The][a] _[Extra]_[operators][are][DBM][based] abstractions whereas the other two are semantic abstractions. The dashed arrow was proved in [BBFL03] whereas the dotted arrow is the main result of this paper.
+We first summarise how the DBM-based successor computation is performed. Let $D$ be a DBM in normal form. We want to compute the successor of $D$ w.r.t. an edge $\ell \xrightarrow{g,Y} \ell'$. In UPPAAL, this is broken down into a number of elementary DBM operations, quite similar to the symbolic semantics of TA. After applying the guard and the target invariant, the result must be checked for consistency, and after applying the extrapolation operator, the DBM must be brought back into normal form. Checking the consistency of a DBM is done by computing the normal form and checking the diagonal for negative entries. In general, the normal form can be computed using the $O(n^3)$-time Floyd-Warshall all-pairs shortest-path algorithm, but when applying a guard or invariant, resetting clocks, or computing the delay successors, the normal form can be recomputed much more efficiently, see [Rok93]. The following shows the operations involved and their complexity; all DBMs except $D_5$ are in normal form. The last step is clearly the most expensive.
 
-DBMs and the coefficients after extrapolation can only take a finite number of values. Effectiveness of the abstraction is obvious as extrapolation operators are directly defined on the DBM data structure. The only difficult point is to prove that the extrapolations we have presented are correct. To prove the correctness of all these abstractions, due to the inclusions shown in Fig. 3, it is sufficient to prove the correctness of the largest abstraction, _viz_ a _Extra_ + _LU_[.]
+1. $D_1 = Intersection(g, D)$ + detection of emptiness, $O(n^2 \cdot |g|)$
+2. $D_2 = Reset_Y(D_1)$, $O(n \cdot |Y|)$
+3. $D_3 = Elapse(D_2)$, $O(n)$
+4. $D_4 = Intersection(I(\ell), D_3)$ + detection of emptiness, $O(n^2 \cdot |I(\ell)|)$
+5. $D_5 = Extrapolation(D_4)$, $O(n^2)$
+6. $D_6 = Canonize(D_5)$, $O(n^3)$
 
-**Proposition 2.** _Let Z be a zone. Then_ a _Extra_ + _LU_[(] _[Z]_[)] _[ ⊆]_[a] _[≺][LU]_[ (] _[Z]_[)] _[.]_
+We say that a DBM $D$ is in LU-form whenever all coefficients $c_{i,j} = \infty$, except when $x_i$ is lower bounded and $x_j$ is upper bounded. As a first step we use the fact that $D_5$ is in LU-form to improve the computation of $D_6$. `Canonize` is the Floyd-Warshall algorithm for computing the all-pairs shortest-path closure, consisting of three nested loops over the indexes of the DBM, hence the cubic runtime. We propose to replace it with the following `LU-Canonize` operator.
 
-The proof of this proposition is quite technical, and is omitted here due to the page limit. Notice however that it is a key-result. Using all what precedes we are able to claim the following theorem which states that a _Extra_ + _LU_[is][an][abstraction] which can be used in the implementation of TA.
+```text
+proc LU-Canonize(D)
+  for k in Low ∩ Up do
+      for i in Low do
+          for j in Up do
+              if (cij, ≺ij) > (cik, ≺ik) + (ckj, ≺kj)
+                  then (cij, ≺ij) = (cik, ≺ik) + (ckj, ≺kj) fi
+          od
+      od
+  od
+end
+```
 
-**Theorem 1.** a _Extra_ + _LU[is][sound,][complete,][finite][and][effectively][computable.]_
+This procedure runs in $O(|Low| \cdot |Up| \cdot |Low \cap Up|)$ time, which in practice can be much smaller than $O(n^3)$. Correctness of this change is ensured by the following lemma.
 
-## **5 Acceleration of Successor Computation**
+**Lemma 5.** Let $D$ be a DBM in LU-form. Then we have the following syntactic equality:
 
-In the preceding section it was shown that the abstraction based on the new extrapolation operator is coarser than the one currently used in TA modelcheckers. This can result in a smaller symbolic representation of the state space of a timed automaton, but this is not the only consequence: Sometimes clocks might only have lower bounds or only have upper bounds. We say that a clock _x_ is _lower-bounded_ (resp. _upper-bounded_ ) if _L_ ( _x_ ) _> −∞_ (resp. _U_ ( _x_ ) _> −∞_ ). Let _D_ be a DBM and _D[′]_ = _Extra_[+] _LU_[(] _[D]_[).][It][follows][directly][from][the][definition][of] the extrapolation operator that for all _xi_ , _U_ ( _xi_ ) = _−∞_ implies _c[′] j,i_[=][+] _[∞]_[and] _L_ ( _xi_ ) = _−∞_ implies _c[′] i,j_[=][+] _[∞]_[.][If][we][let] _[Low]_[=] _[{][i][|][x][i]_[is][lower][bounded] _[}]_[and] _Up_ = _{i | xi_ is upper bounded _}_ , then it follows that _D[′]_ can be represented with
+$$
+Canonize(D) = LU\text{-}Canonize(D).
+$$
 
---- end of page.page_number=10 ---
+As an added benefit, it follows directly from the definition of `LU-Canonize` that $D_6$ is also in LU-form and so is $D$ when computing the next successor. Hence we can replace the other DBM operations, intersection, elapse, reset, etc., by versions which work on DBMs in LU-form. The main interest would be to introduce an asymmetric DBM which only stores $O(|Low| \cdot |Up|)$ entries, thus speeding up the successor computation further and reducing the memory requirements. At the moment we have implemented the `LU-Canonize` operation, but rely on the minimal constraint form representation of a zone described in [LLPY97], which does not store $+\infty$ entries.
 
-322 G. Behrmann et al.
+## 6 Implementation and Experiments
 
-_O_ ( _|Low| · |Up|_ ) constraints (compared to _O_ ( _n_[2] )), since all remaining entries in the DBM will be + _∞_ . As we will see in this section, besides reducing the size of the zone representation, identifying lower and upper bounded clocks can be used to speed up the successor computation.
+We have implemented a prototype of a location-based variant of the $Extra_{LU}^+$ operator in UPPAAL 3.4.2. Maximum lower and upper bounds for clocks are found for each automaton using a simple fixed-point iteration. Given a location vector, the maximum lower and upper bounds are simply found by taking the maximum of the bounds in each location, similar to the approach taken in [BBFL03]. In addition, we have implemented the `LU-Canonize` operator.
 
-We will first summarise how the DBM based successor computation is performed. Let _D_ be a DBM **in normal form** . We want to compute the successor of _D g,Y_ w.r.t. an edge _ℓ −−−→ ℓ[′]_ . In Uppaal, this is broken down into a number of elementary DBM operations, quite similar to the symbolic semantics of TA. After applying the guard and the target invariant, the result must be checked for consistency and after applying the extrapolation operator, the DBM must be brought back into normal form. Checking the consistency of a DBM is done by computing the normal form and checking the diagonal for negative entries. In general, the normal form can be computed using the _O_ ( _n_[3] )-time Floyd-Warshall all-pairs-shortest-path algorithm, but when applying a guard or invariant, resetting clocks, or computing the delay successors, the normal form can be recomputed much more efficiently, see [Rok93]. The following shows the operations involved and their complexity (all DBMs except _D_ 5 are in normal form). The last step is clearly the most expensive.
+As expected, experiments with the model in Fig. 1 show that, using the LU extrapolation, the computation time for building the complete reachable state space does not depend on the value of the constants, whereas the computation time grows with the constant when using the classical extrapolation approach. We have also performed experiments with models of various instances of Fischer's protocol for mutual exclusion and the CSMA/CD protocol. Finally, experiments using a number of industrial case studies were made. For each model, UPPAAL was run with four different options: `-n1` classic non-location-based extrapolation without active clock reduction, `-n2` classic location-based extrapolation, which gives active clock reduction as a side effect, `-n3` LU location-based extrapolation, and `-A` classic location-based extrapolation with convex-hull approximation. In all experiments the minimal constraint form for zone representation was used [LLPY97] and the complete state space was generated. All experiments were performed on a 1.8GHz Pentium 4 running Linux 2.4.22, and experiments were limited to 15 minutes of CPU time and 470MB of memory. The results can be seen in Table 1.
 
-1. _D_ 1 = Intersection( _g, D_ ) + detection of emptiness _O_ ( _n_[2] _· |g|_ ) 2. _D_ 2 = Reset _Y_ ( _D_ 1) _O_ ( _n · |Y |_ ) 3. _D_ 3 = Elapse( _D_ 2) _O_ ( _n_ ) 4. _D_ 4 = Intersection( _I_ ( _ℓ_ ) _, D_ 3) + detection of emptiness _O_ ( _n_[2] _· |I_ ( _l_ ) _|_ ) 5. _D_ 5 = Extrapolation( _D_ 4) _O_ ( _n_[2] ) 6. _D_ 6 = Canonize( _D_ 5) _O_ ( _n_[3] )
+![](content_assets/table-1.png)
 
-We say that a DBM _D_ is in _LU-form_ whenever all coefficients _ci,j_ = _∞_ , except when _xi_ is lower bounded _and xj_ is upper bounded. As a first step we will use the fact that _D_ 5 is in LU-form to improve the computation of _D_ 6. Canonize is the Floyd-Warshall algorithm for computing the all-pairs-shortest-path closure, consisting of three nested loops over the indexes of the DBM, hence the cubic runtime. We propose to replace it with the following LU-Canonize operator.
+*Table 1. Results for Fischer protocol (f), CSMA/CD (c), a model of a buscoupler, the Philips Audio protocol, and a model of a 5-task fixed-priority preemptive scheduler. Times are in seconds, states are the number of generated states, and memory usage is in MB.*
 
-**proc** LU-Canonize( _D_ )
+For readability, the table is also transcribed below.
 
-**for** _k ∈ Low ∩ Up_ **do**
+| Model | -n1 Time | -n1 States | -n1 Mem | -n2 Time | -n2 States | -n2 Mem | -n3 Time | -n3 States | -n3 Mem | -A Time | -A States | -A Mem |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| f5 | 4.02 | 82,685 | 5 | 0.24 | 16,980 | 3 | 0.03 | 2,870 | 3 | 0.03 | 3,650 | 3 |
+| f6 | 597.04 | 1,489,230 | 49 | 6.67 | 158,220 | 7 | 0.11 | 11,484 | 3 | 0.10 | 14,658 | 3 |
+| f7 |  |  |  | 352.67 | 1,620,542 | 46 | 0.47 | 44,142 | 3 | 0.45 | 56,252 | 5 |
+| f8 |  |  |  |  |  |  | 2.11 | 164,528 | 6 | 2.08 | 208,744 | 12 |
+| f9 |  |  |  |  |  |  | 8.76 | 598,662 | 19 | 9.11 | 754,974 | 39 |
+| f10 |  |  |  |  |  |  | 37.26 | 2,136,980 | 68 | 39.13 | 2,676,150 | 143 |
+| f11 |  |  |  |  |  |  | 152.44 | 7,510,382 | 268 |  |  |  |
+| c5 | 0.55 | 27,174 | 3 | 0.14 | 10,569 | 3 | 0.02 | 2,027 | 3 | 0.03 | 1,651 | 3 |
+| c6 | 19.39 | 287,109 | 11 | 3.63 | 87,977 | 5 | 0.10 | 6,296 | 3 | 0.06 | 4,986 | 3 |
+| c7 |  |  |  | 195.35 | 813,924 | 29 | 0.28 | 18,205 | 3 | 0.22 | 14,101 | 4 |
+| c8 |  |  |  |  |  |  | 0.98 | 50,058 | 5 | 0.66 | 38,060 | 7 |
+| c9 |  |  |  |  |  |  | 2.90 | 132,623 | 12 | 1.89 | 99,215 | 17 |
+| c10 |  |  |  |  |  |  | 8.42 | 341,452 | 29 | 5.48 | 251,758 | 49 |
+| c11 |  |  |  |  |  |  | 24.13 | 859,265 | 76 | 15.66 | 625,225 | 138 |
+| c12 |  |  |  |  |  |  | 68.20 | 2,122,286 | 202 | 43.10 | 1,525,536 | 394 |
+| bus | 102.28 | 6,727,443 | 303 | 66.54 | 4,620,666 | 254 | 62.01 | 4,317,920 | 246 | 45.08 | 3,826,742 | 324 |
+| philips | 0.16 | 12,823 | 3 | 0.09 | 6,763 | 3 | 0.09 | 6,599 | 3 | 0.07 | 5,992 | 3 |
+| sched | 17.01 | 929,726 | 76 | 15.09 | 700,917 | 58 | 12.85 | 619,351 | 52 | 55.41 | 3,636,576 | 427 |
 
-**for** _i ∈ Low_ **do**
+Looking at the table, we see that for both Fischer's protocol for mutual exclusion and the CSMA/CD protocol, UPPAAL scales considerably better with the LU extrapolation operator. Comparing it with the convex hull approximation, which is an over-approximation, we see that for these models the LU extrapolation operator comes close to the same speed, although it still generates more states. Also notice that the runs with the LU extrapolation operator use less memory than convex hull approximation, due to the fact that in the latter case DBMs are used to represent the convex hull of the zones involved, in contrast to using the minimal constraint form of [LLPY97]. For the three industrial examples, the speedup is less dramatic: these models have a more complex control structure and thus little can be gained from changing the extrapolation operator. This is supported by the fact that also the convex hull technique fails to give any significant speedup, and in the last example it even degrades performance.
 
+During our experiments we also encountered examples where the LU extrapolation operator does not make any difference: the token ring FDDI protocol and the B&O protocols found on the UPPAAL website[^uppaal-url] are among these. Finally, we made a few experiments on Fischer's protocol with the LU extrapolation, but without the `LU-Canonize` operator. This showed that `LU-Canonize` gives a speedup in the order of 20% compared to `Canonize`.
 
-![](content_assets/paper.pdf-0011-08.png)
+## 7 Remarks and Conclusions
 
+In this paper we extend the status quo of timed automata abstractions by contributing several new abstractions. In particular, we proposed a new extrapolation operator distinguishing between guards giving an upper bound to a clock and guards giving a lower bound to a clock. The improvement of the usual extrapolation is orthogonal to the location-based one proposed in [BBFL03] in the sense that they can be easily combined. We prove that the new abstraction is sound and complete w.r.t. reachability, and is finite and effectively computable. We implemented the new extrapolation in UPPAAL and a new operator for computing the normal form of a DBM. The prototype showed significant improvements in verification speed, memory consumption, and scalability for a number of models.
 
-## **end**
+For further work, we suggest implementing an asymmetric DBM based on the fact that an $n \times m$ matrix, where $n$ is the number of lower-bounded clocks and $m$ is the number of upper-bounded clocks, suffices to represent the zones of the timed automaton when using the LU extrapolation. We expect this to significantly improve the successor computation for some models. We notice that when using the encoding of job-shop scheduling problems given in [AM01], all clocks of the automaton are without upper bounds, with the exception of one clock, the clock measuring global time, which lacks lower bounds. Therefore an asymmetric DBM representation for this system will have a size linear in the number of clocks. This observation was already made in [AM01], but we get it as a side effect of using LU extrapolation. We also notice that when using LU extrapolation, the inclusion checking done on zones in UPPAAL turns out to be more general than the dominating-point check in [AM01]. We need to investigate to what extent a generic timed automaton reachability checker using LU extrapolation can compete with the problem-specific implementation in [AM01].
 
-This procedure runs in _O_ ( _|Low |·|Up|·|Low ∩ Up|_ ) time which in practise can be much smaller than _O_ ( _n_[3] ). Correctness of this change is ensured by the following lemma.
+## References
 
-**Lemma 5.** _Let D be a DBM in LU-form. Then we have the following syntactic equality:_ Canonize( _D_ ) = LU-Canonize( _D_ ) _._
+[AD90] Rajeev Alur and David Dill. *Automata for modeling real-time systems.* In *Proc. 17th International Colloquium on Automata, Languages and Programming (ICALP'90)*, volume 443 of *Lecture Notes in Computer Science*, pages 322-335. Springer, 1990.
 
---- end of page.page_number=11 ---
+[AD94] Rajeev Alur and David Dill. *A theory of timed automata.* *Theoretical Computer Science (TCS)*, 126(2):183-235, 1994.
 
-Lower and Upper Bounds in Zone Based Abstractions 323
+[AM01] Yasmina Abdeddaim and Oded Maler. *Job-shop scheduling using timed automata.* In *Proc. 13th International Conference on Computer Aided Verification (CAV'01)*, volume 2102 of *Lecture Notes in Computer Science*, pages 478-492. Springer, 2001.
 
-As an added benefit, it follows directly from the definition of LU-Canonize that _D_ 6 is also in LU-form and so is _D_ when computing the next successor. Hence we can replace the other DBM operations (intersection, elapse, reset, etc.) by versions which work on DBMs in LU-form. The main interest would be to introduce an asymmetric DBM which only stores _O_ ( _|Low| · |Up|_ ) entries, thus speeding up the successor computation further and reducing the memory requirements. At the moment we have implemented the LU-Canonize operation, but rely on the _minimal constraint form_ representation of a zone described in [LLPY97], which does not store + _∞_ entries.
+[BBFL03] Gerd Behrmann, Patricia Bouyer, Emmanuel Fleury, and Kim G. Larsen. *Static guard analysis in timed automata verification.* In *Proc. 9th International Conference on Tools and Algorithms for the Construction and Analysis of Systems (TACAS'2003)*, volume 2619 of *Lecture Notes in Computer Science*, pages 254-277. Springer, 2003.
 
-## **6 Implementation and Experiments**
+[BDM+98] Marius Bozga, Conrado Daws, Oded Maler, Alfredo Olivero, Stavros Tripakis, and Sergio Yovine. *Kronos: a model-checking tool for real-time systems.* In *Proc. 10th International Conference on Computer Aided Verification (CAV'98)*, volume 1427 of *Lecture Notes in Computer Science*, pages 546-550. Springer, 1998.
 
-We have implemented a prototype of a location based variant of the _Extra_[+] _LU_[op-] erator in Uppaal 3.4.2. Maximum lower and upper bounds for clocks are found for each automaton using a simple fixed point iteration. Given a location vector, the maximum lower and upper bounds are simply found by taking the maximum of the bounds in each location, similar to the approach taken in [BBFL03]. In addition, we have implemented the LU-Canonize operator.
+[Ben02] Johan Bengtsson. *Clocks, DBMs and States in Timed Systems.* PhD thesis, Department of Information Technology, Uppsala University, Uppsala, Sweden, 2002.
 
-As expected, experiments with the model in Fig. 1 show that the using the LU extrapolation the computation time for building the complete reachable state space does not depend on the value of the constants, whereas the computation time grows with the constant when using the classical extrapolation approach. We have also performed experiments with models of various instances of Fischer’s protocol for mutual exclusion and the CSMA/CD protocol. Finally, experiments using a number of industrial case studies were made. For each model, Uppaal was run with four different options: (-n1) classic non-location based extrapolation (without active clock reduction), (-n2) classic location based extrapolation (which gives active clock reduction as a side-effect), (-n3) LU location based extrapolation, and (-A) classic location based extrapolation with convex-hull approximation. In all experiments the minimal constraint form for zone representation was used [LLPY97] and the complete state space was generated. All experiments were performed on a 1.8GHz Pentium 4 running Linux 2.4.22, and experiments were limited to 15 minutes of CPU time and 470MB of memory. The results can be seen in Table 1.
+[Bou02] Patricia Bouyer. *Timed automata may cause some troubles.* Research Report LSV-02-9, Laboratoire Specification et Verification, ENS de Cachan, France, 2002. Also available as BRICS Research Report RS-02-35, Aalborg University, Denmark, 2002.
 
-Looking at the table, we see that for both Fischer’s protocol for mutual exclusion and the CSMA/CD protocol, Uppaal scales considerably better with the LU extrapolation operator. Comparing it with the convex hull approximation (which is an over-approximation), we see that for these models, the LU extrapolation operator comes close to the same speed, although it still generates more states. Also notice that the runs with the LU extrapolation operator use less memory than convex hull approximation, due to the fact that in the latter case DBMs are used to represent the convex hull of the zones involved (in contrast to using the minimal constraint form of [LLPY97]). For the three industrial examples, the speedup is less dramatic: These models have a more complex control structure and thus little can be gained from changing the extrapolation operator. This is supported by the fact that also the convex hull technique fails to
+[Bou03] Patricia Bouyer. *Untameable timed automata!* In *Proc. 20th Annual Symposium on Theoretical Aspects of Computer Science (STACS'03)*, volume 2607 of *Lecture Notes in Computer Science*, pages 620-631. Springer, 2003.
 
---- end of page.page_number=12 ---
+[CGP99] Edmund Clarke, Orna Grumberg, and Doron Peled. *Model-Checking.* The MIT Press, Cambridge, Massachusetts, 1999.
 
-324 G. Behrmann et al.
+[Dil89] David Dill. *Timing assumptions and verification of finite-state concurrent systems.* In *Proc. of the Workshop on Automatic Verification Methods for Finite State Systems*, volume 407 of *Lecture Notes in Computer Science*, pages 197-212. Springer, 1989.
 
-|**Table 1.** Results for Fischer protocol (f), CSMA/CD (c), a model of a buscoupler, the Philips Audio protocol, and a model of a 5 task<br>fxed-priority preemptive scheduler. -n0 is with classical maximum bounds extrapolation, -n1 is with location based maximum bounds<br>extrapolation, -n2 is with location based LU extrapolation, and -A is with convex hull over-approximation. Times are in seconds, states<br>are the number of generated states and memory usage is in MB.||||||
-|---|---|---|---|---|---|
-||-A|Time<br>States Mem|0.03<br>3,650<br>3<br>0.10<br>14,658<br>3<br>0.45<br>56,252<br>5<br>2.08<br>208,744<br>12<br>9.11<br>754,974<br>39<br>39.13 2,676,150<br>143|0.03<br>1,651<br>3<br>0.06<br>4,986<br>3<br>0.22<br>14,101<br>4<br>0.66<br>38,060<br>7<br>1.89<br>99,215<br>17<br>5.48<br>251,758<br>49<br>15.66<br>625,225<br>138<br>43.10 1,525,536<br>394|45.08 3,826,742<br>324<br>0.07<br>5,992<br>3<br>55.41 3,636,576<br>427|
-||-n3|Time<br>States Mem|0.03<br>2,870<br>3<br>0.11<br>11,484<br>3<br>0.47<br>44,142<br>3<br>2.11<br>164,528<br>6<br>8.76<br>598,662<br>19<br>37.26 2,136,980<br>68<br>152.44 7,510,382<br>268|0.02<br>2,027<br>3<br>0.10<br>6,296<br>3<br>0.28<br>18,205<br>3<br>0.98<br>50,058<br>5<br>2.90<br>132,623<br>12<br>8.42<br>341,452<br>29<br>24.13<br>859,265<br>76<br>68.20 2,122,286<br>202|62.01 4,317,920<br>246<br>0.09<br>6,599<br>3<br>12.85<br>619,351<br>52|
-||-n2|Time<br>States Mem|0.24<br>16,980<br>3<br>6.67<br>158,220<br>7<br>352.67 1,620,542<br>46|0.14<br>10,569<br>3<br>3.63<br>87,977<br>5<br>195.35<br>813,924<br>29|66.54 4,620,666<br>254<br>0.09<br>6,763<br>3<br>15.09<br>700,917<br>58|
-||-n1|Time<br>States Mem|4.02<br>82,685<br>5<br>597.04 1,489,230<br>49|0.55<br>27,174<br>3<br>19.39<br>287,109<br>11|102.28 6,727,443<br>303<br>0.16<br>12,823<br>3<br>17.01<br>929,726<br>76|
-||Model||f5<br>f6<br>f7<br>f8<br>f9<br>f10<br>f11|c5<br>c6<br>c7<br>c8<br>c9<br>c10<br>c11<br>c12|bus<br>philips<br>sched|
-|||||||
+[DT98] Conrado Daws and Stavros Tripakis. *Model-checking of real-time reachability properties using abstractions.* In *Proc. 4th International Conference on Tools and Algorithms for the Construction and Analysis of Systems (TACAS'98)*, volume 1384 of *Lecture Notes in Computer Science*, pages 313-329. Springer, 1998.
 
+[LLPY97] Kim G. Larsen, Fredrik Larsson, Paul Pettersson, and Wang Yi. *Efficient verification of real-time systems: Compact data structure and state-space reduction.* In *Proc. 18th IEEE Real-Time Systems Symposium (RTSS'97)*, pages 14-24. IEEE Computer Society Press, 1997.
 
+[LPY97] Kim G. Larsen, Paul Pettersson, and Wang Yi. *UPPAAL in a nutshell.* *Journal of Software Tools for Technology Transfer (STTT)*, 1(1-2):134-152, 1997.
 
---- end of page.page_number=13 ---
+[Rok93] Tomas G. Rokicki. *Representing and Modeling Digital Circuits.* PhD thesis, Stanford University, Stanford, USA, 1993.
 
-Lower and Upper Bounds in Zone Based Abstractions 325
-
-give any significant speedup (in the last example it even degrades performance). During our experiments we also encountered examples where the LU extrapolation operator does not make any difference: the token ring FDDI protocol and the B&O protocols found on the Uppaal website[2] are among these. Finally, we made a few experiments on Fischer’s protocol with the LU extrapolation, but without the LU-Canonize operator. This showed that LU-Canonize gives a speedup in the order of 20% compared to Canonize.
-
-## **7 Remarks and Conclusions**
-
-In this paper we extend the _status quo_ of timed automata abstractions by contributing several new abstractions. In particular, we proposed a new extrapolation operator distinguishing between guards giving an upper bound to a clock and guards giving a lower bound to a clock. The improvement of the usual extrapolation is orthogonal to the location-based one proposed in [BBFL03] in the sense that they can be easily combined. We prove that the new abstraction is sound and complete w.r.t. reachability, and is finite and effectively computable. We implemented the new extrapolation in Uppaal and a new operator for computing the normal form of a DBM. The prototype showed significant improvements in verification speed, memory consumption and scalability for a number of models.
-
-For further work, we suggest implementing an asymmetric DBM based on the fact that an _n × m_ matrix, where _n_ is the number of lower bounded clocks and _m_ is the number of upper bounded clocks, suffices to represent the zones of the timed automaton when using the LU extrapolation. We expect this to significantly improve the successor computation for some models. We notice that when using the encoding of job shop scheduling problems given in [AM01], all clocks of the automaton are without upper bounds, with the exception of one clock (the clock measuring global time), which lacks lower bounds. Therefore an asymmetric DBM representation for this system will have a size linear in the number of clocks. This observation was already made in [AM01], but we get it as a side effect of using LU extrapolation. We also notice that when using LU extrapolation, the inclusion checking done on zones in Uppaal turns out to be more general than the dominating point check in [AM01]. We need to investigate to what extent a generic timed automaton reachability checker using LU extrapolation can compete with the problem specific implementation in [AM01].
-
-## **References**
-
-> [AD90] Rajeev Alur and David Dill. Automata for modeling real-time systems. In _Proc. 17th International Colloquium on Automata, Languages and Programming (ICALP’90)_ , volume 443 of _Lecture Notes in Computer Science_ , pages 322–335. Springer, 1990.
-
-> 2 http://www.uppaal.com
-
---- end of page.page_number=14 ---
-
-326 G. Behrmann et al.
-
-- [AD94] Rajeev Alur and David Dill. A theory of timed automata. _Theoretical Computer Science (TCS)_ , 126(2):183–235, 1994.
-
-- [AM01] Yasmina Abdeddaim and Oded Maler. Job-shop scheduling using timed automata. In _Proc. 13th International Conference on Computer Aided Verification (CAV’01)_ , volume 2102 of _Lecture Notes in Computer Science_ , pages 478–492. Springer, 2001.
-
-- [BBFL03] Gerd Behrmann, Patricia Bouyer, Emmanuel Fleury, and Kim G. Larsen. Static guard analysis in timed automata verification. In _Proc. 9th International Conference on Tools and Algorithms for the Construction and Analysis of Systems (TACAS’2003)_ , volume 2619 of _Lecture Notes in Computer Science_ , pages 254–277. Springer, 2003.
-
-|[BBFL03]|Gerd Behrmann, Patricia Bouyer, Emmanuel Fleury, and Kim G. Larsen.<br>Static guard analysis in timed automata verifcation. In _Proc. 9th Interna-_<br>_tional Conference on Tools and Algorithms for the Construction and Anal-_<br>_ysis of Systems (TACAS’2003)_, volume 2619 of _Lecture Notes in Computer_<br>_Science_, pages 254–277. Springer, 2003.|
-|---|---|
-|[BDM+98]|Marius Bozga, Conrado Daws, Oded Maler, Alfredo Olivero, Stavros Tri-|
-||pakis, and Sergio Yovine.<br>Kronos: a model-checking tool for real-time|
-||systems. In_Proc. 10th International Conference on Computer Aided Verif-_|
-||_cation (CAV’98)_, volume 1427 of_Lecture Notes in Computer Science_, pages|
-||546–550. Springer, 1998.|
-|[Ben02]|Johan Bengtsson. _Clocks, DBMs ans States in Timed Systems_. PhD the-|
-||sis, Department of Information Technology, Uppsala University, Uppsala,|
-||Sweden, 2002.|
-|[Bou02]|Patricia Bouyer. Timed automata may cause some troubles. Research Re-|
-||port LSV–02–9, Laboratoire Sp´ecifcation et V´erifcation, ENS de Cachan,|
-||France, 2002. Also Available as_BRICS Research Report RS-02-35_, Aalborg|
-||University, Denmark, 2002.|
-|[Bou03]|Patricia Bouyer. Untameable timed automata! In _Proc. 20th Annual Sym-_|
-||_posium on Theoretical Aspects of Computer Science (STACS’03)_, volume|
-||2607 of _Lecture Notes in Computer Science_, pages 620–631. Springer, 2003.|
-|[CGP99]|Edmund Clarke, Orna Grumberg, and Doron Peled. _Model-Checking_. The|
-||MIT Press, Cambridge, Massachusetts, 1999.|
-|[Dil89]|David Dill. Timing assumptions and verifcation of fnite-state concurrent|
-||systems. In _Proc. of the Workshop on Automatic Verifcation Methods for_|
-||_Finite State Systems_, volume 407 of _Lecture Notes in Computer Science_,|
-||pages 197–212. Springer, 1989.|
-|[DT98]|Conrado Daws and Stavros Tripakis. Model-checking of real-time reach-|
-||ability properties using abstractions.<br>In _Proc. 4th International Confer-_|
-||_ence on Tools and Algorithms for the Construction and Analysis of Systems_|
-||_(TACAS’98)_, volume 1384 of _Lecture Notes in Computer Science_, pages|
-||313–329. Springer, 1998.|
-|[LLPY97]|Kim G. Larsen, Fredrik Larsson, Paul Pettersson, and Wang Yi. Efcient|
-||verifcation of real-time systems: Compact data structure and state-space|
-||reduction. In _Proc. 18th IEEE Real-Time Systems Symposium (RTSS’97)_,|
-||pages 14–24. IEEE Computer Society Press, 1997.|
-|[LPY97]|Kim G. Larsen, Paul Pettersson, and Wang Yi.<br>Uppaal in a nutshell.|
-||_Journal of Software Tools for Technology Transfer (STTT)_, 1(1–2):134–152,|
-||1997.|
-|[Rok93]|Tomas G. Rokicki. _Representing and Modeling Digital Circuits_. PhD thesis,|
-||Stanford University, Stanford, USA, 1993.|
-
-
-
---- end of page.page_number=15 ---
+[^author-star]: Partially supported by ACI Cortos. Work partly done while visiting CISS, Aalborg University.
+[^author-starstar]: Partially supported by GA ČR grant no. 201/03/0509.
+[^deadlock]: There is a deadlock whenever there exists a state $(\ell, \nu)$ such that no further discrete transition can be taken.
+[^uppaal-url]: `http://www.uppaal.com`

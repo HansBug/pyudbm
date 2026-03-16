@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import inspect
 import os
 import shutil
 from contextlib import contextmanager
@@ -55,15 +56,16 @@ def export_pdf_text(
     asset_dir.mkdir(parents=True, exist_ok=True)
 
     with chdir(output_path.parent):
-        markdown = pymupdf4llm.to_markdown(
-            str(pdf_path),
-            write_images=True,
-            image_path=asset_dir.name,
-            page_separators=page_separators,
-            force_text=False,
-            show_progress=False,
-            dpi=dpi,
-        )
+        markdown_kwargs = {
+            "write_images": True,
+            "image_path": asset_dir.name,
+            "force_text": False,
+            "show_progress": False,
+            "dpi": dpi,
+        }
+        if "page_separators" in inspect.signature(pymupdf4llm.to_markdown).parameters:
+            markdown_kwargs["page_separators"] = page_separators
+        markdown = pymupdf4llm.to_markdown(str(pdf_path), **markdown_kwargs)
 
     content = normalize_markdown(markdown)
     output_path.write_text(content, encoding="utf-8")
