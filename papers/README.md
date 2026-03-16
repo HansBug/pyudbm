@@ -34,6 +34,7 @@ When adding or updating a paper entry in this directory:
 - keep the paper-level guides focused on repository-relevant reading advice: position in the stack, what to extract, where it maps into the codebase, and why it matters for UDBM
 - if you create `content.md`, treat it as a human-facing reading artifact rather than a raw extractor dump
 - treat figure and table assets as a first-class part of refinement work, not as an afterthought; every referenced screenshot must be visually checked and, when necessary, manually re-cropped
+- when refining a paper substantially, do not stop at cleaning the screenshots that already exist; also verify that materially relevant figures and tables from the covered pages have actually been included, and supplement any missing assets
 - keep `content_assets/` limited to assets actually referenced by `content.md`
 - update this top-level `papers/README.md` and `papers/README_zh.md` whenever new papers are added or the reading paths change
 
@@ -312,8 +313,11 @@ All figures and tables referenced in `content.md` must be checked against the PD
 
 Figures are a high-priority acceptance item. A paper is not "refined" if the prose was cleaned up but the screenshots are still poorly cropped, incomplete, missing captions, or inserted at the wrong textual location.
 
+Completeness is part of figure validation. It is not enough to polish the screenshots that are already present in `content.md`. You must also re-read the page images and verify that the covered portion of the paper does not contain missing figures or tables that should have been included but were omitted earlier. If the prose discusses Fig. *n* or Table *n* but no corresponding asset is present, that is a refinement failure and must be fixed.
+
 In particular:
 
+- verify figure/table completeness, not only crop quality; compare the figure inventory visible in the PDF against what is currently present in `content.md` and `content_assets/`
 - verify that the extracted screenshot matches the intended figure or table
 - verify that the crop is complete on every edge and does not cut away axes, labels, legends, table borders, rightmost nodes, top headers, bottom rows, or any other semantically relevant content
 - verify that the crop is not too loose; avoid carrying unrelated paragraphs, neighboring figures, section headings, or page furniture when the target figure can be isolated more precisely
@@ -324,12 +328,18 @@ In particular:
 
 Practical screenshot workflow:
 
+- first build a figure/table inventory for the covered pages by re-reading the rendered page images; if helpful, use the PDF text only to locate candidate figure numbers or pages, but treat the page images as the source of truth
+- compare that PDF-side inventory against the current figures referenced in `content.md` and the files present in `content_assets/`
+- if figures are missing, add them before finalizing crop quality; do not accept a paper where the text refers to figures that were never inserted
 - inspect each referenced asset at full size, not only as a small thumbnail
+- when adding missing figures, make rough candidate crops first, review them as a set, and then inspect each candidate again at full size before accepting it
 - compare the asset against the source page and check all four edges deliberately
 - if any side is clipped or if extra context is leaking in, re-crop and replace the asset rather than tolerating a "good enough" screenshot
+- if a figure spans a page boundary in the Markdown structure, move the page marker and the image placement so the insertion remains faithful to the PDF flow
 - after replacing assets, update `content.md` if the figure split, order, or placement changed
+- when new figures are added, insert both the image and an explicit Markdown caption at the exact point where the surrounding prose begins to discuss that figure
 - remove superseded assets that are no longer referenced
-- finish with a consistency check that every image referenced in `content.md` exists in `content_assets/` and that `content_assets/` does not retain stale unused screenshots
+- finish with a consistency check that every image referenced in `content.md` exists in `content_assets/`, that `content_assets/` does not retain stale unused screenshots, and that the figure numbering now present in `content.md` no longer has obvious gaps caused by omitted assets
 
 The extraction script may produce incorrect screenshots or poor crops. When that happens, do not keep the bad asset. Re-screenshot or re-crop the page content manually, replace the asset in `content_assets/`, and update `content.md` to reference the corrected file.
 

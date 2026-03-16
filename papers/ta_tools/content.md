@@ -150,6 +150,10 @@ The basis for a finite partitioning of the state-space of a timed automaton is t
 
 *Figure 2* in the original paper illustrates the regions for a system with two clocks.
 
+![](content_assets/paper.pdf-0007-00.png)
+
+*Figure 2. Regions for a system with two clocks.*
+
 Several verification problems, such as reachability analysis, untimed language inclusion, language emptiness [AD94], and timed bisimulation [Cer92], can be solved by techniques based on the region construction. However, the problem with region graphs is the potential explosion in the number of regions. In fact, the number of regions is exponential in both the number of clocks and the maximal constants appearing in the guards of an automaton.
 
 <!-- page: 8 -->
@@ -159,6 +163,10 @@ As an example, consider Fig. 2. The figure shows the possible regions in each lo
 A more efficient representation of the state-space for timed automata is based on the notion of *zone* and *zone graphs* [Dil89, HNSY92, YL93, YPD94, HNSY94]. In a zone graph, instead of regions, zones are used to denote symbolic states. This gives, in practice, a coarser and thus more compact representation of the state-space. The basic operations and algorithms for zones used to construct zone graphs are described in Section 4.
 
 As an example, Fig. 3 in the original paper shows a timed automaton and the corresponding zone graph, or reachability graph. For this automaton the zone graph has only 8 states, whereas the region graph for the same example has over 50 states.
+
+![](content_assets/paper.pdf-0008-00.png)
+
+*Figure 3. A timed automaton and its zone graph.*
 
 A zone is a clock constraint. Strictly speaking, a zone is the solution set of a clock constraint, that is, the maximal set of clock assignments satisfying the constraint. Such sets can be efficiently represented and stored in memory as DBMs (Difference Bound Matrices) [Bel57]. For a clock constraint $D$, let $[D]$ denote the maximal set of clock assignments satisfying $D$. In the following, to save notation, we use $D$ to stand for $[D]$ when no confusion can arise. Then $B(C)$ denotes the set of zones.
 
@@ -206,6 +214,10 @@ Soundness means that if the initial symbolic state $(l_0, \{u_0\})$ may lead to 
 
 Unfortunately, the relation $\rightsquigarrow$ is infinite, and thus the zone graph of a timed automaton may also be infinite, which is a problem if we need a terminating verification procedure. The solution is to transform, that is, normalize, zones that may contain arbitrarily large constants to representatives in a class of zones whose constants are bounded by fixed constants, for example the maximal clock constants appearing in the automaton. The intuition is that once the value of a clock is larger than the maximal constant in the automaton, its precise value no longer matters; only the fact that it is above the constant does.
 
+![](content_assets/paper.pdf-0010-00.png)
+
+*Figure 4. A timed automaton with an infinite zone-graph.*
+
 ### 3.2 Zone-Normalization for Automata without Difference Constraints
 
 In the original theory of timed automata [AD94], difference constraints are not allowed in guards. Such automata, whose guards contain only atomic constraints of the form $x \sim n$, are known in the literature as *diagonal-free automata* [BDGP98].
@@ -232,6 +244,10 @@ $$
 $$
 
 As an example, the normalized zone graph of the automaton in Fig. 4 is shown in Fig. 5, where the clock ceiling is given by the maximal clock constants appearing in the automaton.
+
+![](content_assets/paper.pdf-0011-00.png)
+
+*Figure 5. Normalized zone graph for the automaton in Fig. 4.*
 
 Note that for a fixed number of clocks with clock ceiling $k$, there can be only finitely many normalized zones. The intuition is that if the constraints allowed to use are bounded, then only finitely many clock constraints can arise. This gives a finite characterization for $\rightsquigarrow$.
 
@@ -382,6 +398,10 @@ $$
 x - 0 < 20 \wedge y - 0 < 20 \wedge x - y \le -10 \wedge y - z \le 5.
 $$
 
+![](content_assets/paper.pdf-0017-00.png)
+
+*Figure 8. Graph interpretation of the example zone and its closed form.*
+
 For a closed zone, every direct constraint is at least as tight as the indirect constraint implied by any path in the graph. This is exactly the shortest-path property, and the conclusion is that a canonical, that is, closed, version of a zone can be computed using a shortest-path algorithm. Floyd-Warshall [Flo62] computes this closure in cubic time in the number of clocks.
 
 *Minimal Constraint Systems.* A zone may contain redundant constraints. For example, a zone containing constraints $x - y < 2$, $y - z < 5$, and $x - z < 7$ has the last constraint redundant because it follows from the first two. In many zones it is therefore possible to derive a minimal constraint system still representing the same solution set. This is useful for reducing memory consumption in state-space exploration [LLPY97, Pet99, Lar00].
@@ -392,11 +412,19 @@ To discuss minimal constraint systems, the paper introduces the notion of a *zer
 
 For closed DBMs this gives a direct way to compute a minimal number of constraints needed to represent the zone. The paper's Fig. 9 illustrates a zero-cycle-free graph and its minimal form. The resulting reduction procedure is given in Algorithm 3.
 
+![](content_assets/paper.pdf-0018-00.png)
+
+*Figure 9. A zero cycle free graph and its minimal form.*
+
 However, this algorithm does not work if there are zero cycles in the graph. The reason is that the set of redundant edges in a graph with zero cycles is not unique. A robust solution is to partition the nodes according to zero cycles and build a super-graph in which each node represents an entire partition.
 
 <!-- page: 19 -->
 
 The paper's Fig. 10 presents such a graph with a zero cycle and the corresponding minimal form. To compute the edges in the super-graph we pick one representative for each partition and use the edge weights between representatives. The edges inside a zero-cycle partition are then reduced using Algorithm 3. This small graph can then be reduced further. Finally, the reduced super-graph is connected to the reduced partitions. The pseudo-code for this reduction procedure is shown in Algorithm 4.
+
+![](content_assets/paper.pdf-0019-00.png)
+
+*Figure 10. A graph with a zero-cycle and its minimal form.*
 
 We now have an algorithm for computing the minimal number of edges needed to represent a shortest-path closure, and thus the minimal number of constraints needed to represent a given zone.
 
@@ -446,6 +474,10 @@ Intuitively, it is the set of clock valuations that can reach $D$ by delaying. A
 <!-- page: 22 -->
 
 To compute the lower bound for a clock $x$, start by assuming that all other clocks have value 0. Then examine all difference constraints $y_i - x$ and compute a new lower bound for $x$ under this assumption. The new bound on $0 - x$ is the minimum bound on $y_i - x$ found in the DBM. Pseudo-code for `down` is given in Algorithm 7.
+
+![](content_assets/paper.pdf-0022-00.png)
+
+*Figure 12. Applying down to a zone.*
 
 `and(D, x_i - x_j \preceq b)`. The most-used operation in state-space exploration is conjunction, that is, adding a constraint to a zone. The basic step is to check whether $(b, \preceq) < D_{ij}$ and, if so, replace $D_{ij}$ by $(b, \preceq)$. If the bound has changed, the DBM must be put back into canonical form. In this particular case there is a specialized re-canonicalization algorithm of complexity $O(n^2)$ rather than a full $O(n^3)$ shortest-path recomputation.
 
@@ -601,9 +633,17 @@ of a set of timed automata $A_1, \ldots, A_n$, called *processes*, combined into
 
 The paper's Fig. 14 shows an example system composed of two timed automata. The network models a time-dependent light switch on the left and its user on the right. The user can press the switch (`press!`) and the switch waits to be pressed (`press?`). The corresponding product automaton is shown in Fig. 15.
 
-The semantics of networks is given, as for single timed automata, in terms of transition systems. A state of a network is a pair $(l, u)$ where $l$ denotes a vector of current locations, one for each process, and $u$ is a clock assignment remembering the current values of clocks in the system. The network may perform delay transitions and discrete transitions.
+![](content_assets/paper.pdf-0029-00.png)
+
+*Figure 14. Network of timed automata.*
 
 <!-- page: 30 -->
+
+![](content_assets/paper.pdf-0030-00.png)
+
+*Figure 15. Product automaton for the network in Fig. 14.*
+
+The semantics of networks is given, as for single timed automata, in terms of transition systems. A state of a network is a pair $(l, u)$ where $l$ denotes a vector of current locations, one for each process, and $u$ is a clock assignment remembering the current values of clocks in the system. The network may perform delay transitions and discrete transitions.
 
 The invariant of a location vector is the conjunction of the location invariants of its components. Let $l_i$ stand for the $i$th element of a location vector $l$, and let $l[l_i' / l_i]$ denote the vector obtained by replacing $l_i$ with $l_i'$.
 
@@ -659,6 +699,10 @@ $$
 $$
 
 which is a non-convex zone.
+
+![](content_assets/paper.pdf-0031-00.png)
+
+*Figure 16. An example of a network with non convex timing regions.*
 
 <!-- page: 32 -->
 
