@@ -68,6 +68,23 @@ These rules are mandatory for every screenshot-style asset under `content_assets
 5. `bengtsson02`
    Read this for the deeper implementation-oriented DBM and normalization story.
 
+### Source-code comprehension path
+
+Use this path when the goal is to understand the native UDBM implementation itself rather than only the wrapper-facing semantics.
+
+1. `by04`
+   Start with the semantic and algorithmic baseline, especially the DBM chapter and appendix algorithms.
+2. `bengtsson02`
+   Read this second when tracing `dbm.h`, `dbm.c`, normalization, storage, and hashing-oriented design. It is the closest long-form match to the implementation shape of UDBM.
+3. `dhlp06`
+   Read this next for `fed_t`, subtraction, non-convex results, and reduction heuristics.
+4. `bblp04`
+   Read this when following extrapolation code paths such as `Extra_M`, `Extra_LU`, and their diagonal variants.
+5. `llpy97`
+   Read this when following `mingraph` analysis, compact encoding, and reduced-storage comparisons.
+6. `behrmann03`
+   Add this when studying priced DBMs, priced federations, partition-oriented reductions, or the broader UPPAAL data-structure architecture.
+
 ### Tool-context path
 
 - `lpw95`
@@ -90,6 +107,10 @@ These rules are mandatory for every screenshot-style asset under `content_assets
 
 If you want the shortest path to the parts most directly visible in today's Python wrapper, use:
 `by04 -> dhlp06 -> bblp04 -> llpy97`.
+
+If you want the shortest path for reading the native UDBM codebase itself, use:
+`by04 -> bengtsson02 -> dhlp06 -> bblp04 -> llpy97`,
+and add `behrmann03` when touching priced or system-level structures.
 
 ## What each paper contributes
 
@@ -292,6 +313,13 @@ If you are reading for implementation work in this repository:
 - use `llpy97/README.md` and `bengtsson02/README.md` when touching `mingraph`, storage, or lower-level DBM machinery
 - use `lpy97/README.md` and `bdl04/README.md` when thinking about high-level API ergonomics
 - use `behrmann03/README.md` when you need the larger UPPAAL architecture
+
+If you are reading the native UDBM source tree directly, use this file-to-paper mapping:
+
+- `UDBM/include/dbm/dbm.h`, `UDBM/src/dbm.c`, and `UDBM/docs/manual.tex`: read `by04` first, then `bengtsson02`; add `bblp04` for extrapolation-specific code paths.
+- `UDBM/include/dbm/fed.h`, `UDBM/src/fed.cpp`, and `UDBM/src/fed_dbm.cpp`: read `dhlp06` first; add `behrmann03` for the broader union-of-zones and system-architecture context.
+- `UDBM/include/dbm/mingraph.h` and `UDBM/src/mingraph*.c`: read `llpy97` first, then `bengtsson02`.
+- `UDBM/include/dbm/priced.h`, `UDBM/include/dbm/pfed.h`, `UDBM/src/priced.cpp`, `UDBM/src/pfed.cpp`, and `UDBM/src/infimum.cpp`: read `behrmann03` first for priced-zone context, then follow its priced timed automata material in detail.
 
 ## Content Refinement Workflow
 

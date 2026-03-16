@@ -68,6 +68,23 @@
 5. `bengtsson02`
    需要更深入的 DBM / normalization / 存储实现视角时读它。
 
+### 面向原生 UDBM 源码理解的主线
+
+如果目标不是只理解 wrapper 语义，而是直接贴着 UDBM 原生实现读代码，建议改用下面这条路径。
+
+1. `by04`
+   先把语义基线和算法基线立住，尤其是 DBM 章节和附录算法。
+2. `bengtsson02`
+   第二篇就读它；当你在追 `dbm.h`、`dbm.c`、normalization、存储和 hashing 相关设计时，它是和 UDBM 实现形态最接近的一篇长文。
+3. `dhlp06`
+   接着补 `fed_t`、subtraction、非凸结果和 reduction heuristic 的理论。
+4. `bblp04`
+   当你开始读 `Extra_M`、`Extra_LU` 及其 diagonal 变体对应的代码路径时读它。
+5. `llpy97`
+   当你开始读 `mingraph` 分析、紧凑编码和缩减存储比较时读它。
+6. `behrmann03`
+   当你开始读 priced DBM、priced federation、partition 风格 reduction 或更大的 UPPAAL 数据结构架构时，再把它补上。
+
 ### 面向工具语境的补充路径
 
 - `lpw95`
@@ -90,6 +107,10 @@
 
 如果你只想走最短路径，直接读：
 `by04 -> dhlp06 -> bblp04 -> llpy97`。
+
+如果你想走“直接读原生 UDBM 源码”的最短路径，建议读：
+`by04 -> bengtsson02 -> dhlp06 -> bblp04 -> llpy97`，
+而在碰到 priced 或系统级结构时再补 `behrmann03`。
 
 ## 每篇论文分别起什么作用
 
@@ -292,6 +313,13 @@ normalization 文献线里的历史引用点。
 - 当你碰 `mingraph`、存储或更底层 DBM 机制时，去看 `llpy97/README_zh.md` 和 `bengtsson02/README_zh.md`
 - 当你在想高层 API 的易用性和建模风格时，看 `lpy97/README_zh.md` 与 `bdl04/README_zh.md`
 - 当你需要更大的 `UPPAAL` 架构语境时，看 `behrmann03/README_zh.md`
+
+如果你是在直接阅读原生 UDBM 源码，可以按下面这个“文件到论文”的对应关系来查：
+
+- `UDBM/include/dbm/dbm.h`、`UDBM/src/dbm.c`、`UDBM/docs/manual.tex`：先读 `by04`，再读 `bengtsson02`；如果是 extrapolation 相关代码路径，再补 `bblp04`。
+- `UDBM/include/dbm/fed.h`、`UDBM/src/fed.cpp`、`UDBM/src/fed_dbm.cpp`：先读 `dhlp06`；如果想补 unions of zones 的更大架构语境，再读 `behrmann03`。
+- `UDBM/include/dbm/mingraph.h` 和 `UDBM/src/mingraph*.c`：先读 `llpy97`，再读 `bengtsson02`。
+- `UDBM/include/dbm/priced.h`、`UDBM/include/dbm/pfed.h`、`UDBM/src/priced.cpp`、`UDBM/src/pfed.cpp`、`UDBM/src/infimum.cpp`：先读 `behrmann03` 里的 priced-zone / priced timed automata 相关部分，再回来看代码。
 
 ## 论文内容精修流程
 
