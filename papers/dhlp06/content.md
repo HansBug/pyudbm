@@ -1,4 +1,6 @@
-## Model Checking Timed Automata with Priorities using DBM Subtraction
+<!-- page: 1 -->
+
+# Model Checking Timed Automata with Priorities using DBM Subtraction
 
 Alexandre David<sup>1</sup>, John Hakansson<sup>2</sup>, Kim G. Larsen<sup>1</sup>, and Paul Pettersson<sup>2</sup>  
 <sup>1</sup> Department of Computer Science, Aalborg University, Denmark. `{adavid,kgl}@cs.aau.dk`  
@@ -16,16 +18,18 @@ In implementations of real-time systems, priorities are often used to structure 
 
 Priorities have been studied in process algebras, e.g. [11, 8], and can be modelled using timed automata [12, 14]. However, doing so can be cumbersome and error-prone. Consider the simple example shown in Figure 1, and assume that the location $l$ can be reached with any time assignment satisfying the constraint
 
+<!-- page: 2 -->
 
-![](content_assets/paper.pdf-0002-00.png)
+
+![](content_assets/figure-1.png)
 
 *Figure 1. A timed automaton with priorities on actions.*
 
-![](content_assets/paper.pdf-0002-02.png)
+![](content_assets/figure-2.png)
 
 *Figure 2. Encoding of the priorities in Figure 1.*
 
-x \le 4 \land y \le 4.
+$x \le 4 \land y \le 4$.
 
 Further assume that the edge labelled with `a` has priority over the edge labelled with `b`. We see that $l_1$ can be reached with any time assignment satisfying the constraint $x \le 2 \land y \le 2$. The location $l_2$ is reachable under the constraint
 
@@ -38,6 +42,8 @@ which is a non-convex set of clock valuations and thus cannot be represented as 
 Model-checking tools for timed automata typically use DBMs (difference bound matrices) [13, 22] to represent convex constraints on clock variables. However, as illustrated above, analysis of timed automata with priorities requires the model-checking engine to handle disjunctive constraints efficiently. As a second contribution of this paper, we present a variety of techniques for performing subtraction on DBMs, that is, for computing $D - D'$ defined as $D \land \neg D'$ for two DBMs $D$ and $D'$. Guided by the goal of minimising the set of DBMs resulting from subtraction, and of keeping them disjoint, we give a heuristic algorithm with good performance. To support this claim, we present experimental evidence obtained by applying a version of Uppaal extended with priorities to a set of examples. We note that DBM subtraction is already needed for backward model-checking of full TCTL or scheduler synthesis [23], controller synthesis [10], and support for urgent guards.
 
 The rest of this paper is organised as follows. Timed automata with priorities are described in Section 3, and the required DBM subtraction operation in Section 4. In Section 5 we present subtraction algorithms that reduce the set of resulting DBMs. We show experimentally in Section 6 that our algorithm improves DBM subtraction significantly.
+
+<!-- page: 3 -->
 
 Related work: Priorities in process algebras are described in [11], where priorities on actions are defined in two levels. A process algebra of communicating shared processes is described in [8], where priorities are described as real numbers on events and timed actions. Preservation of congruence is a major concern in these papers.
 
@@ -61,6 +67,8 @@ D = \bigwedge_{1 \le i,j \le n} (x_i - x_j \sim b_{ij}),
 $$
 
 written as $D = [d_{ij}]$. We use $d_{ij}$ (or $e_{ij}$) to denote the constraints of a DBM $D$ (or $E$).
+
+<!-- page: 4 -->
 
 The bound of a constraint $d_{ij}$ is denoted $|d_{ij}|$. We define a complement operation over $\sim$ such that $\overline{\le} = <$ and $\overline{<} = \le$.
 
@@ -92,18 +100,17 @@ for the set of clock valuations that satisfy the constraints of $D$.
 
 **Subtraction.** Given two DBMs $D$ and $E$, we want to subtract $E$ from $D$. The resulting set $S$ is defined as the set satisfying the constraints of $D$ and $\neg E$. The result is not necessarily a zone. The subtraction $S = D \land \neg E$, denoted $D - E$, is written as:
 
-
-![](content_assets/paper.pdf-0004-17.png)
-
+$$
+S = D \land \neg\Bigl(\bigwedge_{1 \le i,j \le n} e_{ij}\Bigr)
+  = \bigvee_{1 \le i,j \le n} (D \land \neg e_{ij}),
+$$
 
 This is a union of copies of $D$ constrained by the negated constraints of $E$. It yields a straightforward basic algorithm for subtraction. Figure 3 illustrates this algorithm for two clocks. The result $S = D - E$ is represented by the union of the six smaller zones on the right in the figure. The number of zones in $S$ is bounded by $n^2$, and creating each of these zones costs $O(n^2)$, so the overall complexity is $O(n^4)$ in both time and space, where $n$ is the number of clocks.
 
+<!-- page: 5 -->
 
-![](content_assets/paper.pdf-0005-00.png)
 
-![](content_assets/paper.pdf-0005-01.png)
-
-![](content_assets/paper.pdf-0005-02.png)
+![](content_assets/figure-3.png)
 
 *Figure 3. Basic subtraction algorithm. The result of $D - E$ is the union of all six zones on the right.*
 
@@ -125,6 +132,8 @@ A state of a network of timed automata is a pair $\langle l, v \rangle$, where $
 
 The invariant $I(l)$ is defined as the conjunction of the terms $I_i(l_i)$ for each automaton $A_i$. An update of the location vector for automaton $A_i$ is denoted by $l[l_i' / l_i]$, meaning that $l_i$ is replaced by $l_i'$. For a transition $t$ we denote by $g_t$ the conjunction of the guards on the edges participating in that transition. Similarly, $r_t$ denotes the union of the corresponding reset sets, and $l_t$ denotes the location vector of the state generated by $t$.
 
+<!-- page: 6 -->
+
 Using a priority order $\prec$ on transitions, a transition can block another if it has higher priority. From a state $\langle l, v \rangle$, a transition $t$ is blocked according to the predicate
 
 $$
@@ -137,7 +146,7 @@ The transitions between states can be delay transitions, internal transitions, o
 - **Internal transition.** $\langle l, v \rangle \xrightarrow{a} \langle l[l_i' / l_i], v' \rangle$ if there is an edge $l_i \xrightarrow{g, a, r} l_i'$ with a local action $a$, such that $v' = [r \mapsto 0]v$, $v \models g$, $v' \models I_i(l_i')$, and $\neg \operatorname{block}(t)$.
 - **Synchronising transition.** $\langle l, v \rangle \xrightarrow{a} \langle l[l_i' / l_i,\, l_j' / l_j], v' \rangle$ if there are two edges $l_i \xrightarrow{g_i, a, r_i} l_i'$ and $l_j \xrightarrow{g_j, \overline{a}, r_j} l_j'$ with $i \ne j$, such that $v' = [r_i \mapsto 0,\, r_j \mapsto 0]v$, $v \models g_i$, $v \models g_j$, $v' \models I_i(l_i')$, $v' \models I_j(l_j')$, and $\neg \operatorname{block}(t)$.
 
-With these semantics, a delay transitions can never be blocked, and no transition can be blocked by a delay transition. In Section 3.3 we show how a priority order ≺ over internal and synchronising transitions can be derived from the orders ≺a or ≺A.
+With these semantics, a delay transition can never be blocked, and no transition can be blocked by a delay transition. In Section 3.3 we show how a priority order $\prec$ over internal and synchronising transitions can be derived from the orders $\prec_a$ or $\prec_A$.
 
 ## 3.2 Symbolic Semantics
 
@@ -172,15 +181,17 @@ The symbolic transition rules are:
 
 *Proof.* By induction on the length of transition sequences. Using the zone operations of Definition 2, it can be shown that `block(t)` and `Block(t)` characterise the same sets of clock valuations.
 
+<!-- page: 7 -->
+
 ## 3.3 Priorities in UPPAAL
 
 The priority order $\prec$ over transitions can be derived from the priority orders $\prec_a$ on actions and $\prec_A$ on automata. We describe here the order used in Uppaal [18]. For transitions $t$ and $t'$ with actions $a$ and $a'$, we derive a priority order from $\prec_a$ by defining $t \prec t'$ whenever $a \prec_a a'$.
 
 Deriving a priority order on transitions from $\prec_A$ is less straightforward, because two automata with different priorities may be involved in a synchronising transition. For two transitions $t$ and $t'$, where $t$ is a synchronisation between $A_i$ and $A_j$ such that $\neg(A_j \prec_A A_i)$, and $t'$ is a synchronisation between $A_i'$ and $A_j'$ such that $\neg(A_j' \prec_A A_i')$, we define $t \prec t'$ by the rule shown below:
 
-
-![](content_assets/paper.pdf-0007-03.png)
-
+$$
+(A_j \prec_A A_j') \lor \bigl((A_i \prec_A A_i') \land \neg(A_j \prec_A A_j') \land \neg(A_j' \prec_A A_j)\bigr).
+$$
 
 Intuitively, the weakly higher-priority processes $A_j$ and $A_j'$ are compared first. If they are related, they define the relation between $t$ and $t'$; otherwise, the relation is defined by the relation between $A_i$ and $A_i'$.
 
@@ -196,30 +207,22 @@ The first observation from the basic algorithm in Section 2.2 is that some split
 
 The improved algorithm gives $D - E$ as a union of DBMs that may overlap, which means there are redundant points. These points would duplicate later operations unnecessarily, so a second improvement is to ensure that the result is a union of disjoint DBMs. The downside is that inclusion checking may become worse for later generated DBMs. This issue exists even without subtraction, and it is not obvious whether the trade-off is always beneficial. The ordering of the splits affects the result, but the result is still guaranteed to be disjoint. The complexity remains $O(n^4)$.
 
+<!-- page: 8 -->
 
-![](content_assets/paper.pdf-0008-00.png)
 
-![](content_assets/paper.pdf-0008-01.png)
-
-![](content_assets/paper.pdf-0008-02.png)
+![](content_assets/figure-4.png)
 
 *Figure 4. Subtraction using the minimal set of constraints.*
 
 
-![](content_assets/paper.pdf-0008-04.png)
-
-![](content_assets/paper.pdf-0008-05.png)
-
-![](content_assets/paper.pdf-0008-06.png)
-
-![](content_assets/paper.pdf-0008-07.png)
-
-![](content_assets/paper.pdf-0008-08.png)
+![](content_assets/figure-5.png)
 
 *Figure 5. Subtraction with disjoint result, with two orderings `(a)` and `(b)` for splitting.*
 
+<!-- page: 9 -->
 
-![](content_assets/paper.pdf-0009-00.png)
+
+![](content_assets/figure-6.png)
 
 *Figure 6. Particular cases that simplify subtraction: `(1)` ignore $e_{ij}$ and `(2)` $D - E = D$.*
 
@@ -232,7 +235,7 @@ The improved algorithm gives $D - E$ as a union of DBMs that may overlap, which 
 5. Set $R = R \land e_{ij}$.
 6. Return $S$.
 
-$R$ is the remainder of the subtraction and is used to compute consecutive splits. The ordering of the splits affects the resulting number of DBMs, as shown in Figure 5. The resulting DBMs are disjoint and the result is correct in both cases, but in `(a)` we have four splits and a remainder that is discarded, whereas in `(b)` we have three splits and no remainder.
+$R$ is the remainder of the subtraction and is used to compute consecutive splits. The ordering of the splits has an impact on the resulting number of DBMs, as shown in Figure 5. The resulting DBMs are disjoint and the result is correct in both cases, but in `(a)` we have four splits and a remainder that we will discard, and in `(b)` we have three splits and no remainder (the last case discards the remainder trivially and is not a real split).
 
 **Lemma 1 (Soundness and completeness of disjoint subtraction).** The algorithm still computes the same subtraction $D - E$, and $S$ is a union of disjoint DBMs:
 
@@ -248,15 +251,17 @@ There are two obvious cases, illustrated in Figure 6, that can be detected befor
 
 2. The negated constraint $\neg e_{ij}$ has no effect on $D$, which means that $E \land D = \mathrm{false}$ because DBMs are convex; therefore we stop and the result is $D$. We ignore the whole subtraction.
 
+<!-- page: 10 -->
+
 ## 5 Reducing DBM Subtractions
 
 Reducing subtraction means reducing the number of splits performed by the operation, but it is not obvious how to define an optimal split. For a subtraction $D - E$, different combinations may yield the same minimal number of splits, yet the resulting DBMs will be used in later computations, and different combinations may lead to different future splitting behaviour. The problem of computing a truly minimal split is interesting, but it is not obvious whether it can be done without worsening the original $O(n^4)$ complexity of subtraction. In this section we propose a heuristic that addresses both concerns by choosing a good ordering that tends to reduce the total number of splits.
 
-## 5.1 Heuristic
+## 5.1 Efficient Heuristic
 
-The idea is to use a good ordering of the constraints of $E$ so that the earliest splits cut the original DBM $D$ into DBMs that are as large as possible, thereby cancelling later splits as soon as possible. We use the values $|e_{ij}| - |d_{ij}|$ to order the constraints $e_{ij}$, taking the smallest values first. This measures, in one dimension, how much the corresponding facet of $E$ lies "inside" $D$. The important trick is to always re-evaluate the smallest value after every split, because the DBM changes after each step. Complexity-wise, this corresponds to repeated selection in $O(n^4)$ time for $n^2$ constraints, instead of a single $O(n^2 \log n^2)$ sort, but it gives better results because the previous scores lose meaning after every split.
+The idea is to use a good ordering of the constraints of $E$ to compute the splits such that the first splits will cut the original DBM $D$ into as large as possible DBMs to cancel the upcoming splits as soon as possible (when there is nothing left to do). We use the values $|e_{ij}| - |d_{ij}|$ to order the constraints $e_{ij}$, taking the smallest values first. This measures on one dimension how much the corresponding facet of $E$ is "inside" $D$. The important trick of the algorithm is to always take the constraint with the smallest value after every split because the DBM changes after every split. Complexity-wise, this is equivalent to sorting in $O(n^4)$ ($n^2$ constraints) instead of $O(n^2 \log n^2)$, but it gives better results and it makes more sense since at every iteration the previous values lose their meaning.
 
-**Algorithm.** The algorithm splits $D$ by choosing the current best $e_{ij}$ as the one with the smallest
+**Algorithm.** The algorithm splits $D$ by choosing the current best $e_{ij}$ as having the smallest
 
 $$
 H_{E,R}(i, j) = |e_{ij}| - |r_{ij}|.
@@ -266,26 +271,28 @@ $$
 2. Compute the minimal set of constraints $E_m$.
 3. Initialise $R = D$ and $S = \mathrm{false}$.
 4. While $R \ne \mathrm{false}$:
-5. Choose $e_{ij} \in E_m$ with $i \ne j$ such that $H_{E,R}(i, j)$ is minimal.
+5. Choose $e_{ij} \in E_m$, $i \ne j$, with minimal $H_{E,R}(i, j)$.
 6. If $r_{ij} \le \neg e_{ji}$, return $S \lor R$.
 7. Else if $e_{ij} \ge r_{ij}$, skip.
 8. Else set $S = S \lor (R \land \neg e_{ij})$.
 9. Set $R = R \land e_{ij}$.
 10. Return $S$.
 
-Step 1 corresponds to case 2 from the preliminaries. It may seem redundant with step 6, but it avoids computing the minimal set of constraints in step 2 when the result is already trivial.
+Step 1 corresponds to case 2 in the preliminaries. It may seem redundant with step 6, but it is there to avoid computing the minimal set of constraints in step 2.
 
 **Lemma 2 (Soundness of heuristic subtraction).** The algorithm computes the subtraction $D - E$ correctly.
 
-*Proof.* The algorithm is equivalent to the disjoint subtraction of Section 4.2, except for the ordering of the constraints and the two trivial-case optimisations from Section 4.3.
+*Proof.* The algorithm is equivalent to the disjoint subtraction in Section 4.2 except for the ordering of the constraints and two improvements to detect the trivial cases mentioned in Section 4.3.
+
+<!-- page: 11 -->
 
 ## 5.2 Expensive Heuristic
 
-The idea is to ignore (in addition to the previous heuristic) facets of E that do not intersect D. A facet of E corresponding to a constraint eij (of the form xi − xj ∼ bij) is the hyper-plane xi − xj = bij bounded by the other constraints of E. The intuition is to use the convexity of our DBMs and the fact D − E = D − (D ∩ E): If D ∩ E = ∅ and a facet of E is not in D ∩ E, i.e., it does not intersect D, then we can ignore it.
+The idea is to ignore, in addition to the previous heuristic, facets of $E$ that do not intersect $D$. A facet of $E$ corresponding to a constraint $e_{ij}$ (of the form $x_i - x_j \sim b_{ij}$) is the hyper-plane $x_i - x_j = b_{ij}$ bounded by the other constraints of $E$. The intuition is to use the convexity of our DBMs and the fact $D - E = D - (D \cap E)$: if $D \cap E \ne \varnothing$ and a facet of $E$ is not in $D \cap E$, i.e. it does not intersect $D$, then we can ignore it.
 
-In practice there are several cases to consider: whether the constraints are strict, and different configurations of corner intersections. Exact intersection detection costs $O(n^3)$, and it is not obvious whether this idea is compatible with the minimal set of constraints. In practice, the simple idea therefore raises difficulties.
+In practice, there are different cases to consider: whether the constraints are strict, and different corner-intersection configurations. In addition, exact intersection detection is $O(n^3)$, and it is not obvious whether this idea is compatible with the minimal set of constraints, so the simple idea poses problems in practice.
 
-To simplify matters, we define a new heuristic function $H_{E,R}$ that returns $\infty$ if $\overline{E} \land (x_i - x_j = b_{ij}) \cap D = \varnothing$, and otherwise returns the previous value $|e_{ij} - r_{ij}|$. The condition means that we make the constraints of $E$ non-strict and then constrain them to the facet used for intersection testing. The intersection detection is partial and based on case 2 of Section 4.3. The new heuristic function is:
+To simplify, we define a new heuristic function $H'_{E,R}$ that returns $\infty$ if $\overline{E} \land (x_i - x_j = b_{ij}) \cap D = \varnothing$, and otherwise returns the former heuristic value. The condition means that we make the constraints of $E$ non-strict ($\overline{E}$) and constrain it to be a facet that we use for testing intersection. The intersection detection is partial and is based on case 2 of Section 4.3. The new heuristic function is:
 
 ```text
 H'_{E,R}(i, j):
@@ -295,70 +302,78 @@ H'_{E,R}(i, j):
   return |eij| - |rij|
 ```
 
-We use two tricks. First, we tighten $e_{ji}$ with $\neg e_{ij}$ in order to compute the facet as a DBM; a specialization of Floyd's shortest-path algorithm [15] can do this in $O(n^2)$ time [22]. Second, we do not need all constraints, but only $e_{ki}$ and $e_{jk}$, which is exactly what the condition above checks. If the function returns $\infty$, then the facet corresponding to $e_{ij}$ does not intersect $D$; otherwise we fall back to the previous heuristic value.
+We use two tricks. First, we tighten $e_{ji}$ with $\neg e_{ij}$ to compute the facet as a DBM; a specialization of Floyd's shortest-path algorithm [15] can do this in $O(n^2)$ [22]. The second trick is that we do not need all constraints, but only $e_{ki}$ and $e_{jk}$, which is what the expression in the condition is doing. If the function returns $\infty$, then there is no intersection with the facet corresponding to the constraint $e_{ij}$; otherwise we do not know and use the former heuristic value.
 
-The function has complexity $O(n)$, which is worse than before, but it may reduce splitting further. The global complexity is unfortunately $O(n^5)$. It is possible to move the detection outside the loop and get back to $O(n^4)$, but doing so is more complex in practice; the point here is to investigate whether the idea is worth the additional effort.
+The function has complexity $O(n)$, which is worse than before, but it may reduce splitting further, which we investigate. The global complexity is unfortunately $O(n^5)$. We can get the detection out of the loop and get back to $O(n^4)$, but this is more complex than it seems in practice, and the point is to see if it is worth the effort.
 
 ## 6 Experiments
 
-We first experiment<sup>1</sup> with the impact of priorities in our model-checker. In practice, moderate splitting occurs, so we focus on subtraction separately in order to understand what happens in applications that cause much heavier splitting.
+We experiment[^1] first with the impact of priorities in our model-checker. In practice, moderate splitting occurs, so we focus on subtraction separately in order to understand what happens in applications that cause much heavier splitting.
 
-<sup>1</sup> All experiments were carried out on a dual-Xeon 2.8GHz machine with 4GB of RAM running Linux 2.6.9.
+[^1]: All experiments were carried on a dual-Xeon 2.8GHz machine with 4GB of RAM running Linux 2.6.9.
+
+<!-- page: 12 -->
 
 
-![](content_assets/paper.pdf-0012-00.png)
+![](content_assets/figure-7.png)
 
 *Figure 7. A process $P_i$ in Fischer's mutual exclusion protocol.*
 
-| N | Original (s) | Original (MB) | Priority (s) | Priority (MB) | Encoded (s) | Encoded (MB) |
+![](content_assets/table-1.png)
+
+*Table 1. Measurements when model-checking $N$ processes of the Fischer protocol.*
+
+| N | Original (s) | Original (Mb) | Priority (s) | Priority (Mb) | Encoded (s) | Encoded (Mb) |
 |---|---:|---:|---:|---:|---:|---:|
 | 5 | 0.85 | 6.9 | 0.21 | 6.6 | 0.21 | 6.6 |
 | 6 | 17.90 | 10.2 | 3.02 | 6.8 | 3.46 | 7.0 |
 | 7 | 780.60 | 40.6 | 131.57 | 9.1 | 144.90 | 9.8 |
 
-*Table 1. Measurements when model-checking $N$ processes of the Fischer protocol.*
-
 ## 6.1 Experimenting with Priorities
 
 We describe an experiment where we compare and evaluate models using priorities and models where priorities are manually encoded using guards and possibly extra edges. For every edge of the original automaton, the encoding is done by restricting the existing guards by removing all parts overlapping with higher priority transitions.
 
-**Experiment 1.** We introduce priorities on actions in a model of the Fischer protocol [17] for mutual exclusion (Figure 7). The action $a_i$ of the model is used to introduce priorities so that $a_i \prec a_j$ when $i < j$, and $a_i \prec \tau$ for all processes $P_1 \cdots P_N$. Since $\tau$-actions get the highest priority, all $N$ processes will enter location $B_i$, in contrast to the original model where at most $N$ are in location $B_i$ simultaneously. Also, the same process $P_1$ will always enter the critical section because it will be the last process to reach location $C_i$. The encoded model is created by adding guards to edges from $B_i$ to $C_i$ that evaluate to false whenever a higher-priority transition $\tau$ or $a_j \succ a_i$ is enabled.
+**Experiment 1.** We introduce priorities on actions in a model of the Fischer protocol [17] for mutual exclusion (Figure 7). The action $a_i$ of the model is used to introduce priorities so that $a_i \prec a_j$ when $i < j$, and $a_i \prec \tau$ for all processes $P_1 \cdots P_N$. Since we give $\tau$-actions the highest priority, all $N$ processes will enter location $B_i$, in contrast to the original model where at most $N$ are in location $B_i$ simultaneously. Also, the same process $P_1$ will always enter the critical section because it will be the last process to reach location $C_i$. The encoded model is created by adding guards to edges from $B_i$ to $C_i$ that evaluate to false when a higher-priority transition $\tau$ or $a_j \succ a_i$ is enabled.
 
 Table 1 shows measurements of model-checking various models of the Fischer protocol, to verify that there are no deadlocks and that mutual exclusion holds. The column N is the number of processes, Original are the time and memory requirements for model-checking the original model without priorities, Priority are the corresponding numbers for the model with priorities, and Encoded are the numbers for a model encoding the same behaviour as the model with priorities. The results for the Priority and Encoded models are comparable, and the overhead of the priority extension is small at worst. This is encouraging since tool support for priorities makes modelling easier.
 
-| Algorithm | tgame12 | tgame12 + reduce | jobshop | jobshop + reduce | jobshop + strategy | jobshop + strategy + reduce |
-|---|---:|---:|---:|---:|---:|---:|
-| basic | 343314 / 124s / 319M | 283334 / 10.9s / 39.6M | 55514 / 9.9s / 35.2M | 91849 / 10.8s / 38.8M | 45970 / 3.0s / 18.7M | 73018 / 3.6s / 22.6M |
-| reorder | 351615 / 165s / 320M | 291627 / 10.9s / 39.7M | 54996 / 12.3s / 31.9M | 89763 / 13.4s / 35.6M | 47073 / 3.0s / 18.7M | 73730 / 3.5s / 22.6M |
-| disjoint | 396053 / 120s / 320M | 356322 / 12.0s / 40.6M | 39776 / 11.7s / 37.1M | 64195 / 12.8s / 40.8M | 31592 / 3.2s / 18.6M | 51531 / 3.7s / 22.6M |
-| efficient | 323097 / 121s / 319M | 275991 / 10.7s / 39.7M | 24105 / 5.3s / 45.1M | 47705 / 6.8s / 48.6M | 20360 / 2.2s / 18.5M | 37854 / 2.5s / 22.0M |
-| expensive | 320668 / 121s / 319M | 272788 / 11.0s / 39.7M | 23905 / 7.5s / 45.4M | 45428 / 8.9s / 48.8M | 20248 / 2.1s / 18.5M | 37653 / 2.6s / 22.0M |
+<!-- page: 13 -->
 
-*Table 2. Results of the timed-game experiments (`tgame`) with 12 plates, with and without `expensiveReduce` (`reduce`), and the job-shop experiments (`jobshop`) with or without strategy and with or without `expensiveReduce`. Each cell reports splits / time / memory.*
+![](content_assets/table-2.png)
+
+*Table 2. Results of the timed game experiments (`tgame`) with 12 plates with and without `expensiveReduce` (`reduce`), and the jobshop experiments (`jobshop`) with or without strategy, with or without `expensiveReduce`.*
+
+| Algorithms | tgame12 | tgame12 reduce | jobshop | jobshop reduce | jobshop strategy | jobshop reduce strategy |
+|---|---|---|---|---|---|---|
+| basic | 343314<br>124s<br>319M | 283334<br>10.9s<br>39.6M | 55514<br>9.9s<br>35.2M | 91849<br>10.8s<br>38.8M | 45970<br>3.0s<br>18.7M | 73018<br>3.6s<br>22.6M |
+| reorder | 351615<br>165s<br>320M | 291627<br>10.9s<br>39.7M | 54996<br>12.3s<br>31.9M | 89763<br>13.4s<br>35.6M | 47073<br>3.0s<br>18.7M | 73730<br>3.5s<br>22.6M |
+| disjoint | 396053<br>120s<br>320M | 356322<br>12.0s<br>40.6M | 39776<br>11.7s<br>37.1M | 64195<br>12.8s<br>40.8M | 31592<br>3.2s<br>18.6M | 51531<br>3.7s<br>22.6M |
+| efficient | 323097<br>121s<br>319M | 275991<br>10.7s<br>39.7M | 24105<br>5.3s<br>45.1M | 47705<br>6.8s<br>48.6M | 20360<br>2.2s<br>18.5M | 37854<br>2.5s<br>22.0M |
+| expensive | 320668<br>121s<br>319M | 272788<br>11.0s<br>39.7M | 23905<br>7.5s<br>45.4M | 45428<br>8.9s<br>48.8M | 20248<br>2.1s<br>18.5M | 37653<br>2.6s<br>22.0M |
 
 ## 6.2 Experimenting with DBM Subtractions
 
 **Experiment 2.** We implemented a timed-game reachability engine whose purpose is to find winning strategies [10], and we made a variant of it to solve job-shop scheduling problems formulated as games. The timed-game test example (`tgame`) is the production cell [20, 21] with 12 plates. The job-shop example (`jobshop`) is modelled from [1], where we find a schedule for 4 jobs using 6 resources. We run variants of the prototype both with and without strategy storage (`+strategy`). In addition, for both experiments the main loop can reduce federations (`+reduce`) or leave them unreduced, using inclusion checking based on subtraction. Table 2 shows the results. As in the previous experiments, we report the total number of split operations together with time in seconds and memory consumption in megabytes.
 
-Comparing “basic” and “reorder” shows that it is not easy to find a good ordering. Results from “disjoint” show as we claimed that reducing the size of the symbolic states may actually interfere with inclusion checking. The “expensive” heuristic gives a marginal gain considering its cost. The “efficient” heuristic is the best choice. The reduction of federations gives significant gains both in time and memory, which means it is possible to contain the splits to some extent. Still this reduction operation needs a good subtraction. Indeed, experiment 2 shows how bad it may go. Concerning memory consumption it is difficult to draw conclusions. The behaviour of the “efficient” implementation may seem an anomaly but it is explained by the fact that the prototype is using sharing of
-
-DBMs between states. The effect here is that DBMs are less shared since we know we have fewer of them.
+Comparing "basic" and "reorder" shows that it is not easy to find a good ordering. Results from "disjoint" show as we claimed that reducing the size of the symbolic states may actually interfere with inclusion checking. The "expensive" heuristic gives a marginal gain considering its cost. The "efficient" heuristic is the best choice. The reduction of federations gives significant gains both in time and memory, which means it is possible to contain the splits to some extent. Still this reduction operation needs a good subtraction. Indeed, experiment 2 shows how bad it may go. Concerning memory consumption it is difficult to draw conclusions. The behaviour of the "efficient" implementation may seem an anomaly, but it is explained by the fact that the prototype is using sharing of DBMs between states. The effect here is that DBMs are less shared since we know we have fewer of them.
 
 These experiments confirm that our heuristic has an overhead but it is compensated by the reduction in splits, in particular for our “efficient” heuristic. We speculate that our priority implementation will behave reasonably well with models that generate more splitting thanks to our subtraction algorithm. Furthermore, we have implemented different reduction algorithms to merge DBMs based on subtraction. Our implementation scales well with good merging algorithms thanks to efficient subtractions. However, this is out of scope of this paper.
 
+<!-- page: 14 -->
+
 ## 7 Conclusion
 
-We have shown that our priority extension is useful for modelling and can also be used to reduce the search state-space. Furthermore, its overhead in our modelchecker is reasonable. We have also shown that it is worth the extra effort for a DBM subtraction algorithm to produce fewer zones and to avoid redundancy by making the zones disjoint. The priority extension opens the door to more compact models and the support for subtraction allows us to add support for wanted features in Uppaal such as urgent transitions with clock guards. In addition, we are improving on reduction techniques to make our model-checker more robust against splitting of DBMs.
+We have shown that our priority extension is useful for modelling and can also be used to reduce the search state-space. Furthermore, its overhead in our model-checker is reasonable. We have also shown that it is worth the extra effort for a DBM subtraction algorithm to produce fewer zones and to avoid redundancy by making the zones disjoint. The priority extension opens the door to more compact models and the support for subtraction allows us to add support for wanted features in Uppaal such as urgent transitions with clock guards. In addition, we are improving on reduction techniques to make our model-checker more robust against splitting of DBMs.
 
 ## References
 
-1. Yasmina Abdedda¨ım, Eugene Asarin, and Oded Maler. Scheduling with timed automata. Theoretical Computer Science, 354(2):272–300, march 2006.
+1. Yasmina Abdeddaïm, Eugene Asarin, and Oded Maler. Scheduling with timed automata. Theoretical Computer Science, 354(2):272–300, march 2006.
 
 2. Rajeev Alur and David L. Dill. Automata for modeling real-time systems. In Proc. of Int. Colloquium on Algorithms, Languages, and Programming, volume 443 of LNCS, pages 322–335, 1990.
 
-3. J.G.P Barnes. Programming in Ada, Plus and Overview of Ada 9X. Addison– Wesley, 1994.
+3. J.G.P Barnes. Programming in Ada, Plus and Overview of Ada 9X. Addison–Wesley, 1994.
 
-4. Johan Bengtsson, W. O. David Griffioen, Kre J. Kristoffersen, Kim G. Larsen, Fredrik Larsson, Paul Pettersson, and Wang Yi. Automated analysis of an audio control protocol using uppaal. Journal of Logic and Algebraic Programming, 52– 53:163–181, July-August 2002.
+4. Johan Bengtsson, W. O. David Griffioen, Kre J. Kristoffersen, Kim G. Larsen, Fredrik Larsson, Paul Pettersson, and Wang Yi. Automated analysis of an audio control protocol using UPPAAL. Journal of Logic and Algebraic Programming, 52–53:163–181, July-August 2002.
 
 5. Johan Bengtsson and Wang Yi. Timed automata: Semantics, algorithms and tools. In W. Reisig and G. Rozenberg, editors, Lecture Notes on Concurrency and Petri Nets, volume 3098 of Lecture Notes in Computer Science. Springer-Verlag, 2004.
 
@@ -366,7 +381,9 @@ We have shown that our priority extension is useful for modelling and can also b
 
 7. Marius Bozga, Conrado Daws, Oded Maler, Alfredo Olivero, Stavros Tripakis, and Sergio Yovine. Kronos: A Model-Checking Tool for Real-Time Systems. In Proc. of the 10th Int. Conf. on Computer Aided Verification, number 1427 in Lecture Notes in Computer Science, pages 546–550. Springer–Verlag, 1998.
 
-8. Patrice Br´emond-Gr´egoire and Insup Lee. A process algebra of communicating shared resources with dense time and priorities. Theoretical Computer Science, 189(1–2):179–219, 1997.
+<!-- page: 15 -->
+
+8. Patrice Brémond-Grégoire and Insup Lee. A process algebra of communicating shared resources with dense time and priorities. Theoretical Computer Science, 189(1–2):179–219, 1997.
 
 9. G. C. Buttazzo. Hard Real-Time Computing Systems. Predictable Scheduling Algorithms and Applications. Kulwer Academic Publishers, 1997.
 
@@ -374,13 +391,13 @@ We have shown that our priority extension is useful for modelling and can also b
 
 11. Rance Cleaveland and Matthew Hennessy. Priorities in process algebras. Inf. Comput., 87(1-2):58–77, 1990.
 
-12. J. Corbett. Modeling and analysis of real-time ada tasking programs. In Proceedings of 15th IEEE Real-Time Systems Symposium, San Juan, P uerto Rico, USA, pages 132–141. IEEE Computer Society Press, 1994.
+12. J. Corbett. Modeling and analysis of real-time ada tasking programs. In Proceedings of 15th IEEE Real-Time Systems Symposium, San Juan, Puerto Rico, USA, pages 132–141. IEEE Computer Society Press, 1994.
 
 13. David L. Dill. Timing assumptions and verification of finite-state concurrent systems. volume 407 of LNCS, pages 197–212. Springer, 1989.
 
 14. Elena Fersman, Paul Pettersson, and Wang Yi. Timed automata with asynchronous processes: Schedulability and decidability. In J.-P. Katoen and P. Stevens, editors, Proc. of the 8th International Conference on Tools and Algorithms for the Construction and Analysis of Systems, number 2280 in Lecture Notes in Computer Science, pages 67–82. Springer–Verlag, 2002.
 
-15. Robert W. Floyd. Acm algorithm 97: Shortest path. Communications of the ACM, 5(6):345, 1962.
+15. Robert W. Floyd. ACM algorithm 97: Shortest path. Communications of the ACM, 5(6):345, 1962.
 
 16. Pao-Ann Hsiung and Shang-Wei Lin. Model checking timed systems with priorities. In RTCSA, pages 539–544, 2005.
 
@@ -396,6 +413,6 @@ We have shown that our priority extension is useful for modelling and can also b
 
 22. Tomas Gerhard Rokicki. Representing and Modeling Digital Circuits. PhD thesis, Stanford University, 1993.
 
-23. Stavros Tripakis and Sergio Yovine. Verification of the Fast Reservation Protocol with Delayed Transmission using the tool Kronos. In Proc. of the 4th IEEE RealTime Technology and Applications Symposium. IEEE Computer Society Press, June 1998.
+23. Stavros Tripakis and Sergio Yovine. Verification of the Fast Reservation Protocol with Delayed Transmission using the tool Kronos. In Proc. of the 4th IEEE Real-Time Technology and Applications Symposium. IEEE Computer Society Press, June 1998.
 
 24. Farn Wang. RED: Model-checker for timed automata with clock-restriction diagram. In Paul Pettersson and Sergio Yovine, editors, Workshop on Real-Time Tools, Aalborg University Denmark, number 2001-014 in Technical Report. Uppsala University, 2001.
