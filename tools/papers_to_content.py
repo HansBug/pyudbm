@@ -51,8 +51,8 @@ def export_pdf_text(
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     asset_dir = (asset_dir or default_asset_dir(output_path)).resolve()
-    if asset_dir.exists():
-        shutil.rmtree(str(asset_dir))
+    # if asset_dir.exists():
+    #     shutil.rmtree(str(asset_dir))
     asset_dir.mkdir(parents=True, exist_ok=True)
 
     with chdir(output_path.parent):
