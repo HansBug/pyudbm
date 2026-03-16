@@ -42,4 +42,4 @@ That matters whenever UDBM needs:
 
 ## Availability note
 
-This directory currently contains bibliographic metadata only. I did not find a publicly accessible primary-source PDF during this fetch pass. See `README.md` in this directory for the checked sources.
+This directory now contains a readable PDF recovered from the Internet Archive copy of the historical author-hosted Uppsala DARTS page. See `README.md` in this directory for the source chain.

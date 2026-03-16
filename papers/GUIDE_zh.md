@@ -52,7 +52,7 @@
 - `UDBM/src/mingraph_write.c`
 
 说明：
-这个目录目前只有 metadata 和来源说明，还没有拿到 primary-source PDF。
+这个目录现在已经包含可读 PDF，来源于历史作者页面的归档副本。
 
 ### `bblp04`
 

@@ -52,7 +52,7 @@ Repository anchors:
 - `UDBM/src/mingraph_write.c`
 
 Note:
-this directory currently has metadata and a source note, but no primary-source PDF.
+this directory now includes a readable PDF recovered from the archived historical author-hosted copy.
 
 ### `bblp04`
 

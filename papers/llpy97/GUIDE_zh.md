@@ -42,4 +42,4 @@
 
 ## 可获取性说明
 
-这个目录目前只有 bibliographic metadata。我这次没有找到公开可访问的 primary-source PDF。已经检查过的入口写在本目录的 `README.md` 里。
+这个目录现在已经包含可读 PDF。该 PDF 来自 Uppsala DARTS 作者页面历史公开版本的 Internet Archive 归档。具体来源链写在本目录的 `README.md` 里。
