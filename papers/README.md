@@ -252,6 +252,8 @@ When refining one paper into a publishable Markdown reading version, use the fol
 
 The goal is not to keep a rough machine extraction. The goal is a `content.md` that a human can read directly on GitHub with clean structure, correct formulas, correct figure and table placement, and captions that line up with the surrounding discussion.
 
+More importantly, "refinement" here means fidelity, not loose summarization or free rewriting. The final `content.md` must be checked against the original PDF page by page and must stay strictly consistent with it. A paper is not considered refined unless every page that is being covered has been individually verified against the source PDF. If even one page has not been checked carefully, the work is not complete.
+
 Only Step 1 is an extraction step. From Step 2 through Step 5, the workflow must be driven purely by the LLM's own text understanding and page-level visual reading ability. Do not use additional rough cleanup scripts, batch heuristics, or secondary tool-based post-processing in those later steps.
 
 ### Step 1: Export the two working views
@@ -288,6 +290,8 @@ Notes:
 
 From this step onward, refinement must be performed directly by the LLM while reading both the text draft and the rendered page images. Do not hand the draft to another rough processing tool for cleanup.
 
+This page-by-page check is mandatory. "Looks right overall" is not sufficient. Each page must be reconciled against the PDF until the Markdown for that covered page is strictly faithful to the source.
+
 If a paper is long, refine it in batches when necessary. Do not assume that a long paper should always be refined in one full pass. For example, it is acceptable to process a paper section by section, chapter by chapter, or page-range by page-range, as long as each batch is refined carefully and consistently.
 
 For each page:
@@ -297,6 +301,7 @@ For each page:
 - convert malformed inline math and display math into proper LaTeX
 - remove extractor noise such as page separators, garbled ligatures, duplicated fragments, OCR artifacts, and broken symbols
 - ensure terminology, notation, and variable names are consistent with the source PDF
+- ensure that the refined Markdown for that page matches the source page in substance, structure, formulas, and figure/table references rather than merely paraphrasing it
 
 Do not accept "mostly readable" output. If a formula, symbol, or paragraph is ambiguous, resolve it by reading the page visually and rewriting it carefully.
 
@@ -316,6 +321,8 @@ The extraction script may produce incorrect screenshots or poor crops. When that
 ### Step 4: Produce a GitHub-readable final version through LLM editing
 
 The final `content.md` should read like a carefully edited technical note on GitHub, not like OCR output. This stage must still be pure LLM editorial work rather than bulk mechanical cleanup.
+
+GitHub readability does not relax fidelity requirements. The final text must remain strictly aligned with the source PDF page by page. Readability improvements are allowed only when they preserve exact content, ordering, notation, and figure/table correspondence.
 
 For very long papers, this finalization step may also be completed batch by batch. The important rule is editorial quality and consistency, not forcing a single all-at-once pass.
 
@@ -339,5 +346,6 @@ Required principle:
 - use the LLM's own text reasoning and visual reasoning to perform all later refinement
 - do not use broad automatic cleanup passes as a substitute for page-aware editorial correction
 - prefer careful manual correction over rough automation
+- treat page-by-page source fidelity as a hard acceptance criterion rather than a best-effort goal
 
 If there is a conflict between what an extractor emitted and what the page visually shows, trust the page and fix the Markdown accordingly.
