@@ -244,7 +244,7 @@ The goal is not to keep a rough machine extraction. The goal is a `content.md` t
 
 More importantly, "refinement" here means fidelity, not loose summarization or free rewriting. The final `content.md` must be checked against the original PDF page by page and must stay strictly consistent with it. A paper is not considered refined unless every page that is being covered has been individually verified against the source PDF. If even one page has not been checked carefully, the work is not complete.
 
-Only Step 1 is an extraction step. From Step 2 through Step 5, the workflow must be driven purely by the LLM's own text understanding and page-level visual reading ability. Do not use additional rough cleanup scripts, batch heuristics, or secondary tool-based post-processing in those later steps.
+Only Step 1 is an extraction step. From Step 2 through Step 6, the workflow must be driven purely by the LLM's own text understanding and page-level visual reading ability. Do not use additional rough cleanup scripts, batch heuristics, or secondary tool-based post-processing in those later steps.
 
 ### Step 1: Export the two working views
 
@@ -299,6 +299,8 @@ Do not accept "mostly readable" output. If a formula, symbol, or paragraph is am
 
 All figures and tables referenced in `content.md` must be checked against the PDF visually, and this check must also be driven by the LLM's direct reading of the rendered pages rather than by automatic heuristics.
 
+This validation step is mandatory, but validation alone is still not enough. If this step finds that a figure or table asset is wrong, incomplete, too loose, split incorrectly, merged incorrectly, or missing entirely, you must continue into the separate mandatory correction/remake step below and actually fix it. A paper is not "refined" merely because those issues were noticed.
+
 Figures are a high-priority acceptance item. A paper is not "refined" if the prose was cleaned up but the screenshots are still poorly cropped, incomplete, missing captions, or inserted at the wrong textual location.
 
 Completeness is part of figure validation. It is not enough to polish the screenshots that are already present in `content.md`. You must also re-read the page images and verify that the covered portion of the paper does not contain missing figures or tables that should have been included but were omitted earlier. If the prose discusses Fig. *n* or Table *n* but no corresponding asset is present, that is a refinement failure and must be fixed.
@@ -329,9 +331,34 @@ Practical screenshot workflow:
 - remove superseded assets that are no longer referenced
 - finish with a consistency check that every image referenced in `content.md` exists in `content_assets/`, that `content_assets/` does not retain stale unused screenshots, and that the figure numbering now present in `content.md` no longer has obvious gaps caused by omitted assets
 
-The extraction script may produce incorrect screenshots or poor crops. When that happens, do not keep the bad asset. Re-screenshot or re-crop the page content manually, replace the asset in `content_assets/`, and update `content.md` to reference the corrected file.
+### Step 4: Correct and remake figure/table assets as a separate mandatory stage
 
-### Step 4: Produce a GitHub-readable final version through LLM editing
+This is a separate required step, not an optional cleanup pass after validation. If Step 3 revealed any figure/table problems, Step 4 must actively fix them before the paper can be considered refined.
+
+In particular, treat the following as mandatory repair cases:
+
+- the extracted screenshot is simply the wrong target
+- the crop cuts away semantically relevant content on any edge
+- the crop is too loose and drags in unrelated prose, neighboring figures, or page furniture
+- the original PDF caption should have been preserved in the image but was omitted
+- one original figure was broken into fragments that no longer preserve the intended whole
+- multiple separately discussed figures were incorrectly left fused into one screenshot
+- a discussed figure or table is missing entirely
+- a table is present only as rough extracted text but still lacks the visual asset needed for PDF-faithful checking
+
+When such a problem exists, do not keep the bad asset in place. Re-screenshot, re-crop, or fully remake the figure/table asset manually; save the corrected result into `content_assets/`; replace the old asset reference in `content.md`; and delete superseded files that are no longer used.
+
+If a figure or table must be remade, verify the replacement at full size again after writing it out. Do not assume that the second crop is correct without another visual check.
+
+If the corrected asset changes figure granularity or ordering, update `content.md` accordingly. For example:
+
+- if a fragmented multi-image insertion should really be one original figure, replace it with one coherent asset
+- if one mixed screenshot should really be two separately discussed figures, split it into two assets and move the captions and insertion points to match the source discussion
+- if a table needs both a visual asset and a readable Markdown transcription, keep both, but make sure the asset itself is also present and visually checked
+
+A paper does not pass refinement if the figures/tables were only audited. The assets themselves must be brought into a correct, publication-quality state.
+
+### Step 5: Produce a GitHub-readable final version through LLM editing
 
 The final `content.md` should read like a carefully edited technical note on GitHub, not like OCR output. This stage must still be pure LLM editorial work rather than bulk mechanical cleanup.
 
@@ -349,7 +376,7 @@ That means:
 
 When the PDF is incomplete, low-quality, or only a preview, say so explicitly near the top of `content.md` and only transcribe what can be justified from the available pages.
 
-### Step 5: Treat LLM editorial judgment as mandatory
+### Step 6: Treat LLM editorial judgment as mandatory
 
 This workflow is editorial, not purely mechanical.
 
