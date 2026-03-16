@@ -92,6 +92,20 @@
 - 验证工具反复需要哪些 symbolic 操作
 - 为什么 normalization / bounded abstraction 重要
 
+当前已经精修出来的本地阅读版本，具体包含：
+
+- 从具体语法、操作语义一路讲到 reachability、timed / untimed language、bisimulation 等验证问题的完整主线
+- 从 regions 过渡到 zones 的核心内容，包括 region 划分示例、zone graph、infinite zone graph，以及为什么必须做 normalization
+- 章节里分别讨论了无 difference constraints 和有 difference constraints 两条 normalization 线
+- DBM 章节已经覆盖 graph interpretation、canonical closure、minimal form、property checking、transformations、normalization 与内存布局
+- `UPPAAL` 章节已经包含建模、product automaton 直觉、non-convex timing 示例、`(T)CTL` 查询示意和 reachability pipeline 架构图
+- 附录部分已经整理出核心 DBM 算法伪代码，包括 `close`、`relation`、`up`、`down`、`and`、`free`、`reset`、`copy`、`shift`、`norm_k`、`split` 以及相关 normalization 过程
+
+这些补充内容为什么对实现特别有用：
+
+- 如果你在判断哪些能力应该进入 thin wrapper、哪些只是 native UDBM 的内部机制，最直接能拿来对照的往往就是附录算法和 DBM 操作章节
+- 如果你想弄清 `up`、`down`、`freeClock`、`updateValue`、`contains` 以及各类 extrapolation 操作为什么会自然地出现在公开接口里，这篇基本已经把那套操作词汇完整铺开了
+
 ### `dhlp06`
 
 作用：
@@ -103,6 +117,20 @@
 - 非凸结果
 - 用 DBM 的并来表示结果
 - subtraction 后的规约与简化
+
+当前已经精修出来的本地阅读版本，具体包含：
+
+- 开头那个 priorities 示例，已经很具体地展示了低优先级边为什么会导出非凸可达集，以及朴素编码为什么会把边拆开
+- 预备知识部分已经把 clock constraints、DBM、zone operations 以及 basic subtraction 的并集构造重新铺了一遍
+- timed automata with priorities 的 symbolic semantics 也已经整理出来，包括 `block` / `Block` 的定义，以及 `UPPAAL` 里使用的 transition priority 规则
+- subtraction 章节已经覆盖 minimal constraints 改进、disjoint subtraction，以及两个简单但实际很重要的 early-exit simplification
+- 两个 heuristic 小节都已经在本地稿里：一个是动态重排 split 次序的 efficient heuristic，另一个是更贵的 facet-aware heuristic
+- 实验部分也已经补到本地阅读稿里，包括 Fischer priorities 例子，以及 timed games / jobshop 的性能测量，这些内容能直接说明 subtraction 质量为什么会影响实际性能，而不只是理论美观
+
+这些补充内容为什么对实现特别有用：
+
+- 它不只是为 `Federation.__sub__` 提供依据，也为 `reduce`、`expensiveReduce`、merge 风格 reduction 和面向 disjointness 的启发式提供了论文层面的解释
+- 当你需要说明“只暴露单个 DBM 结果的高层 API 在语义上是不完整的”时，它几乎就是最直接的一篇本地依据
 
 ### `bblp04`
 

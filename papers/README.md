@@ -92,6 +92,20 @@ Main UDBM support:
 - what symbolic operations a verification tool repeatedly needs
 - why normalization / bounded abstraction matters
 
+What the currently refined local reading version already contains:
+
+- a full walkthrough from concrete syntax and operational semantics into verification problems such as reachability, timed / untimed language questions, and bisimulation
+- the region-to-zone transition, including the region partition example, zone graphs, infinite zone graphs, and the motivation for normalization
+- both normalization tracks discussed in the chapter: without difference constraints and with difference constraints
+- the DBM chapter with graph interpretations, canonical closure, minimal forms, property checks, transformations, normalization, and in-memory layouts
+- the UPPAAL chapter with modeling, product-automaton intuition, non-convex timing examples, (T)CTL query illustrations, and the reachability pipeline architecture
+- the appendix pseudo-code for the core DBM algorithms, including `close`, `relation`, `up`, `down`, `and`, `free`, `reset`, `copy`, `shift`, `norm_k`, `split`, and related normalization procedures
+
+Why this extra detail matters in practice:
+
+- if you are deciding what belongs in the thin Python wrapper versus what remains implicit in native UDBM, the appendix algorithms and the DBM-operations chapter are often the most directly actionable part
+- if you are trying to understand why methods like `up`, `down`, `freeClock`, `updateValue`, `contains`, and extrapolation-like operations feel like the natural public surface, this chapter already lays out that operational vocabulary in one place
+
 ### `dhlp06`
 
 Role:
@@ -103,6 +117,20 @@ Main UDBM support:
 - non-convex results
 - unions of DBMs as the result domain
 - reduction after subtraction
+
+What the currently refined local reading version already contains:
+
+- the introductory priority example showing exactly how a low-priority transition produces a non-convex reachable set and why encoding it naively causes edge splitting
+- the preliminaries that restate clock constraints, DBMs, zone operations, and the basic subtraction construction as a union of constrained DBMs
+- a symbolic semantics for timed automata with priorities, including the `block` / `Block` formulation and the derived transition-priority order used in UPPAAL
+- the subtraction chapter covering the minimal-constraint improvement, disjoint subtraction, and the two simple early-exit simplifications
+- both heuristic sections: the efficient heuristic that reorders splits dynamically and the more expensive facet-aware heuristic
+- the experimental section with the Fischer-protocol priority example plus measurements for timed games and job-shop scheduling, which helps explain why subtraction quality matters for performance rather than only for elegance
+
+Why this extra detail matters in practice:
+
+- it gives paper-level grounding not just for `Federation.__sub__`, but also for reduction-related methods such as `reduce`, `expensiveReduce`, merge-style reductions, and disjointness-oriented heuristics
+- it is the clearest local source when you need to explain why a high-level API that exposes only single-DBM results would be semantically incomplete
 
 ### `bblp04`
 
