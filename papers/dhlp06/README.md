@@ -1,5 +1,7 @@
 # Reading Guide
 
+For the Chinese version of this guide, see [README_zh.md](./README_zh.md).
+
 ## Position in the stack
 
 This is the most direct theory paper for the part of UDBM that `ta_tools` does not really explain: subtraction on DBMs and the resulting need for federations.

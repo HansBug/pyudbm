@@ -1,5 +1,7 @@
 # Reading Guide
 
+For the Chinese version of this guide, see [README_zh.md](./README_zh.md).
+
 ## Position in the stack
 
 This thesis is one of the most directly useful long-form references for UDBM itself. It goes past the abstract timed-automata story and into DBM structures, operations, normalization, storage, and implementation tradeoffs.

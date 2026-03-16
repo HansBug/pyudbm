@@ -1,5 +1,7 @@
 # 导读
 
+英文版请见 [README.md](./README.md)。
+
 ## 在整套论文中的位置
 
 这篇是后续 timed automata 与 zone 文献之前的重要历史前驱。它还不是后来 `UPPAAL` 意义上的 DBM 论文，但它非常关键，因为它展示了验证工作如何从 untimed state graph 走向 dense-time symbolic timing constraints。

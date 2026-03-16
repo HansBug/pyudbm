@@ -1,5 +1,7 @@
 # 导读
 
+英文版请见 [README.md](./README.md)。
+
 ## 在整套论文中的位置
 
 这篇 thesis 是最贴近 UDBM 本体的长篇参考之一。它不只讲抽象的 timed automata 理论，而是深入到 DBM 的数据结构、操作、normalization、存储以及实现取舍。

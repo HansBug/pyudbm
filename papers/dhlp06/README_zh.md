@@ -1,5 +1,7 @@
 # 导读
 
+英文版请见 [README.md](./README.md)。
+
 ## 在整套论文中的位置
 
 这篇论文是对 `ta_tools` 没真正讲开的那部分最直接的理论补充：DBM subtraction，以及 subtraction 为什么会迫使我们引入 federation。

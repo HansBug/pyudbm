@@ -1,5 +1,7 @@
 # Reading Guide
 
+For the Chinese version of this guide, see [README_zh.md](./README_zh.md).
+
 ## Position in the stack
 
 This is one of the direct foundation papers behind early UPPAAL. It attacks the practical explosion problems of real-time model checking using symbolic constraints and compositional techniques.

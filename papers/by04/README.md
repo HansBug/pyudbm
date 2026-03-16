@@ -1,5 +1,7 @@
 # Reading Guide
 
+For the Chinese version of this guide, see [README_zh.md](./README_zh.md).
+
 ## Position in the stack
 
 This is one of the best single tutorial references in the whole set if you want semantics, symbolic algorithms, and DBM mechanics in one place.

@@ -1,5 +1,7 @@
 # 导读
 
+英文版请见 [README.md](./README.md)。
+
 ## 在整套论文中的位置
 
 如果你想理解 UDBM 为什么要暴露各种外推操作，以及为什么会有 `max-bounds`、`LU-bounds` 和 diagonal 变体，这篇论文就是最直接的理论来源。

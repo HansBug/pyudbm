@@ -1,5 +1,7 @@
 # 导读
 
+英文版请见 [README.md](./README.md)。
+
 ## 在整套论文中的位置
 
 这个条目在本仓库里主要是一个历史引用节点。仓库中的后续教程型文献，尤其是 `by04` 和 `bengtsson02`，在 normalization 这条文献线上都引用了 `Rok93`。
@@ -41,3 +43,8 @@
 
 可获取性说明：
 在最初收集阶段没有找到合法公开全文；本次更新也额外尝试了一轮检索，仍未找到可公开下载的 PDF。
+
+已确认的来源：
+
+- Stanford SearchWorks 记录：https://searchworks.stanford.edu/view/2831295
+- 该记录指向 Stanford 校内可用的 ProQuest 访问，而不是公开 PDF。

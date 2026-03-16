@@ -1,5 +1,7 @@
 # Reading Guide
 
+For the Chinese version of this guide, see [README_zh.md](./README_zh.md).
+
 ## Position in the stack
 
 This is the short tool-overview paper for early UPPAAL. It is less about proving new DBM theorems and more about explaining the overall toolbox, its design criteria, and the workflow it supports.

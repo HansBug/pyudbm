@@ -1,5 +1,7 @@
 # Reading Guide
 
+For the Chinese version of this guide, see [README_zh.md](./README_zh.md).
+
 ## Position in the stack
 
 This is an early historical precursor to the later timed-automata and zone literature. It is not a DBM paper in the later UPPAAL sense, but it is very important for understanding the shift from untimed state-graph verification to dense-time symbolic timing constraints.

@@ -1,5 +1,7 @@
 # Reading Guide
 
+For the Chinese version of this guide, see [README_zh.md](./README_zh.md).
+
 ## Position in the stack
 
 This is a mature UPPAAL tutorial from the tool-user side. It is not the paper to read for DBM internals first, but it is very useful once you want to understand what kind of modeling style the symbolic engine is serving.

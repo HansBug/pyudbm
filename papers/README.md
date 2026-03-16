@@ -2,6 +2,34 @@
 
 This directory collects the theory, tool, and historical-background papers that are most useful for understanding why UDBM and this wrapper project look the way they do.
 
+For the Chinese version of this guide, see [README_zh.md](./README_zh.md).
+
+## Directory structure
+
+The default structure for one paper subdirectory under `papers/` is:
+
+- `bibtex.bib`
+  The canonical citation metadata for the paper.
+- `paper.pdf`
+  A locally vendored copy of the paper when a lawful public full text is available or otherwise intentionally included.
+- `README.md`
+  The English reading guide for the paper.
+- `README_zh.md`
+  The Chinese reading guide for the paper.
+
+Some directories may also contain a small number of additional reference files when there is a concrete need, but the four files above are the standard maintenance target.
+
+## Maintenance rules
+
+When adding or updating a paper entry in this directory:
+
+- create or keep one subdirectory named by a stable citation key such as `by04` or `dhlp06`
+- always include `bibtex.bib`
+- include `paper.pdf` only when there is a lawful source worth vendoring; if no public full text is available, say that explicitly in `README.md` and `README_zh.md` instead of adding a placeholder PDF
+- keep `README.md` and `README_zh.md` paired, cross-linked, and structurally aligned
+- keep the paper-level guides focused on repository-relevant reading advice: position in the stack, what to extract, where it maps into the codebase, and why it matters for UDBM
+- update this top-level `papers/README.md` and `papers/README_zh.md` whenever new papers are added or the reading paths change
+
 ## Recommended reading paths
 
 ### Fast path for work in this repository
@@ -202,10 +230,10 @@ That means:
 
 If you are reading for implementation work in this repository:
 
-- start with `ta_tools/GUIDE.md`
-- then read `by04/GUIDE.md`
-- then read `dhlp06/GUIDE.md`
-- then read `bblp04/GUIDE.md`
-- use `llpy97/GUIDE.md` and `bengtsson02/GUIDE.md` when touching `mingraph`, storage, or lower-level DBM machinery
-- use `lpy97/GUIDE.md` and `bdl04/GUIDE.md` when thinking about high-level API ergonomics
-- use `behrmann03/GUIDE.md` when you need the larger UPPAAL architecture
+- start with `ta_tools/README.md`
+- then read `by04/README.md`
+- then read `dhlp06/README.md`
+- then read `bblp04/README.md`
+- use `llpy97/README.md` and `bengtsson02/README.md` when touching `mingraph`, storage, or lower-level DBM machinery
+- use `lpy97/README.md` and `bdl04/README.md` when thinking about high-level API ergonomics
+- use `behrmann03/README.md` when you need the larger UPPAAL architecture

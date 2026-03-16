@@ -1,5 +1,7 @@
 # 导读
 
+英文版请见 [README.md](./README.md)。
+
 ## 在整套论文中的位置
 
 这篇是早期 `UPPAAL` 的直接基础论文之一。它讨论的是实时模型检测里的两个实际爆炸问题，并用 symbolic constraints 与 compositional 技术去解决。

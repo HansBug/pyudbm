@@ -1,5 +1,7 @@
 # Reading Guide
 
+For the Chinese version of this guide, see [README_zh.md](./README_zh.md).
+
 ## Position in the stack
 
 This is the paper to read when you want to understand why UDBM exposes extrapolation operations at all, and why they come in `max-bounds`, `LU-bounds`, and diagonal variants.

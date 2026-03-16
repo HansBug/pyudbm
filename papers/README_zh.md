@@ -2,6 +2,34 @@
 
 这个目录收集的是理解 UDBM 以及本仓库 wrapper 为什么会长成现在这个样子时，最值得读的一组理论论文、工具论文和历史背景文献。
 
+英文版请见 [README.md](./README.md)。
+
+## 目录结构
+
+`papers/` 下单篇论文子目录的默认结构是：
+
+- `bibtex.bib`
+  这篇论文的标准引用元数据。
+- `paper.pdf`
+  当存在合法且值得随仓库保存的公开全文时，放本地 PDF。
+- `README.md`
+  这篇论文的英文导读。
+- `README_zh.md`
+  这篇论文的中文导读。
+
+个别目录在确有必要时，可以额外放少量参考文件，但以上四项是默认应维护齐全的标准结构。
+
+## 维护规则
+
+当你在这个目录里新增或更新一篇论文时：
+
+- 为该论文建立或保留一个稳定的 citation key 目录名，例如 `by04`、`dhlp06`
+- 始终提供 `bibtex.bib`
+- 只有在存在合法来源且确实值得随仓库保存时，才加入 `paper.pdf`；如果没有公开全文，就在 `README.md` 和 `README_zh.md` 里明确写清楚，而不是放占位 PDF
+- 保持 `README.md` 和 `README_zh.md` 成对存在、互相链接、结构基本对齐
+- 论文级导读要聚焦仓库相关的阅读建议：它在整套材料中的位置、阅读重点、和代码库的对应关系、以及它为什么对 UDBM 重要
+- 新增论文或调整阅读路径后，要同步更新这个顶层 `papers/README.md` 与 `papers/README_zh.md`
+
 ## 建议阅读路径
 
 ### 面向本仓库实现工作的主线
@@ -202,10 +230,10 @@ normalization 文献线里的历史引用点。
 
 如果你是为了本仓库的实现工作来读这些论文，建议这样用：
 
-- 先看 `ta_tools/GUIDE_zh.md`
-- 然后看 `by04/GUIDE_zh.md`
-- 再看 `dhlp06/GUIDE_zh.md`
-- 之后看 `bblp04/GUIDE_zh.md`
-- 当你碰 `mingraph`、存储或更底层 DBM 机制时，去看 `llpy97/GUIDE_zh.md` 和 `bengtsson02/GUIDE_zh.md`
-- 当你在想高层 API 的易用性和建模风格时，看 `lpy97/GUIDE_zh.md` 与 `bdl04/GUIDE_zh.md`
-- 当你需要更大的 `UPPAAL` 架构语境时，看 `behrmann03/GUIDE_zh.md`
+- 先看 `ta_tools/README_zh.md`
+- 然后看 `by04/README_zh.md`
+- 再看 `dhlp06/README_zh.md`
+- 之后看 `bblp04/README_zh.md`
+- 当你碰 `mingraph`、存储或更底层 DBM 机制时，去看 `llpy97/README_zh.md` 和 `bengtsson02/README_zh.md`
+- 当你在想高层 API 的易用性和建模风格时，看 `lpy97/README_zh.md` 与 `bdl04/README_zh.md`
+- 当你需要更大的 `UPPAAL` 架构语境时，看 `behrmann03/README_zh.md`

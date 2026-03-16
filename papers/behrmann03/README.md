@@ -1,5 +1,7 @@
 # Reading Guide
 
+For the Chinese version of this guide, see [README_zh.md](./README_zh.md).
+
 ## Position in the stack
 
 This thesis is broader than the rest of the papers in this set. It is not the best first paper if you only want one narrow result, but it is extremely useful once you want the larger UPPAAL data-structure picture around federations, CDDs, storage, sharing, and priced zones.

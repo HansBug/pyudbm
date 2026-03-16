@@ -1,5 +1,7 @@
 # 导读
 
+英文版请见 [README.md](./README.md)。
+
 ## 在整套论文中的位置
 
 这篇 thesis 的范围比这组里的其他论文都更大。若你只想抓一个狭义结果，它不是最好的第一篇；但当你想把 UPPAAL 在 federation、CDD、存储、共享、priced zones 这些方向上的整体图景串起来时，它非常有价值。

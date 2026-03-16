@@ -1,5 +1,7 @@
 # 导读
 
+英文版请见 [README.md](./README.md)。
+
 ## 在整套论文中的位置
 
 这篇论文是从“DBM 是 canonical symbolic zone”走向“DBM 在工具里如何被紧凑存储和高效比较”的关键桥梁。
@@ -42,4 +44,11 @@
 
 ## 可获取性说明
 
-这个目录现在已经包含可读 PDF。该 PDF 来自 Uppsala DARTS 作者页面历史公开版本的 Internet Archive 归档。具体来源链写在本目录的 `README.md` 里。
+这个目录现在已经同时包含书目信息和可读 PDF。当前 publisher 侧 DOI 页面并不开放全文，但该论文历史上曾由 Uppsala DARTS 作者页面公开提供；当前 `paper.pdf` 是从该作者托管 PDF 的 Internet Archive 归档中恢复得到的。
+
+来源链：
+
+- DOI: https://doi.org/10.1109/REAL.1997.641265
+- DBLP: https://dblp.org/rec/conf/rtss/LarsenLPY97.html
+- University of Twente metadata page: https://research.utwente.nl/en/publications/efficient-verification-of-real-time-systems-compact-data-structur/
+- Archived author-hosted PDF: https://web.archive.org/web/20240919204934if_/https://www2.it.uu.se/research/group/darts/papers/texts/llpw-rtss97.pdf

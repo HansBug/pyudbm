@@ -1,5 +1,7 @@
 # Reading Guide
 
+For the Chinese version of this guide, see [README_zh.md](./README_zh.md).
+
 ## Position in the stack
 
 This paper is the entry point for the whole set. It gives the semantic and algorithmic baseline for timed automata, zones, and DBMs. Read it first if you want a clean model of what UDBM is supposed to manipulate.
