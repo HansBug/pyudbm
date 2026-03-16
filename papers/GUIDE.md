@@ -1,21 +1,46 @@
 # Papers Guide
 
-This directory collects the theory papers that are most useful for understanding why UDBM looks the way it does.
+This directory collects the theory, tool, and historical-background papers that are most useful for understanding why UDBM and this wrapper project look the way they do.
 
-## Recommended reading order
+## Recommended reading paths
+
+### Fast path for work in this repository
 
 1. `ta_tools`
-   This is the semantic and DBM baseline. Read it first.
-2. `llpy97`
-   This adds minimal-graph storage and compact DBM representation.
-3. `bblp04`
-   This explains extrapolation and abstraction for termination.
-4. `dhlp06`
-   This explains why subtraction leaves the convex world and why federations are needed.
-5. `behrmann03`
-   This is the broad synthesis: unions of zones, CDDs, sharing, and the larger UPPAAL architecture.
+   Start here for the semantic and symbolic-zone baseline.
+2. `by04`
+   Read this next for the best compact tutorial on regions, zones, DBMs, and algorithms.
+3. `dhlp06`
+   Read this when you need the theory reason for federations and subtraction.
+4. `bblp04`
+   Read this for extrapolation, abstraction, and termination.
+5. `llpy97`
+   Read this when touching `mingraph` or compact DBM storage.
+6. `bengtsson02`
+   Read this for the deeper implementation-oriented DBM and normalization story.
 
-If you want the shortest path to the part missing from `ta_tools`, jump from `ta_tools` directly to `dhlp06`, then come back to `llpy97` and `bblp04`.
+### Tool-context path
+
+- `lpw95`
+  Early symbolic / compositional verification foundation for UPPAAL.
+- `lpy97`
+  Short overview of the UPPAAL toolbox and its design criteria.
+- `bdl04`
+  Mature UPPAAL tutorial with modeling patterns and practical usage.
+- `behrmann03`
+  Broader system-level architecture around federations, CDDs, sharing, and priced extensions.
+
+### Historical-root path
+
+- `dill89`
+  Early dense-time symbolic verification precursor.
+- `ad90`
+  Original timed-automata source paper.
+- `rokicki93`
+  Historical citation point in the normalization line; full text is not locally available here.
+
+If you want the shortest path to the parts most directly visible in today's Python wrapper, use:
+`ta_tools -> by04 -> dhlp06 -> bblp04 -> llpy97`.
 
 ## What each paper contributes
 
@@ -30,45 +55,17 @@ Main UDBM support:
 - the canonical DBM view
 - core operations such as delay, past, reset, and guard intersection
 
-Repository anchors:
-
-- `pyudbm/binding/udbm.py`
-- `UDBM/include/dbm/dbm.h`
-- `test/binding/test_api.py`
-
-### `llpy97`
+### `by04`
 
 Role:
-minimal graph and compact storage of DBMs.
+best compact tutorial on timed automata semantics, regions, zones, DBMs, and verification algorithms.
 
 Main UDBM support:
 
-- why `mingraph` exists
-- why canonical DBMs are not always the best stored form
-
-Repository anchors:
-
-- `UDBM/include/dbm/mingraph.h`
-- `UDBM/src/mingraph_write.c`
-
-Note:
-this directory now includes a readable PDF recovered from the archived historical author-hosted copy.
-
-### `bblp04`
-
-Role:
-lower/upper-bound abstractions for zone-based verification.
-
-Main UDBM support:
-
-- why extrapolation is sound
-- why extrapolation can force termination
-- why multiple extrapolation schemes exist
-
-Repository anchors:
-
-- `UDBM/include/dbm/dbm.h`
-- `pyudbm/binding/udbm.py`
+- why zones replace regions in practice
+- how canonical DBMs encode zones
+- what symbolic operations a verification tool repeatedly needs
+- why normalization / bounded abstraction matters
 
 ### `dhlp06`
 
@@ -82,12 +79,68 @@ Main UDBM support:
 - unions of DBMs as the result domain
 - reduction after subtraction
 
-Repository anchors:
+### `bblp04`
 
-- `UDBM/include/dbm/fed.h`
-- `UDBM/src/fed.cpp`
-- `pyudbm/binding/udbm.py`
-- `srcpy2/udbm.py`
+Role:
+lower/upper-bound abstractions for zone-based verification.
+
+Main UDBM support:
+
+- why extrapolation is sound
+- why extrapolation can force termination
+- why multiple extrapolation schemes exist
+
+### `llpy97`
+
+Role:
+minimal graph and compact storage of DBMs.
+
+Main UDBM support:
+
+- why `mingraph` exists
+- why canonical DBMs are not always the best stored form
+
+### `bengtsson02`
+
+Role:
+deep implementation-oriented thesis on clocks, DBMs, states, normalization, and storage in timed verification.
+
+Main UDBM support:
+
+- the full DBM operation set behind symbolic exploration
+- normalization with difference constraints
+- storage, compression, and hashing motivations
+
+### `lpw95`
+
+Role:
+early UPPAAL foundation paper on symbolic and compositional model checking.
+
+Main UDBM support:
+
+- why solving clock-constraint systems is central
+- why symbolic state exploration beats explicit region handling in practice
+- why UDBM sits below, not inside, the whole model-checking stack
+
+### `lpy97`
+
+Role:
+short overview of the UPPAAL toolbox and its user-facing design.
+
+Main UDBM support:
+
+- why constraint solving and on-the-fly reachability dominate the engine design
+- why usability and readable symbolic modeling matter
+
+### `bdl04`
+
+Role:
+practical UPPAAL tutorial for modeling language, queries, and patterns.
+
+Main UDBM support:
+
+- the user-side timed-automata dialect served by the symbolic engine
+- why high-level clock-oriented APIs matter more than raw matrix helpers
 
 ### `behrmann03`
 
@@ -100,12 +153,37 @@ Main UDBM support:
 - why CDDs were explored as an alternative
 - why sharing, storage layout, and priced extensions matter
 
-Repository anchors:
+### `dill89`
 
-- `UDBM/include/dbm/fed.h`
-- `UDBM/include/dbm/pfed.h`
-- `UDBM/include/dbm/partition.h`
-- `UDBM/src/partition.cpp`
+Role:
+historical precursor from timing assumptions to symbolic dense-time verification.
+
+Main UDBM support:
+
+- the early move toward symbolic timing-state representations
+- the deeper motivation for representing sets of clock valuations symbolically
+
+### `ad90`
+
+Role:
+original timed-automata language-theoretic source.
+
+Main UDBM support:
+
+- the clock / guard / reset model underneath later symbolic techniques
+- the formal timed-automaton object that zone and DBM methods later encode
+
+### `rokicki93`
+
+Role:
+historical reference point in the normalization literature.
+
+Main UDBM support:
+
+- mainly provenance for the normalization line later cited by `by04` and `bengtsson02`
+
+Note:
+no lawful public full-text PDF was found for `rokicki93` during collection or during the follow-up retrieval attempt for this update.
 
 ## How this maps to the Python wrapper work in this repository
 
@@ -113,18 +191,21 @@ The restored Python API in `pyudbm/binding/udbm.py` is not just wrapping raw mat
 
 That means:
 
-- `ta_tools` explains the basic symbolic zone layer that the DSL manipulates
+- `ad90` and `dill89` explain the older semantic roots of clock-based symbolic reasoning
+- `ta_tools` and `by04` explain the single-zone / DBM layer that the DSL manipulates
 - `dhlp06` explains why `Federation` must remain a real union-based object instead of collapsing to one DBM
 - `bblp04` explains why methods like `extrapolateMaxBounds` belong in the public surface
-- `llpy97` explains the compressed-storage machinery already present in native UDBM
-- `behrmann03` explains the broader architectural direction behind these choices
+- `llpy97` and `bengtsson02` explain the compressed-storage and implementation machinery already present in native UDBM
+- `lpw95`, `lpy97`, `bdl04`, and `behrmann03` explain the larger UPPAAL tool context and user-facing expectations around that engine
 
 ## Practical advice
 
 If you are reading for implementation work in this repository:
 
 - start with `ta_tools/GUIDE.md`
+- then read `by04/GUIDE.md`
 - then read `dhlp06/GUIDE.md`
 - then read `bblp04/GUIDE.md`
-- use `llpy97/GUIDE.md` when touching `mingraph`
-- use `behrmann03/GUIDE.md` when you need the larger UPPAAL context
+- use `llpy97/GUIDE.md` and `bengtsson02/GUIDE.md` when touching `mingraph`, storage, or lower-level DBM machinery
+- use `lpy97/GUIDE.md` and `bdl04/GUIDE.md` when thinking about high-level API ergonomics
+- use `behrmann03/GUIDE.md` when you need the larger UPPAAL architecture
