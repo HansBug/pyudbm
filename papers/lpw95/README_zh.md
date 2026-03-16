@@ -43,6 +43,6 @@ UDBM 提供 constraint technology，更大的 model-checking algorithm 则在其
 
 ## 如何阅读
 
-建议放在 `ta_tools` 之后读，看看理论是如何进入早期 symbolic tool design 的。
+建议放在 `by04` 之后读，看看理论是如何进入早期 symbolic tool design 的。
 
 如果你只关心最贴近 UDBM 的部分，优先看 symbolic constraint solving 相关章节，quotienting 部分可以放后。

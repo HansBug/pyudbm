@@ -42,17 +42,15 @@
 
 ### 面向本仓库实现工作的主线
 
-1. `ta_tools`
-   先建立 timed automata、zones、DBMs 和基本 symbolic 算法的基线。
-2. `by04`
-   然后补 regions、zones、DBMs 和验证算法的最佳紧凑教程。
-3. `dhlp06`
+1. `by04`
+   先建立 timed automata、zones、DBMs 和基本 symbolic 算法的基线，同时它也是 regions、zones、DBMs 与验证算法的最佳紧凑教程。
+2. `dhlp06`
    接着补 federation 与 subtraction 的理论动机。
-4. `bblp04`
+3. `bblp04`
    再补外推、抽象与终止性的理论。
-5. `llpy97`
+4. `llpy97`
    动 `mingraph` 和紧凑存储时读它。
-6. `bengtsson02`
+5. `bengtsson02`
    需要更深入的 DBM / normalization / 存储实现视角时读它。
 
 ### 面向工具语境的补充路径
@@ -76,30 +74,21 @@
   normalization 文献线上的历史引用点；本地没有可读全文。
 
 如果你只想走最短路径，直接读：
-`ta_tools -> by04 -> dhlp06 -> bblp04 -> llpy97`。
+`by04 -> dhlp06 -> bblp04 -> llpy97`。
 
 ## 每篇论文分别起什么作用
-
-### `ta_tools`
-
-作用：
-提供 timed automata 语义、zones、DBMs 和基本 symbolic 算法的基础。
-
-它为 UDBM 提供的主要理论支撑：
-
-- 凸 zone 的语义
-- canonical DBM 的视角
-- `delay`、`past`、`reset`、`guard intersection` 这些基本操作
 
 ### `by04`
 
 作用：
-给出 timed automata 语义、regions、zones、DBMs 与验证算法的紧凑型总教程。
+现在应作为整套材料的主入口；它给出 timed automata 语义、regions、zones、DBMs 与验证算法的紧凑型总教程。
 
 它为 UDBM 提供的主要理论支撑：
 
+- 凸 zone 的语义
 - 为什么实践里要从 regions 转向 zones
-- canonical DBM 如何编码 zone
+- canonical DBM 的视角，以及它如何编码 zone
+- `delay`、`past`、`reset`、`guard intersection` 这些基本操作
 - 验证工具反复需要哪些 symbolic 操作
 - 为什么 normalization / bounded abstraction 重要
 
@@ -228,7 +217,7 @@ normalization 文献线里的历史引用点。
 因此：
 
 - `ad90` 和 `dill89` 解释了以 clock 为中心的 symbolic reasoning 的更早语义根源
-- `ta_tools` 和 `by04` 解释了这个 DSL 所操作的单个 zone / DBM 层
+- `by04` 解释了这个 DSL 所操作的单个 zone / DBM 层
 - `dhlp06` 说明为什么 `Federation` 必须保持为真正的 union 对象，而不能退化成单个 DBM
 - `bblp04` 说明为什么 `extrapolateMaxBounds` 这类方法应该存在于公开接口里
 - `llpy97` 和 `bengtsson02` 说明原生 UDBM 中已经存在的压缩存储与实现机制背后的理论
@@ -238,8 +227,7 @@ normalization 文献线里的历史引用点。
 
 如果你是为了本仓库的实现工作来读这些论文，建议这样用：
 
-- 先看 `ta_tools/README_zh.md`
-- 然后看 `by04/README_zh.md`
+- 先看 `by04/README_zh.md`
 - 再看 `dhlp06/README_zh.md`
 - 之后看 `bblp04/README_zh.md`
 - 当你碰 `mingraph`、存储或更底层 DBM 机制时，去看 `llpy97/README_zh.md` 和 `bengtsson02/README_zh.md`

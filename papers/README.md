@@ -42,17 +42,15 @@ When adding or updating a paper entry in this directory:
 
 ### Fast path for work in this repository
 
-1. `ta_tools`
-   Start here for the semantic and symbolic-zone baseline.
-2. `by04`
-   Read this next for the best compact tutorial on regions, zones, DBMs, and algorithms.
-3. `dhlp06`
+1. `by04`
+   Start here for the semantic and symbolic-zone baseline and for the best compact tutorial on regions, zones, DBMs, and algorithms.
+2. `dhlp06`
    Read this when you need the theory reason for federations and subtraction.
-4. `bblp04`
+3. `bblp04`
    Read this for extrapolation, abstraction, and termination.
-5. `llpy97`
+4. `llpy97`
    Read this when touching `mingraph` or compact DBM storage.
-6. `bengtsson02`
+5. `bengtsson02`
    Read this for the deeper implementation-oriented DBM and normalization story.
 
 ### Tool-context path
@@ -76,30 +74,21 @@ When adding or updating a paper entry in this directory:
   Historical citation point in the normalization line; full text is not locally available here.
 
 If you want the shortest path to the parts most directly visible in today's Python wrapper, use:
-`ta_tools -> by04 -> dhlp06 -> bblp04 -> llpy97`.
+`by04 -> dhlp06 -> bblp04 -> llpy97`.
 
 ## What each paper contributes
-
-### `ta_tools`
-
-Role:
-foundation for timed automata semantics, zones, DBMs, and basic symbolic algorithms.
-
-Main UDBM support:
-
-- the meaning of a convex zone
-- the canonical DBM view
-- core operations such as delay, past, reset, and guard intersection
 
 ### `by04`
 
 Role:
-best compact tutorial on timed automata semantics, regions, zones, DBMs, and verification algorithms.
+primary entry point and best compact tutorial on timed automata semantics, regions, zones, DBMs, and verification algorithms.
 
 Main UDBM support:
 
+- the meaning of a convex zone
 - why zones replace regions in practice
-- how canonical DBMs encode zones
+- the canonical DBM view and how canonical DBMs encode zones
+- core operations such as delay, past, reset, and guard intersection
 - what symbolic operations a verification tool repeatedly needs
 - why normalization / bounded abstraction matters
 
@@ -228,7 +217,7 @@ The restored Python API in `pyudbm/binding/udbm.py` is not just wrapping raw mat
 That means:
 
 - `ad90` and `dill89` explain the older semantic roots of clock-based symbolic reasoning
-- `ta_tools` and `by04` explain the single-zone / DBM layer that the DSL manipulates
+- `by04` explains the single-zone / DBM layer that the DSL manipulates
 - `dhlp06` explains why `Federation` must remain a real union-based object instead of collapsing to one DBM
 - `bblp04` explains why methods like `extrapolateMaxBounds` belong in the public surface
 - `llpy97` and `bengtsson02` explain the compressed-storage and implementation machinery already present in native UDBM
@@ -238,8 +227,7 @@ That means:
 
 If you are reading for implementation work in this repository:
 
-- start with `ta_tools/README.md`
-- then read `by04/README.md`
+- start with `by04/README.md`
 - then read `dhlp06/README.md`
 - then read `bblp04/README.md`
 - use `llpy97/README.md` and `bengtsson02/README.md` when touching `mingraph`, storage, or lower-level DBM machinery

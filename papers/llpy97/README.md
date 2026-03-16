@@ -6,7 +6,7 @@ For the Chinese version of this guide, see [README_zh.md](./README_zh.md).
 
 This paper is the main bridge from "a DBM is a canonical symbolic zone" to "a DBM can be stored compactly and compared efficiently in real tools".
 
-If `ta_tools` explains what a DBM means, this paper explains why UDBM has a separate minimal-graph layer.
+If `by04` explains what a DBM means, this paper explains why UDBM has a separate minimal-graph layer.
 
 ## What to extract while reading
 

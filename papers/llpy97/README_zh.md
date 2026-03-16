@@ -6,7 +6,7 @@
 
 这篇论文是从“DBM 是 canonical symbolic zone”走向“DBM 在工具里如何被紧凑存储和高效比较”的关键桥梁。
 
-如果说 `ta_tools` 解释了 DBM 的语义，这篇论文解释的就是为什么 UDBM 里会专门有一层 minimal graph。
+如果说 `by04` 解释了 DBM 的语义，这篇论文解释的就是为什么 UDBM 里会专门有一层 minimal graph。
 
 ## 阅读时要抓住什么
 

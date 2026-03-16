@@ -4,7 +4,7 @@ For the Chinese version of this guide, see [README_zh.md](./README_zh.md).
 
 ## Position in the stack
 
-This is the most direct theory paper for the part of UDBM that `ta_tools` does not really explain: subtraction on DBMs and the resulting need for federations.
+This is the most direct theory paper for the part of UDBM that `by04` does not really explain: subtraction on DBMs and the resulting need for federations.
 
 If your question is "why does UDBM have `fed_t` and `Federation.__sub__` at all?", start here.
 
@@ -53,4 +53,4 @@ It is the strongest single paper-level justification for:
 
 ## How to read it
 
-Read this after `ta_tools`. If your main interest is the historical Python API, compare the paper directly with the methods exposed on `Federation` in `pyudbm/binding/udbm.py`.
+Read this after `by04`. If your main interest is the historical Python API, compare the paper directly with the methods exposed on `Federation` in `pyudbm/binding/udbm.py`.

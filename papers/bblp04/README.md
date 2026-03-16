@@ -43,4 +43,4 @@ That matters because UDBM is not only a container of DBM operations; it is part 
 
 ## How to read it
 
-Read this paper after `ta_tools`. If your immediate concern is the Python API, read the abstraction definitions first, then compare them with the wrapper method `Federation.extrapolateMaxBounds(...)` and the native declarations in `dbm.h`.
+Read this paper after `by04`. If your immediate concern is the Python API, read the abstraction definitions first, then compare them with the wrapper method `Federation.extrapolateMaxBounds(...)` and the native declarations in `dbm.h`.

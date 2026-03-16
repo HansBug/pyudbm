@@ -6,7 +6,7 @@ For the Chinese version of this guide, see [README_zh.md](./README_zh.md).
 
 This is an early historical precursor to the later timed-automata and zone literature. It is not a DBM paper in the later UPPAAL sense, but it is very important for understanding the shift from untimed state-graph verification to dense-time symbolic timing constraints.
 
-It sits earlier in the story than `ta_tools`, `ad90`, and the later zone papers.
+It sits earlier in the story than `by04`, `ad90`, and the later zone papers.
 
 ## What to extract while reading
 
@@ -43,4 +43,4 @@ That makes it a useful historical antidote to viewing UDBM as "just a matrix lib
 
 Read it as history and motivation, not as the document that tells you what current UDBM APIs should look like.
 
-For implementation work, pair it with `ta_tools` or `by04` so that the older timer-region presentation gets translated into the later zone / DBM vocabulary.
+For implementation work, pair it with `by04` so that the older timer-region presentation gets translated into the later zone / DBM vocabulary.

@@ -43,6 +43,6 @@ UDBM provides the constraint technology; the larger model-checking algorithm liv
 
 ## How to read it
 
-Read it after `ta_tools` if you want to see how the theory turned into early symbolic-tool design.
+Read it after `by04` if you want to see how the theory turned into early symbolic-tool design.
 
 If you only care about the part that most directly touches UDBM, prioritize the symbolic constraint-solving sections over the quotienting sections.

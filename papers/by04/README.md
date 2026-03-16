@@ -4,9 +4,9 @@ For the Chinese version of this guide, see [README_zh.md](./README_zh.md).
 
 ## Position in the stack
 
-This is one of the best single tutorial references in the whole set if you want semantics, symbolic algorithms, and DBM mechanics in one place.
+This is the primary entry point for the whole set and one of the best single tutorial references if you want semantics, symbolic algorithms, and DBM mechanics in one place.
 
-If `ta_tools` gives the baseline and `bengtsson02` gives the long-form deep dive, this chapter is the compact bridge between them.
+It gives the semantic and symbolic-zone baseline for this repository while also serving as the compact bridge to the deeper implementation-oriented treatment in `bengtsson02`.
 
 ## What to extract while reading
 
@@ -43,6 +43,6 @@ That makes it a particularly good paper to read when you are deciding whether a 
 
 ## How to read it
 
-Read it right after `ta_tools` if you want a more implementation-aware view without jumping straight into a full thesis.
+Read it first if you want the clearest single paper on what UDBM is supposed to manipulate.
 
 If you only have time for one "practical theory" refresher before touching UDBM code, this is a strong candidate.

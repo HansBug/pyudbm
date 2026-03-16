@@ -6,7 +6,7 @@ For the Chinese version of this guide, see [README_zh.md](./README_zh.md).
 
 This is one of the original timed automata papers. It matters less as a direct DBM paper than as the source of the clock / guard / reset model that later zone- and DBM-based work builds on.
 
-If `ta_tools` answers "how do we do symbolic algorithms on zones?", this paper helps answer "what are clocks and timed automata supposed to mean in the first place?"
+If `by04` answers "how do we do symbolic algorithms on zones?", this paper helps answer "what are clocks and timed automata supposed to mean in the first place?"
 
 ## What to extract while reading
 
@@ -41,7 +41,7 @@ It is also a useful reminder that the later zone literature is a semantic optimi
 
 ## How to read it
 
-Read it before `ta_tools` if you want the historical origin first, or after `ta_tools` if you want to backfill the formal roots of the model.
+Read it before `by04` if you want the historical origin first, or after `by04` if you want to backfill the formal roots of the model.
 
 Availability note:
 the local `paper.pdf` in this directory is only the Springer preview PDF from the chapter landing page:

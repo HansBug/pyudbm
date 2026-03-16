@@ -44,4 +44,4 @@ It is especially helpful if you want to understand:
 
 ## How to read it
 
-Use this thesis as a selective deep reference, not as the first document in the chain. It works best after `ta_tools` and after you already know that `fed_t`, `mingraph`, and extrapolation exist.
+Use this thesis as a selective deep reference, not as the first document in the chain. It works best after `by04` and after you already know that `fed_t`, `mingraph`, and extrapolation exist.

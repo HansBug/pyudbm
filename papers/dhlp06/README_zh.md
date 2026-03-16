@@ -4,7 +4,7 @@
 
 ## 在整套论文中的位置
 
-这篇论文是对 `ta_tools` 没真正讲开的那部分最直接的理论补充：DBM subtraction，以及 subtraction 为什么会迫使我们引入 federation。
+这篇论文是对 `by04` 没真正讲开的那部分最直接的理论补充：DBM subtraction，以及 subtraction 为什么会迫使我们引入 federation。
 
 如果你的问题是“UDBM 为什么会有 `fed_t` 和 `Federation.__sub__`”，那就应该先读这篇。
 
@@ -53,4 +53,4 @@
 
 ## 如何阅读
 
-建议在 `ta_tools` 之后读。如果你最关心的是历史 Python API，那就把论文内容和 `pyudbm/binding/udbm.py` 里 `Federation` 暴露出来的方法直接对照着看。
+建议在 `by04` 之后读。如果你最关心的是历史 Python API，那就把论文内容和 `pyudbm/binding/udbm.py` 里 `Federation` 暴露出来的方法直接对照着看。

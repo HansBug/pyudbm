@@ -43,4 +43,4 @@
 
 ## 如何阅读
 
-建议放在 `ta_tools` 之后读。如果你当前最关心的是 Python API，那么可以先读 abstraction 的定义，再回头对照 `Federation.extrapolateMaxBounds(...)` 和 `dbm.h` 里的原生声明。
+建议放在 `by04` 之后读。如果你当前最关心的是 Python API，那么可以先读 abstraction 的定义，再回头对照 `Federation.extrapolateMaxBounds(...)` 和 `dbm.h` 里的原生声明。

@@ -6,7 +6,7 @@
 
 这篇是后续 timed automata 与 zone 文献之前的重要历史前驱。它还不是后来 `UPPAAL` 意义上的 DBM 论文，但它非常关键，因为它展示了验证工作如何从 untimed state graph 走向 dense-time symbolic timing constraints。
 
-它在这条发展线里，比 `ta_tools`、`ad90` 和后来的 zone 论文都更早。
+它在这条发展线里，比 `by04`、`ad90` 和后来的 zone 论文都更早。
 
 ## 阅读时要抓住什么
 
@@ -43,4 +43,4 @@
 
 建议把它当成历史动机材料来读，而不是当成当前 UDBM API 设计说明书。
 
-如果你是为了实现工作来读，最好和 `ta_tools` 或 `by04` 搭配，这样可以把它较早期的 timer-region 叙述翻译到后来的 zone / DBM 语言里。
+如果你是为了实现工作来读，最好和 `by04` 搭配，这样可以把它较早期的 timer-region 叙述翻译到后来的 zone / DBM 语言里。
