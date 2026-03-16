@@ -19,7 +19,7 @@ The default structure for one paper subdirectory under `papers/` is:
 - `content.md`
   A GitHub-readable, manually refined Markdown transcription of the paper content when full-text refinement has been done.
 - `content_assets/`
-  Image assets used by `content.md`, typically extracted or manually re-cropped figures and tables.
+  Image assets used by `content.md`, typically extracted or manually re-cropped figures and tables. These assets must follow the mandatory naming rules defined below.
 
 Some directories may also contain a small number of additional reference files when there is a concrete need, but the files above are the standard maintenance target.
 
@@ -37,6 +37,21 @@ When adding or updating a paper entry in this directory:
 - when refining a paper substantially, do not stop at cleaning the screenshots that already exist; also verify that materially relevant figures and tables from the covered pages have actually been included, and supplement any missing assets
 - keep `content_assets/` limited to assets actually referenced by `content.md`
 - update this top-level `papers/README.md` and `papers/README_zh.md` whenever new papers are added or the reading paths change
+
+### Mandatory asset naming rules
+
+These rules are mandatory for every screenshot-style asset under `content_assets/` that is referenced by `content.md`.
+
+- do not keep raw extractor filenames such as `paper.pdf-0031-00.png`
+- use `.png` for these assets
+- if the asset corresponds to a formally numbered figure in the paper, name it `figure-<n>.png`
+- if the asset corresponds to a formally numbered table in the paper, name it `table-<n>.png`
+- if the asset corresponds to a formally numbered listing in the paper, name it `listing-<n>.png`
+- the number `<n>` must match the numbering in the original paper exactly; do not renumber assets to fit local extraction order, page order, or the subset currently included in `content.md`
+- use `figure-<n>`, `table-<n>`, and `listing-<n>` only for real numbered items in the paper itself
+- if an asset is not a formal numbered figure, table, or listing, name it `other-<n>-<slug>.png`
+- in `other-<n>-<slug>.png`, `<n>` must be a unique paper-local sequence number, and `<slug>` must use only lowercase letters, digits, and hyphens
+- after renaming assets, update `content.md` so that all image references use the normalized filenames and none use extractor-style temporary names
 
 ## Recommended reading paths
 

@@ -26,7 +26,7 @@ A timed automaton is essentially a finite automaton, that is, a graph containing
 
 The first example in Fig. 1(a) is a timed automaton. The timing behavior of the automaton is controlled by two clocks, `x` and `y`. The clock `x` is used to control the self-loop in location `loop`. The single transition of the loop may occur when $x = 1$. Clock `y` controls the execution of the entire automaton. The automaton may leave `start` at any time point when $y$ is in the interval between 10 and 20; it can go from `loop` to `end` when $y$ is between 40 and 50; and so on.
 
-![](content_assets/paper.pdf-0002-03.png)
+![](content_assets/figure-1.png)
 
 *Figure 1. Timed automata and location invariants.*
 
@@ -150,7 +150,7 @@ The basis for a finite partitioning of the state-space of a timed automaton is t
 
 *Figure 2* in the original paper illustrates the regions for a system with two clocks.
 
-![](content_assets/paper.pdf-0007-00.png)
+![](content_assets/figure-2.png)
 
 *Figure 2. Regions for a system with two clocks.*
 
@@ -164,7 +164,7 @@ A more efficient representation of the state-space for timed automata is based o
 
 As an example, Fig. 3 in the original paper shows a timed automaton and the corresponding zone graph, or reachability graph. For this automaton the zone graph has only 8 states, whereas the region graph for the same example has over 50 states.
 
-![](content_assets/paper.pdf-0008-00.png)
+![](content_assets/figure-3.png)
 
 *Figure 3. A timed automaton and its zone graph.*
 
@@ -214,7 +214,7 @@ Soundness means that if the initial symbolic state $(l_0, \{u_0\})$ may lead to 
 
 Unfortunately, the relation $\rightsquigarrow$ is infinite, and thus the zone graph of a timed automaton may also be infinite, which is a problem if we need a terminating verification procedure. The solution is to transform, that is, normalize, zones that may contain arbitrarily large constants to representatives in a class of zones whose constants are bounded by fixed constants, for example the maximal clock constants appearing in the automaton. The intuition is that once the value of a clock is larger than the maximal constant in the automaton, its precise value no longer matters; only the fact that it is above the constant does.
 
-![](content_assets/paper.pdf-0010-00.png)
+![](content_assets/figure-4.png)
 
 *Figure 4. A timed automaton with an infinite zone-graph.*
 
@@ -245,7 +245,7 @@ $$
 
 As an example, the normalized zone graph of the automaton in Fig. 4 is shown in Fig. 5, where the clock ceiling is given by the maximal clock constants appearing in the automaton.
 
-![](content_assets/paper.pdf-0011-00.png)
+![](content_assets/figure-5.png)
 
 *Figure 5. Normalized zone graph for the automaton in Fig. 4.*
 
@@ -267,7 +267,7 @@ Unfortunately, this soundness result no longer holds for timed automata whose gu
 
 <!-- page: 12 -->
 
-![](content_assets/paper.pdf-0012-00.png)
+![](content_assets/figure-6.png)
 
 *Figure 6. A counter example.*
 
@@ -281,7 +281,7 @@ and there is no valuation satisfying both $x - z < 1$ and $z - y < 1$. However, 
 
 The zones in canonical form generated while exploring the counterexample are shown in Fig. 7. The implicit constraints that all clocks are non-negative are omitted.
 
-![](content_assets/paper.pdf-0012-01.png)
+![](content_assets/figure-7.png)
 
 *Figure 7. Zones for the counter example in Fig. 6.*
 
@@ -398,7 +398,7 @@ $$
 x - 0 < 20 \wedge y - 0 < 20 \wedge x - y \le -10 \wedge y - z \le 5.
 $$
 
-![](content_assets/paper.pdf-0017-00.png)
+![](content_assets/figure-8.png)
 
 *Figure 8. Graph interpretation of the example zone and its closed form.*
 
@@ -412,7 +412,7 @@ To discuss minimal constraint systems, the paper introduces the notion of a *zer
 
 For closed DBMs this gives a direct way to compute a minimal number of constraints needed to represent the zone. The paper's Fig. 9 illustrates a zero-cycle-free graph and its minimal form. The resulting reduction procedure is given in Algorithm 3.
 
-![](content_assets/paper.pdf-0018-00.png)
+![](content_assets/figure-9.png)
 
 *Figure 9. A zero cycle free graph and its minimal form.*
 
@@ -422,7 +422,7 @@ However, this algorithm does not work if there are zero cycles in the graph. The
 
 The paper's Fig. 10 presents such a graph with a zero cycle and the corresponding minimal form. To compute the edges in the super-graph we pick one representative for each partition and use the edge weights between representatives. The edges inside a zero-cycle partition are then reduced using Algorithm 3. This small graph can then be reduced further. Finally, the reduced super-graph is connected to the reduced partitions. The pseudo-code for this reduction procedure is shown in Algorithm 4.
 
-![](content_assets/paper.pdf-0019-00.png)
+![](content_assets/figure-10.png)
 
 *Figure 10. A graph with a zero-cycle and its minimal form.*
 
@@ -437,7 +437,7 @@ This subsection presents the basic operations on DBMs except for the zone-normal
 
 <!-- page: 20 -->
 
-![](content_assets/paper.pdf-0020-00.png)
+![](content_assets/figure-11.png)
 
 *Figure 11. DBM operations applied to the same zone, where for $\operatorname{norm}_k(D)$, $k(x)=2$ and $k(y)=1$.*
 
@@ -475,7 +475,7 @@ Intuitively, it is the set of clock valuations that can reach $D$ by delaying. A
 
 To compute the lower bound for a clock $x$, start by assuming that all other clocks have value 0. Then examine all difference constraints $y_i - x$ and compute a new lower bound for $x$ under this assumption. The new bound on $0 - x$ is the minimum bound on $y_i - x$ found in the DBM. Pseudo-code for `down` is given in Algorithm 7.
 
-![](content_assets/paper.pdf-0022-00.png)
+![](content_assets/figure-12.png)
 
 *Figure 12. Applying down to a zone.*
 
@@ -549,7 +549,7 @@ Unfortunately, that is still not sufficient. The core normalization does not han
 
 <!-- page: 26 -->
 
-![](content_assets/paper.pdf-0026-00.png)
+![](content_assets/other-1-zone-normalization-example.png)
 
 *Page 26 normalization example excerpt. Unsatisfied difference constraints before and after applying $k$-normalization to the split sub-zones.*
 
@@ -599,7 +599,7 @@ $$
 
 This introduces at least one comparison and one conditional branch, and cache performance is also worse than for the row-wise mapping.
 
-![](content_assets/paper.pdf-0028-00.png)
+![](content_assets/figure-13.png)
 
 *Figure 13. Different layouts of DBMs in memory.*
 
@@ -633,13 +633,13 @@ of a set of timed automata $A_1, \ldots, A_n$, called *processes*, combined into
 
 The paper's Fig. 14 shows an example system composed of two timed automata. The network models a time-dependent light switch on the left and its user on the right. The user can press the switch (`press!`) and the switch waits to be pressed (`press?`). The corresponding product automaton is shown in Fig. 15.
 
-![](content_assets/paper.pdf-0029-00.png)
+![](content_assets/figure-14.png)
 
 *Figure 14. Network of timed automata.*
 
 <!-- page: 30 -->
 
-![](content_assets/paper.pdf-0030-00.png)
+![](content_assets/figure-15.png)
 
 *Figure 15. Product automaton for the network in Fig. 14.*
 
@@ -700,7 +700,7 @@ $$
 
 which is a non-convex zone.
 
-![](content_assets/paper.pdf-0031-00.png)
+![](content_assets/figure-16.png)
 
 *Figure 16. An example of a network with non convex timing regions.*
 
@@ -735,7 +735,7 @@ Here $\varphi$ and $\psi$ are local properties that can be checked locally on a 
 
 <!-- page: 33 -->
 
-![](content_assets/paper.pdf-0033-00.png)
+![](content_assets/figure-17.png)
 
 *Figure 17. (T)CTL formulae.*
 
@@ -753,7 +753,7 @@ The other three property types are commonly classified as unbounded liveness pro
 
 ### 5.3 The UPPAAL Architecture
 
-![](content_assets/paper.pdf-0034-03.png)
+![](content_assets/figure-18.png)
 
 *Figure 18. Schematic view of the reachability pipeline in UPPAAL.*
 
