@@ -16,8 +16,12 @@ The default structure for one paper subdirectory under `papers/` is:
   The English reading guide for the paper.
 - `README_zh.md`
   The Chinese reading guide for the paper.
+- `content.md`
+  A GitHub-readable, manually refined Markdown transcription of the paper content when full-text refinement has been done.
+- `content_assets/`
+  Image assets used by `content.md`, typically extracted or manually re-cropped figures and tables.
 
-Some directories may also contain a small number of additional reference files when there is a concrete need, but the four files above are the standard maintenance target.
+Some directories may also contain a small number of additional reference files when there is a concrete need, but the files above are the standard maintenance target.
 
 ## Maintenance rules
 
@@ -28,6 +32,8 @@ When adding or updating a paper entry in this directory:
 - include `paper.pdf` only when there is a lawful source worth vendoring; if no public full text is available, say that explicitly in `README.md` and `README_zh.md` instead of adding a placeholder PDF
 - keep `README.md` and `README_zh.md` paired, cross-linked, and structurally aligned
 - keep the paper-level guides focused on repository-relevant reading advice: position in the stack, what to extract, where it maps into the codebase, and why it matters for UDBM
+- if you create `content.md`, treat it as a human-facing reading artifact rather than a raw extractor dump
+- keep `content_assets/` limited to assets actually referenced by `content.md`
 - update this top-level `papers/README.md` and `papers/README_zh.md` whenever new papers are added or the reading paths change
 
 ## Recommended reading paths
@@ -237,3 +243,101 @@ If you are reading for implementation work in this repository:
 - use `llpy97/README.md` and `bengtsson02/README.md` when touching `mingraph`, storage, or lower-level DBM machinery
 - use `lpy97/README.md` and `bdl04/README.md` when thinking about high-level API ergonomics
 - use `behrmann03/README.md` when you need the larger UPPAAL architecture
+
+## Content Refinement Workflow
+
+When refining one paper into a publishable Markdown reading version, use the following process.
+
+### Goal
+
+The goal is not to keep a rough machine extraction. The goal is a `content.md` that a human can read directly on GitHub with clean structure, correct formulas, correct figure and table placement, and captions that line up with the surrounding discussion.
+
+Only Step 1 is an extraction step. From Step 2 through Step 5, the workflow must be driven purely by the LLM's own text understanding and page-level visual reading ability. Do not use additional rough cleanup scripts, batch heuristics, or secondary tool-based post-processing in those later steps.
+
+### Step 1: Export the two working views
+
+Always export both:
+
+1. a Markdown text draft
+2. a page-image draft
+
+Use `tools.papers_to_content` directly on the PDF file. The tool is intentionally decoupled from the `papers/` directory structure, so pass explicit paths.
+
+Example:
+
+```bash
+python -m tools.papers_to_content \
+  -i papers/by04/paper.pdf \
+  -ot text \
+  -o papers/by04/content.md
+
+python -m tools.papers_to_content \
+  -i papers/by04/paper.pdf \
+  -ot image \
+  -o /tmp/by04-pages
+```
+
+Notes:
+
+- text mode writes one Markdown file and, by default, an asset directory beside it such as `content_assets/`
+- image mode renders one image per page for visual inspection
+- do not write page-image output directly into a paper subdirectory under `papers/`; page-image exports are often too large and should go to a temporary path such as `/tmp/...`
+- use explicit output paths every time; do not assume a batch mode or repository-coupled defaults
+
+### Step 2: Refine page by page using only LLM text and vision
+
+From this step onward, refinement must be performed directly by the LLM while reading both the text draft and the rendered page images. Do not hand the draft to another rough processing tool for cleanup.
+
+If a paper is long, refine it in batches when necessary. Do not assume that a long paper should always be refined in one full pass. For example, it is acceptable to process a paper section by section, chapter by chapter, or page-range by page-range, as long as each batch is refined carefully and consistently.
+
+For each page:
+
+- compare the extracted Markdown against the actual page layout and visual content
+- rewrite broken paragraph boundaries, headings, lists, tables, footnotes, and references
+- convert malformed inline math and display math into proper LaTeX
+- remove extractor noise such as page separators, garbled ligatures, duplicated fragments, OCR artifacts, and broken symbols
+- ensure terminology, notation, and variable names are consistent with the source PDF
+
+Do not accept "mostly readable" output. If a formula, symbol, or paragraph is ambiguous, resolve it by reading the page visually and rewriting it carefully.
+
+### Step 3: Validate figures and tables visually using LLM judgment
+
+All figures and tables referenced in `content.md` must be checked against the PDF visually, and this check must also be driven by the LLM's direct reading of the rendered pages rather than by automatic heuristics.
+
+In particular:
+
+- verify that the extracted screenshot matches the intended figure or table
+- verify that the crop is complete and does not cut away axes, labels, legends, or table borders
+- verify that the caption is present, correct, and placed near the referenced image
+- verify that the figure or table appears at a reasonable point relative to the surrounding text
+
+The extraction script may produce incorrect screenshots or poor crops. When that happens, do not keep the bad asset. Re-screenshot or re-crop the page content manually, replace the asset in `content_assets/`, and update `content.md` to reference the corrected file.
+
+### Step 4: Produce a GitHub-readable final version through LLM editing
+
+The final `content.md` should read like a carefully edited technical note on GitHub, not like OCR output. This stage must still be pure LLM editorial work rather than bulk mechanical cleanup.
+
+For very long papers, this finalization step may also be completed batch by batch. The important rule is editorial quality and consistency, not forcing a single all-at-once pass.
+
+That means:
+
+- use normal Markdown headings and paragraph spacing
+- use LaTeX for inline and display formulas when needed
+- keep figure and table captions readable and explicit
+- preserve the logical order of the paper
+- avoid raw page markers, extraction diagnostics, or internal tool noise
+
+When the PDF is incomplete, low-quality, or only a preview, say so explicitly near the top of `content.md` and only transcribe what can be justified from the available pages.
+
+### Step 5: Treat LLM editorial judgment as mandatory
+
+This workflow is editorial, not purely mechanical.
+
+Required principle:
+
+- use tooling only to obtain the initial text draft and page-image draft in Step 1
+- use the LLM's own text reasoning and visual reasoning to perform all later refinement
+- do not use broad automatic cleanup passes as a substitute for page-aware editorial correction
+- prefer careful manual correction over rough automation
+
+If there is a conflict between what an extractor emitted and what the page visually shows, trust the page and fix the Markdown accordingly.

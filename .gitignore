@@ -91,6 +91,7 @@ gen
 
 # Portable Network Graphics
 *.png
+!papers/**/content_assets/*.png
 
 # Animated Portable Network Graphics
 *.apng

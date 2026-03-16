@@ -201,6 +201,7 @@ Safe places to work:
 
 - `pyudbm/` for the in-progress Python API and binding-facing code.
 - `tools/` for repository maintenance utilities such as metadata sync scripts.
+- `papers/` for paper metadata, reading guides, and manually refined paper content.
 - `pyudbm/binding/*.cpp` for pybind11 bindings.
 - `pyudbm/binding/*.py` for Python-level wrappers.
 - `pyudbm/config/meta.py` for package metadata.
@@ -231,6 +232,28 @@ Treat these as generated or local-only artifacts:
 
 Do not commit generated binaries, coverage outputs, or environment-specific build products.
 
+## Papers Workflow
+
+The `papers/` tree is a curated documentation and reference area with its own maintenance rules.
+
+Before doing any work under `papers/`, you must first read:
+
+- `papers/README.md`
+
+Treat `papers/README.md` as the source of truth for:
+
+- the standard structure of each paper directory
+- top-level maintenance rules for paper entries
+- the expected relationship between `README.md` and `README_zh.md`
+- the content-refinement workflow for `content.md` and `content_assets/`
+
+Important rules for `papers/` work:
+
+- Do not start editing, generating, renaming, or refining files under `papers/` before reading `papers/README.md`.
+- If a task changes top-level `papers/README.md`, keep `papers/README_zh.md` synchronized unless the user explicitly asks for English-only changes.
+- If a task involves refining `content.md`, follow the workflow in `papers/README.md` exactly.
+- In particular, for paper-content refinement, only the initial export step should rely on `python -m tools.papers_to_content`; the later refinement steps must be driven by the LLM's own text understanding and page-level visual reading ability rather than rough automatic cleanup tools.
+
 ## Repository Structure
 
 The current repository layout can be understood like this:
@@ -247,6 +270,7 @@ The current repository layout can be understood like this:
 |- pyproject.toml                # Build-system metadata and cibuildwheel config
 |- setup.py                      # setuptools + CMake bridge
 |- requirements*.txt             # runtime / build / test / docs dependencies
+|- papers/                       # curated paper references, guides, and refined content
 |- pyudbm/                       # Current Python package
 |  |- __init__.py
 |  |- binding/
