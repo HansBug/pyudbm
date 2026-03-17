@@ -254,6 +254,49 @@ Important rules for `papers/` work:
 - If a task involves refining `content.md`, follow the workflow in `papers/README.md` exactly.
 - In particular, for paper-content refinement, only the initial export step should rely on `python -m tools.papers_to_content`; the later refinement steps must be driven by the LLM's own text understanding and page-level visual reading ability rather than rough automatic cleanup tools.
 
+## Tutorial Docs Workflow
+
+The `docs/source/foundations/` area has its own structure and citation rules.
+
+Directory and navigation rules:
+
+- Do not create or keep unnecessary `docs/source/foundations/index.rst` or `index_zh.rst` section-index pages.
+- Treat each actual foundations page as its own topic directory with `index.rst` / `index_zh.rst`.
+- `reading-guide/` is a normal topic page, not a parent page above the other topics.
+- Every completed foundations page should also be linked directly from:
+  - `docs/source/index_en.rst`
+  - `docs/source/index_zh.rst`
+
+Source selection rules:
+
+- For introductory or tool-facing UPPAAL pages, do not rely on papers alone.
+- Also consult official UPPAAL sources such as:
+  - `https://uppaal.org/`
+  - `https://uppaal.org/features/`
+  - `https://docs.uppaal.org/`
+- Use papers and local `papers/*/README*.md` guides as deeper or historical support, not as the only source for official tool behavior.
+
+Reference style rules:
+
+- When a tutorial page extends to specific papers or official docs, use paper-style references in the body, such as `[LPY97]_` or `[UPP_HELP]_`.
+- End the page with a `References` / `参考文献` section.
+- Each reference entry should include:
+  - author or source name
+  - title
+  - a public link
+  - when applicable, a link to the repository-local reading guide
+- For English pages, prefer linking to `README.md`.
+- For Chinese pages, prefer linking to `README_zh.md`.
+
+Writing expectations:
+
+- Introductory tutorial pages should not be text-only walls.
+- Prefer adding explanatory diagrams, especially:
+  - system or control-loop sketches
+  - workflow diagrams
+  - symbolic-vs-concrete intuition diagrams
+- If a page is conceptually central, it should usually contain more than one figure.
+
 ## Repository Structure
 
 The current repository layout can be understood like this:
@@ -857,9 +900,11 @@ Follow the dominant repository convention from recent history.
 - Merge commits should keep the generated style used in history, such as `Merge branch 'main' into dev/...` or
   `Merge pull request #52 from HansBug/dev/fixed`.
 
-## Python Docstring Style Guide
+## reST Documentation and Docstring Style Guide
 
-Use **reStructuredText (reST)** format exclusively for public Python docstrings, following PEP 257 and Sphinx conventions.
+Use **reStructuredText (reST)** conventions for both public Python docstrings and repository `.rst` documentation
+pages. For docstrings, follow PEP 257 and Sphinx conventions. For `.rst` pages, apply the same inline markup
+discipline and prefer source-only edits rather than touching generated outputs.
 
 ### Core Requirements
 
@@ -951,6 +996,14 @@ def some_function(value: int, strict: bool = False) -> int:
 :raises ValueError: If the input is invalid.
 ```
 
+### Documentation Editing
+
+When working on documentation trees:
+
+- edit source `.rst` and `.md` files only
+- do not edit generated HTML, copied index files, or other generated artifacts directly
+- if a documentation workflow generates derived files, regenerate them from source instead of patching the outputs
+
 ### Cross-References and Inline Markup
 
 Prefer reST roles:
@@ -968,15 +1021,16 @@ Inline code should always use double backticks:
 - Correct: ``dbm_bound2raw(5, Strictness.STRICT)``
 - Incorrect: `dbm_bound2raw(5, Strictness.STRICT)`
 
-### Inline Markup Boundary Rules
+### reST Inline Markup Boundary Rules
 
-If prose mixes English and Chinese, or generally contains tightly adjacent inline markup, be careful with `**strong**` and ``literal`` boundaries.
+For `.rst` content, check both the left boundary of the opening marker and the right boundary of the closing marker
+for inline strong emphasis (`**text**`) and inline literals (``code``).
 
 Problematic patterns:
 
 - `prefix**text**`
 - `**text**suffix`
-- `前文**强调**后文`
+- `建模**层次状态机**。`
 - `前文``code``后文`
 - ``literal``（explanation）
 
@@ -992,6 +1046,41 @@ Practical rule:
 
 - Do not leave closing `**` or ```` directly attached to full-width Chinese punctuation such as `（`.
 - In tight prose, especially around Chinese text, `\ ` is the safest default separator.
+- If you do not want visible spaces in rendered Chinese text, prefer `\ ` on both sides as the default safe pattern.
+
+Do not trust full-width Chinese punctuation as a safe boundary. Real broken patterns include:
+
+- `**普通详细级别**（默认）`
+- `**1. pip 安装**（推荐）：`
+- `1. **本地事件**（``::``）：...`
+- `**场景 1：初始进入**（``HierarchyDemo -> Parent -> ChildA``）`
+- ``A.enter``（未定义）
+- `执行 ``A.enter``（未定义）`
+- `检查转换：``A -> B :: Go``（事件匹配！）`
+- `**整数：** ``123``、``0xFF``（十六进制）、``0b1010``（二进制）`
+- `- ``variable_display_mode`` ... ``'hide'``（默认：``'legend'``）`
+
+Safe forms for those cases:
+
+- `**普通详细级别**\ （默认）`
+- `**1. pip 安装**\ （推荐）：`
+- `1. **本地事件**\ （``::``）：...`
+- `**场景 1：初始进入**\ （``HierarchyDemo -> Parent -> ChildA``）`
+- ``A.enter``\ （未定义）
+- `执行 ``A.enter``\ （未定义）`
+- `检查转换：``A -> B :: Go``\ （事件匹配！）`
+- `**整数：** ``123``、``0xFF``\ （十六进制）、``0b1010``\ （二进制）`
+- `- ``variable_display_mode`` ... ``'hide'``\ （默认：``'legend'``）`
+
+Do not use single backticks for inline code in reST. Use double backticks only: ``code``.
+
+### reST Verification Workflow
+
+When fixing inline markup at scale in a Sphinx documentation tree:
+
+- rebuild rendered output instead of relying only on source scans
+- search the rendered HTML for `problematic` spans or leftover raw `**...**` text
+- use rendered output as the final authority for whether `**` / ```` issues are actually fixed
 
 ### Docstring Checklist
 
@@ -1003,7 +1092,7 @@ Practical rule:
 - Examples for public APIs where helpful
 - Cross-references use reST roles
 - Inline code uses double backticks
-- Inline markup boundaries are valid in multilingual prose
+- Inline markup boundaries are valid in multilingual prose for both docstrings and `.rst` pages
 
 ### Anti-Patterns
 
@@ -1014,6 +1103,7 @@ Do not:
 - omit `:type:` when writing `:param:`
 - omit `:rtype:` when writing `:return:`
 - use single backticks for inline code
+- assume full-width Chinese punctuation is a safe boundary for closing `**` or ````
 - write vague descriptions like “Does something”
 - forget to update docstrings when code changes
 

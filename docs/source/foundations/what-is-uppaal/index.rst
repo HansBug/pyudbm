@@ -1,110 +1,104 @@
-What Is UPPAAL Solving?
-=======================
+What Is UPPAAL?
+===============
 
-This page answers a basic question: what is UPPAAL for, and why does a
-repository centered on the UDBM layer need to care about the broader UPPAAL
-story at all?
+This page is a beginner-friendly introduction. It answers one simple question:
+**what problem is UPPAAL trying to solve?**
 
-The short answer is that UPPAAL is a tool chain for modeling and verifying
-real-time systems. It is not only a bag of low-level matrix operations. It is a
-workflow in which users build timed models, ask verification questions, and let
-a symbolic engine explore large sets of clock valuations on their behalf
-[LPY97]_ [BDL04]_ [BEH03]_.
+**UPPAAL is a tool environment for modeling, simulating, and verifying
+real-time systems.** The official web site describes it as an integrated
+environment for networks of timed automata with data types, and the official
+documentation describes it as a tool for non-deterministic processes with
+finite control structure and real-valued clocks [UPP_HOME]_ [UPP_HELP]_.
 
-The Running Example
--------------------
+For this repository, the big picture matters because `pyudbm` wraps one layer
+of that world. UDBM is not the whole UPPAAL story, but it supports one of the
+most important symbolic representations inside it.
 
-Consider a small request/response controller.
+A Tiny Example
+--------------
 
-* A client sends a request.
-* A server must acknowledge it within 5 time units.
-* If no acknowledgement arrives before the deadline, the controller enters an
-  error mode.
+Consider a small request/response controller:
 
-This is a good first example because it already contains the main ingredients
-that make UPPAAL relevant:
+* a client sends a request
+* a server should acknowledge it within 5 time units
+* if no acknowledgement arrives in time, the system enters ``Error``
 
-* there is concurrency or interaction between components
-* correctness depends on time, not only on ordering
-* one bad run is enough to count as a bug
+Even if you know nothing else yet, the core question already makes sense:
+**can the system reach the error state?**
 
-Even before any formal syntax appears, most readers already understand the key
-question: can the system reach the error mode?
+Here is a simple control sketch:
 
-Why Testing Alone Is Not Always Enough
---------------------------------------
+.. graphviz::
 
-For ordinary software, testing and simulation are often the first tools we use.
-They are still useful here, but they do not answer the same question as model
-checking [LPY97]_ [BDL04]_.
+   digraph control_loop {
+       rankdir=LR;
+       node [shape=box, style="rounded,filled", fillcolor="#f8f8f8", color="#666666"];
+       client [label="Client\nsend request"];
+       controller [label="Controller\nstart clock x"];
+       server [label="Server\nsend ack"];
+       error [label="Error if x > 5\nbefore ack", fillcolor="#fff1f1", color="#aa5555"];
+       client -> controller [label="request"];
+       controller -> server [label="dispatch"];
+       server -> controller [label="ack"];
+       controller -> error [label="deadline miss"];
+   }
 
-Testing or simulation asks:
-    "What happened in the runs that I tried?"
+This is not yet a timed-automaton diagram. It is only here to make the story
+concrete before we introduce more terminology.
+
+Why Not Just Test It?
+---------------------
+
+Testing and simulation are still useful, but they answer a different question.
+
+Testing asks:
+    "What happened in the executions that I tried?"
 
 Model checking asks:
-    "Is there *any* execution, among all executions allowed by the model, that
-    violates the property?"
+    "Is there *any* execution allowed by the model that violates the property?"
 
-That distinction matters for timed systems. A request/response controller may
-look fine in several simulated runs, yet still fail when one component delays
-slightly longer than expected. Time creates infinitely many possible delays, so
-the interesting bug may hide between two hand-picked test scenarios.
+That difference matters a lot for timed systems. A few sample runs may look
+fine, but the bad run might be the one where a component waits just a little
+too long. Time introduces many possible delays, so bugs can hide between the
+runs you happened to test [LPY97]_ [BDL04]_.
 
-Why Time Makes Verification Harder
-----------------------------------
+Why Time Makes Things Harder
+----------------------------
 
-In a timed model, the current control location is not enough. We also need the
-current values of the clocks.
+In an untimed model, a state is often described mainly by control flow:
+"where am I in the program or automaton?"
 
-One standard way to write this is:
+In a timed model, that is not enough. **We also need the current clock
+values.**
+
+One standard notation is:
 
 .. math::
 
    v : C \to \mathbb{R}_{\ge 0}
 
-Here is the intended reading:
+Read it like this:
 
-* :math:`C` is the set of clocks in the model.
-* :math:`\mathbb{R}_{\ge 0}` is the set of non-negative real numbers.
-* :math:`v` is a valuation, meaning that it assigns one current real-valued time
-  reading to each clock.
+* :math:`C` is the set of clocks
+* :math:`v` gives each clock a non-negative real value
 
-The formula is short, but the idea behind it is important. It says that a clock
-state is not just one integer counter or one Boolean flag. It is a whole map
-from clock names to non-negative real values.
+That means two runs can be in the same control location and still be very
+different, because one may have waited `1.2` time units and the other `4.9`.
 
-For the running example, if the request has just been sent, a clock
-:math:`x` might start at :math:`0`. After 2.3 time units, the valuation might
-map :math:`x` to :math:`2.3`. After 5.1 time units, the same run may already
-have crossed the deadline and become erroneous.
+For the running example, that difference is exactly what separates "still safe"
+from "deadline already missed".
 
-That is why a concrete timed state is often written as:
+What Does UPPAAL Actually Do?
+-----------------------------
 
-.. math::
+At a high level, UPPAAL supports a simple workflow:
 
-   (\ell, v)
+* build a timed model
+* simulate possible behavior
+* ask a verification query
+* get either an answer or a diagnostic trace
 
-This pair should be read carefully:
-
-* :math:`\ell` is the current control location, such as ``WaitingForAck`` or
-  ``Error``.
-* :math:`v` is the current clock valuation defined above.
-
-The intuition is that control flow alone is not enough. Two executions can both
-be in ``WaitingForAck`` while still being very different, because one may have
-waited :math:`1.2` time units and the other :math:`4.9`.
-
-What UPPAAL Does At A High Level
---------------------------------
-
-UPPAAL lets a user move through four high-level steps [LPY97]_ [BDL04]_ [BEH03]_:
-
-* describe the system as a network of timed automata
-* state a property or query about reachable behavior
-* explore the model symbolically rather than one valuation at a time
-* return either an answer or a diagnostic counterexample / witness
-
-The whole workflow can be summarized like this:
+That workflow looks like this:
 
 .. graphviz::
 
@@ -112,97 +106,74 @@ The whole workflow can be summarized like this:
        rankdir=LR;
        node [shape=box, style="rounded,filled", fillcolor="#f6f6f6", color="#666666"];
        model [label="Timed model"];
-       query [label="Verification query"];
+       sim [label="Simulation"];
+       query [label="Query"];
        engine [label="Symbolic exploration"];
        result [label="Answer or trace"];
-       model -> query -> engine -> result;
+       model -> sim;
+       model -> query;
+       sim -> query;
+       query -> engine -> result;
    }
 
-The key point is that the engine does not usually inspect one exact valuation at
-a time. Later pages explain zones, DBMs, and federations in detail, but the
-high-level reason already appears here: there are simply too many real-valued
-clock states to enumerate naively [BEH03]_.
+The official documentation also makes clear that UPPAAL is not only a language,
+but a tool environment with a GUI, a verifier, simulators, and command-line
+use [UPP_HELP]_ [UPP_FEATURES]_.
 
-What Questions Users Usually Ask
---------------------------------
+Why Symbolic States Appear
+--------------------------
 
-In practice, a user rarely asks "what is the exact set of all valuations?" as a
-first question. They ask goal-shaped questions:
+If clocks are real-valued, then there are too many exact timed states to list
+one by one. That is why UPPAAL does not work only with single concrete states.
+It groups many valuations together into **symbolic states**.
 
-* Can the bad location be reached?
-* Is a deadline always respected?
-* Can the model deadlock?
-* Is a recovery state still reachable after some fault?
+You do not need the details yet. For now, the key idea is simple:
 
-For the running example, natural first questions are:
+* exact timed states are too numerous
+* symbolic states group many of them together
+* this is what makes verification practical
 
-* Can ``Error`` be reached at all?
-* Is every request eventually acknowledged before the 5-unit deadline?
-* Can the model get stuck waiting forever?
+Later pages explain zones, DBMs, and federations. This page only needs to give
+you the reason they appear at all.
 
-The exact UPPAAL query language comes later. For now, the main intuition is
-enough: the tool is built to answer behavioral questions about timed models, not
-to expose raw DBM internals as the end-user experience.
-
-Why Symbolic Exploration Enters The Story
------------------------------------------
-
-If time were discrete and tiny, we could try to enumerate states directly. But
-timed systems are naturally described with real-valued clocks, so exact
-enumeration quickly becomes hopeless.
-
-That is why UPPAAL moves from concrete states :math:`(\ell, v)` to symbolic
-states that stand for many valuations at once. A common later notation is
-:math:`(\ell, Z)`, where :math:`Z` is a zone.
-
-This page does not develop zones in detail yet, but the intuition matters now:
-
-* a symbolic state represents many concrete timed states together
-* symbolic exploration is what makes verification practical
-* DBMs and federations are engineering devices in service of that larger goal
-
-This is exactly where UDBM fits into the picture. UDBM does not tell the whole
-UPPAAL story by itself, but it implements one of the most important symbolic
-representation layers inside that story.
-
-How This Connects To ``pyudbm``
+Why This Matters For ``pyudbm``
 -------------------------------
 
-This repository currently wraps the UDBM layer rather than shipping a complete
-UPPAAL model checker. Even so, the broader context still matters.
+`pyudbm` does not currently implement the whole UPPAAL tool chain. It wraps the
+UDBM layer. But that layer makes much more sense when you remember the larger
+workflow.
 
-The reason is simple: historical UDBM Python bindings did not feel natural
-because users wanted "a matrix library." They felt natural because they matched
-the way UPPAAL users think:
+**Users do not think in raw matrices first.** They think in clocks,
+constraints, reachable behavior, and error conditions. That is why this
+repository restores high-level objects such as ``Context``, ``Clock``, and
+``Federation``.
 
-* named clocks
-* readable timing constraints
-* symbolic sets of valuations
-* operations that feel like model-level manipulations rather than raw table edits
+What To Remember
+----------------
 
-That is why :mod:`pyudbm` restores ``Context``, ``Clock``, and ``Federation`` as
-first-class objects. Those objects are most understandable when placed back into
-the full user workflow that UPPAAL popularized.
+If you only keep five ideas from this page, keep these:
 
-What To Remember From This Page
--------------------------------
+* **UPPAAL is for timed systems.**
+* **It helps users model, simulate, and verify them.**
+* **Testing a few runs is not the same as checking all possible runs.**
+* **Real-valued clocks make timed verification harder.**
+* **Symbolic states are the practical answer to that difficulty.**
 
-If you only keep four things in mind, keep these:
+Next
+----
 
-* UPPAAL is about verifying timed behavior, not only simulating it.
-* Time makes state spaces much harder, because clocks range over real values.
-* Symbolic exploration is the practical response to that difficulty.
-* UDBM and this repository matter because they support one core layer of that
-  symbolic workflow.
-
-Further Reading
----------------
-
-Then continue with the next concept page once it is added: ``timed-automata/``.
+The next concept page should be ``timed-automata/``. That is where the actual
+model shape gets introduced.
 
 References
 ----------
 
+.. [UPP_HOME] UPPAAL official web site.
+   Public link: `<https://uppaal.org/>`_.
+.. [UPP_HELP] UPPAAL official documentation overview.
+   Public link: `<https://docs.uppaal.org/>`_.
+.. [UPP_FEATURES] UPPAAL official features page.
+   Public link: `<https://uppaal.org/features/>`_.
 .. [LPY97] Kim Guldstrand Larsen, Paul Pettersson, and Wang Yi.
    ``UPPAAL in a Nutshell.``
    Public link: `<https://dblp.org/rec/journals/sttt/LarsenPY97>`_.
@@ -211,7 +182,3 @@ References
    ``A Tutorial on UPPAAL.``
    Public link: `<https://dblp.org/rec/conf/sfm/BehrmannDL04>`_.
    Repository guide: `<https://github.com/HansBug/pyudbm/blob/main/papers/bdl04/README.md>`_.
-.. [BEH03] Gerd Behrmann.
-   ``Data Structures and Algorithms for the Analysis of Real Time Systems``.
-   Public link: `<https://uppaal.org/texts/behrmann_phd.pdf>`_.
-   Repository guide: `<https://github.com/HansBug/pyudbm/blob/main/papers/behrmann03/paper-intro/README.md>`_.

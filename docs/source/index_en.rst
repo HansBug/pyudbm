@@ -69,7 +69,6 @@ Concept Foundations
     :caption: Foundations
     :hidden:
 
-    foundations/index
     foundations/reading-guide/index
     foundations/what-is-uppaal/index
 

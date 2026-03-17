@@ -143,15 +143,22 @@
 
 更合适的结构是：
 
-- `foundations/index.rst` / `index_zh.rst` 只承担本地区域索引职责
 - `foundations/reading-guide/index.rst` / `index_zh.rst` 承担入口导读职责
 - `foundations/what-is-uppaal/index.rst` / `index_zh.rst` 与 `reading-guide/` 平级
 
 后续其他主题也应继续遵守这个规则，而不是重新把“导读页”写成所有页面的正文上位页。
 
+这里进一步明确：
+
+- `foundations/index*.rst` 这类“本地区域索引页”没有必要保留
+- 顶层首页应直接列出 `reading-guide/` 与所有已完成主题页
+- `reading-guide/` 负责分流，但不是 `what-is-uppaal/` 等正文页的父页面
+
 ## 素材来源与主要依托
 
-这份教程规划主要建立在下面这些本地 paper guide 的基础上：
+这份教程规划主要建立在两类材料上。
+
+第一类是本地 paper guide：
 
 - `papers/ad90/README.md`
 - `papers/by04/README.md`
@@ -165,6 +172,14 @@
 - `papers/behrmann03/README.md`
 - `papers/behrmann03/paper-intro/README.md`
 
+第二类是官方 UPPAAL 材料，尤其适合用来写工具定位、工作流、GUI / simulator / verifier 行为这类页面：
+
+- `https://uppaal.org/`
+- `https://uppaal.org/features/`
+- `https://docs.uppaal.org/`
+- `https://docs.uppaal.org/gui-reference/...`
+- `https://docs.uppaal.org/language-reference/...`
+
 粗略地说：
 
 - `ad90` 和 `by04` 提供 timed automata 与 symbolic semantics 的基础主线
@@ -173,6 +188,11 @@
 - `llpy97` 与 `bengtsson02` 解释存储、压缩和引擎成本压力
 - `lpy97` 与 `bdl04` 提供工具视角与建模视角
 - `behrmann03` 把视角扩展到 CDD、系统架构和 priced symbolic structures
+
+实际写作时应注意：
+
+- 讲理论骨架时，paper guide 往往更系统
+- 讲“官方工具到底怎么描述自己、有哪些组成部分、GUI / simulator / verifier 怎么配合”时，官方网站和官方文档优先级更高
 
 ## 总体策略：操作教程 + 概念基础页 + 进阶专题
 
@@ -519,8 +539,10 @@
 
 ```text
 docs/source/foundations/
-|- index.rst
-|- index_zh.rst
+|- reading-guide/
+|  |- index.rst
+|  |- index_zh.rst
+|  `- ... resources ...
 |- what-is-uppaal/
 |  |- index.rst
 |  |- index_zh.rst
@@ -550,8 +572,8 @@ docs/source/foundations/
 
 这里有几个约束需要明确写死：
 
-- `foundations/` 根目录保留总入口页 `index.rst` 和 `index_zh.rst`
 - 每个主题子目录都只放 `index.rst`、`index_zh.rst` 和资源文件
+- `reading-guide/` 也是普通主题子目录，和其他主题平级
 - 主题子目录里不要再继续拆出别的 `*.rst` 页面
 - 附图、示意图、演示代码、数据文件都作为该主题目录下的资源文件管理
 - 如果某个主题很大，也优先通过同一对 `index` 页面内部组织小节，而不是继续横向增殖 rst 文件
@@ -568,9 +590,14 @@ docs/source/foundations/
 ### 图的建议
 
 - 每篇至少应该有一张真正承担解释任务的主图
+- 对入口导论页和体系性页面，最好不止一张图
 - zone、DBM、federation、extrapolation 这类主题非常适合几何图
 - 性质、搜索、引擎结构这类主题更适合流程图或状态空间图
 - DBM / federation / CDD / priced structure 的差异最好通过对比图来讲
+- `what-is-uppaal` 这类页面尤其应该补：
+  - 一个简化控制系统 / 组件交互示意图
+  - 一个工具工作流图
+  - 一个 concrete vs symbolic 的直观对比图
 
 ### 公式的建议
 
@@ -647,9 +674,10 @@ docs/source/foundations/
 
 ## 入口导航建议
 
-真正重要的不只是目录存在，还要在入口页明确告诉用户“如果你现在卡在什么概念上，应该先读哪里”。
+真正重要的不只是目录存在，还要在入口导读页里明确告诉用户“如果你现在卡在什么概念上，应该先读哪里”。
 
-因此 `docs/source/foundations/index.rst` 与 `docs/source/foundations/index_zh.rst` 不应该只是一个普通 toctree，而应该承担“阅读分流页”的作用。
+因此 `docs/source/foundations/reading-guide/index.rst` 与
+`docs/source/foundations/reading-guide/index_zh.rst` 不应该只是一个普通 toctree，而应该承担“阅读分流页”的作用。
 
 比较合适的入口结构是：
 
@@ -685,11 +713,67 @@ docs/source/foundations/
 
 也就是说：
 
-- 根入口页成对：`index.rst` / `index_zh.rst`
-- 每个主题页也成对：`<topic>/index.rst` / `<topic>/index_zh.rst`
+- 每个主题页都成对：`<topic>/index.rst` / `<topic>/index_zh.rst`
 - 资源文件可共享，但正文页面始终保持中英分离
 
 这一点不建议为了省事而退化成“一个英文页 + 一份中文补丁”或者“中英混写”。
+
+## 中文术语写法建议
+
+中文教程页不应长期处于“大量中英文混用”的状态。
+
+更合适的规则是：
+
+- 中文页默认使用中文术语作为正文主述
+- 某个术语在一篇页面里第一次出现时，可以写成“中文术语(English term)”的形式
+- 如果还需要缩写，可以在第一次出现时一起给出，例如“状态机(state machine, 简称 STM)”
+- 在同一篇页面的后续内容里，优先继续使用中文术语，不要反复切回英文
+
+例如：
+
+- 时间自动机(timed automata)
+- 模型检查(model checking)
+- 形式化验证(formal verification)
+- 符号状态(symbolic states)
+- 区域(zone)
+- 差分约束矩阵(DBM)
+- 联邦(federation)
+
+不推荐的写法是：
+
+- 一段话里连续切换中英文术语
+- 前面已经给过括注，后面仍然频繁直接写英文
+- 中文句子主体已经成立，却仍然把大量英文名词直接塞进正文
+
+这条规则的目标不是排斥英文，而是：
+
+- 保持中文教程的阅读连续性
+- 让首次出现时的英文术语仍然可检索、可对照论文与官方文档
+- 让读者在后文更容易把握概念，而不是反复被术语切换打断
+
+## 内容加粗规则
+
+教程页可以使用加粗来帮助快速扫读，但必须克制使用。
+
+更适合加粗的内容包括：
+
+- 页面开头的定位句
+- 一个章节里最关键的结论句
+- 对比关系里的核心判断
+- 读者最应该记住的一句话
+- 分流页里“先读哪里”的关键指引
+
+不适合加粗的内容包括：
+
+- 大段整段文字
+- 普通铺垫句
+- 只是列事实但不承担结论作用的句子
+- 几乎每段都加粗，导致页面重新失去层次
+
+实践上可以把它理解为：
+
+- 加粗是为了让读者“扫一眼就抓住主干”
+- 不是为了把整页涂黑
 
 ## 论文引用与参考文献写法建议
 
@@ -698,12 +782,19 @@ docs/source/foundations/
 更合适的写法是采用接近论文参考文献的风格：
 
 - 在正文需要给出处的地方使用类似 `[LPY97]_`、`[BDL04]_`、`[BEH03]_` 这样的引用
+- 对官方 UPPAAL 文档或官方网站，也使用同样风格的引用，例如 `[UPP_HELP]_`、`[UPP_FEATURES]_`
 - 在页面末尾单独设一个 `References` / `参考文献` 小节
 - 每条文献项至少包含：
   - 作者
   - 题名
   - 一个公开可访问的文献链接
   - 一个指向本仓库对应语言 `README.md` 或 `README_zh.md` 的链接
+
+对于官方文档来源，文献项至少应包含：
+
+- 来源名或页面标题
+- 官方公开链接
+- 如果它只是用来支持工具行为或界面描述，可以没有仓库内 README 链接
 
 对双语页面来说，这里还要额外注意：
 
@@ -716,6 +807,7 @@ docs/source/foundations/
 - 让读者知道每个关键说法主要来自哪里
 - 让读者能顺着公开资料继续查文献
 - 让读者能顺着仓库内阅读指南继续深入
+- 让“官方工具行为”和“论文理论来源”在引用上都可追踪
 
 ## Phase 划分与 Checklist
 
@@ -734,8 +826,7 @@ docs/source/foundations/
 
 ### Phase 1：根入口与阅读分流页
 
-* [x] 起草 `docs/source/foundations/index.rst`
-* [x] 起草 `docs/source/foundations/index_zh.rst`
+* [x] 删除不必要的 `foundations/index*.rst`
 * [x] 把入口导读作为 `foundations/reading-guide/` 的同级主题页落地
 * [x] 在入口页写清楚 `tutorials/`、`foundations/`、`papers/` 三者的分工
 * [x] 在入口页加入“如果你不熟悉 X，应先读 Y”的阅读分流
@@ -762,6 +853,8 @@ docs/source/foundations/
 * [ ] 每个需要展示公式的主题页都使用 `.. math::` 编写块级公式
 * [ ] 每个主题页结尾都补上“这和 UPPAAL / Python 重建方向有什么关系”
 * [ ] 每个主题页都补上延伸阅读到 `papers/`
+* [ ] 每个主题页都在正文里使用统一的论文式引用
+* [ ] 每个主题页末尾都补上公开文献链接和仓库内对应语言阅读指南链接
 * [ ] 每个主题页都在正文里使用统一的论文式引用
 * [ ] 每个主题页末尾都补上公开文献链接和仓库内对应语言阅读指南链接
 

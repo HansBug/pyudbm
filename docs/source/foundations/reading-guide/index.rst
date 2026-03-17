@@ -1,10 +1,11 @@
 Reading Guide
 =============
 
-This section is the concept-oriented companion to :doc:`/tutorials/installation/index`.
-It is not mainly about installation steps or command sequences. Its job is to
-explain what the core UPPAAL concepts mean, why they are needed, and how they
-connect to the Python-facing direction of :mod:`pyudbm`.
+**This section is the concept-oriented companion to**
+:doc:`/tutorials/installation/index`. **It is not mainly about installation
+steps or command sequences.** Its job is to explain what the core UPPAAL
+concepts mean, why they are needed, and how they connect to the Python-facing
+direction of :mod:`pyudbm`.
 
 How To Use This Section
 -----------------------
@@ -22,14 +23,14 @@ If you only want to install the package or run a quick smoke check, start with
 Reading Routes
 --------------
 
-This entry page is meant to be a reading router rather than a flat directory.
-Different readers should start in different places.
+**This entry page is meant to be a reading router rather than a flat
+directory.** Different readers should start in different places.
 
 If you are new to formal verification or model checking:
-    Start with :doc:`../what-is-uppaal/index`.
+    **Start with** :doc:`../what-is-uppaal/index`.
 
 If you already know what model checking is, but timed automata still feel unfamiliar:
-    Start with :doc:`../what-is-uppaal/index`, then continue to the planned
+    **Start with** :doc:`../what-is-uppaal/index`, then continue to the planned
     ``timed-automata/`` page when it lands.
 
 If you already know timed automata, but symbolic states and zones still feel abstract:
@@ -41,9 +42,9 @@ If you already know zones and DBMs, but do not yet see why non-convex symbolic s
     ``federations/`` and ``cdd/`` pages.
 
 If your main concern is the future Python-facing architecture of this repository:
-    Read :doc:`../what-is-uppaal/index` first, because it explains the user-facing
-    verification workflow that the restored ``Context`` / ``Clock`` /
-    ``Federation`` model is trying to serve.
+    **Read** :doc:`../what-is-uppaal/index` **first**, because it explains the
+    user-facing verification workflow that the restored ``Context`` /
+    ``Clock`` / ``Federation`` model is trying to serve.
 
 Current Coverage
 ----------------
@@ -72,11 +73,11 @@ The current concept roadmap is:
 How This Relates To Other Doc Areas
 -----------------------------------
 
-The three documentation areas serve different jobs:
+**The three documentation areas serve different jobs:**
 
-* :doc:`/tutorials/installation/index` answers "How do I install or build it?"
-* ``foundations/`` answers "What do these concepts mean?"
-* ``papers/`` in the repository answers "Which papers and reading guides are these explanations based on?"
+* :doc:`/tutorials/installation/index` **answers** "How do I install or build it?"
+* ``foundations/`` **answers** "What do these concepts mean?"
+* ``papers/`` in the repository **answers** "Which papers and reading guides are these explanations based on?"
 
 For this repository in particular, that separation matters. ``pyudbm`` is not
 trying to be a complete UPPAAL clone today, but it is trying to rebuild a thin,

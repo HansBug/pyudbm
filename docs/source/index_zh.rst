@@ -66,7 +66,6 @@
     :caption: Foundations
     :hidden:
 
-    foundations/index_zh
     foundations/reading-guide/index_zh
     foundations/what-is-uppaal/index_zh
 
