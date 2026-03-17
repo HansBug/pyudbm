@@ -58,6 +58,21 @@
 
 * :doc:`tutorials/installation/index_zh`
 
+概念基础
+--------
+
+.. toctree::
+    :maxdepth: 2
+    :caption: Foundations
+    :hidden:
+
+    foundations/index_zh
+    foundations/reading-guide/index_zh
+    foundations/what-is-uppaal/index_zh
+
+* :doc:`foundations/reading-guide/index_zh`
+* :doc:`foundations/what-is-uppaal/index_zh`
+
 API 参考
 --------
 

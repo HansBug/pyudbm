@@ -61,6 +61,21 @@ Tutorials
 
 * :doc:`tutorials/installation/index`
 
+Concept Foundations
+-------------------
+
+.. toctree::
+    :maxdepth: 2
+    :caption: Foundations
+    :hidden:
+
+    foundations/index
+    foundations/reading-guide/index
+    foundations/what-is-uppaal/index
+
+* :doc:`foundations/reading-guide/index`
+* :doc:`foundations/what-is-uppaal/index`
+
 API Reference
 -------------
 
