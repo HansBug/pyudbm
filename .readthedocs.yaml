@@ -24,6 +24,10 @@ build:
       - make bin clean build
       - make -C docs contents
 
+formats:
+  - pdf
+#  - epub
+
 sphinx:
   configuration: docs/source/conf.py
   fail_on_warning: false
