@@ -21,6 +21,18 @@ thesis 中给出的发表历程是：
 - 短版本发表于 `HSCC'01`，收录于 `LNCS 2034`
 - 完整版本作为 `BRICS Report Series RS-01-3`
 
+## 当前精修版本地阅读稿具体包含什么
+
+本地的 [content.md](./content.md) 现在已经把整条 priced 理论线保住了，而不是只剩一个“可判定”结论。它明确保留了：
+
+- linearly priced timed automata 的完整形式化模型，包括 price rate 和 cost accumulation
+- priced clock regions 的发展过程，而不是只保留最后的定义名称
+- symbolic semantics 与 branch-and-bound 风格的 minimum-cost 算法
+- 论文中的例子和可视化状态空间材料
+- Appendix A，因为它把 symbolic state-space 的构造讲得比正文更具体
+
+因此，这篇现在已经是一份可直接引用的 priced 问题定义与理论型 symbolic object 参考，而不只是给后续 priced-zone 工作垫一个 citation。
+
 ## 阅读时要抓住什么
 
 建议重点关注：
@@ -33,6 +45,13 @@ thesis 中给出的发表历程是：
 对本仓库来说，核心问题是：
 
 "在引入 priced zones 之前，cost-optimal timed reachability 的理论型符号基础到底是什么？"
+
+## 它和 `behrmann03` 其他子论文是什么关系
+
+这篇是 priced 簇的理论起点。
+
+- 如果你想看落到 UPPAAL / DBM 风格实现上的桥梁，下一篇读 [paper-e/README_zh.md](../paper-e/README_zh.md)。
+- 如果你想看更一般的 priced-zone symbolic object，继续读 [paper-f/README_zh.md](../paper-f/README_zh.md)。
 
 ## 在本仓库中的对应位置
 
@@ -52,6 +71,6 @@ thesis 中给出的发表历程是：
 
 ## 如何阅读
 
-如果你想在读 [paper-f/README.md](../paper-f/README.md) 之前先把 priced-zone 工作的理论动机补齐，就先读这篇。
+如果你想在读 [paper-f/README_zh.md](../paper-f/README_zh.md) 之前先把 priced-zone 工作的理论动机补齐，就先读这篇。
 
-如果你更想先看通向实际 UPPAAL / DBM 机械的桥梁，就继续看 [paper-e/README.md](../paper-e/README.md)。
+如果你更想先看通向实际 UPPAAL / DBM 机械的桥梁，就继续看 [paper-e/README_zh.md](../paper-e/README_zh.md)。

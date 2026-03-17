@@ -95,7 +95,7 @@ Use this path when the goal is to understand the native UDBM implementation itse
 - `bdl04`
   Mature UPPAAL tutorial with modeling patterns and practical usage.
 - `behrmann03`
-  Broader system-level architecture around federations, CDDs, sharing, and priced extensions.
+  Broader system-level architecture around federations, CDDs, sharing, and priced extensions; in practice, start with `behrmann03/paper-intro/` and then branch into `paper-c/` or `paper-d/` to `paper-f/`.
 
 ### Historical-root path
 
@@ -296,6 +296,26 @@ Main UDBM support:
 - why CDDs were explored as an alternative
 - why sharing, storage layout, and priced extensions matter
 
+What the local thesis package now contains:
+
+- the canonical full thesis PDF at `papers/behrmann03/paper.pdf`
+- a thesis-level reading guide at `papers/behrmann03/README.md`
+- seven refined child reading units under `paper-intro/` and `paper-a/` through `paper-f/`, each with its own `content.md`
+
+How the split package breaks down in practice:
+
+- `paper-intro` is the thesis-level map: motivation, formalism overview, data-structure overview, "Making of Uppaal", and the author-written summary of papers A-F
+- `paper-a` and `paper-b` are the finite-state `visualSTATE` / ROBDD background cluster
+- `paper-c` is the CDD and non-convex symbolic-set cluster
+- `paper-d`, `paper-e`, and `paper-f` are the priced timed-automata cluster, moving from priced regions to DBM-guided search to priced zones
+
+Why this extra structure matters in practice:
+
+- it gives a concrete reading route when the question is architectural rather than tied to one narrow algorithm
+- it lets you jump straight to `paper-c` for non-convex symbolic-state representation questions
+- it lets you jump straight to `paper-e` and `paper-f` for priced federation and priced-zone questions
+- it makes `behrmann03` usable as a working map of the broader UPPAAL data-structure story instead of "one large thesis to maybe skim later"
+
 ### `dill89`
 
 Role:
@@ -363,14 +383,16 @@ If you are reading for implementation work in this repository:
 - then read `bblp04/README.md`
 - use `llpy97/README.md` and `bengtsson02/README.md` when touching `mingraph`, storage, or lower-level DBM machinery
 - use `lpy97/README.md` and `bdl04/README.md` when thinking about high-level API ergonomics
-- use `behrmann03/README.md` when you need the larger UPPAAL architecture
+- use `behrmann03/paper-intro/README.md` when you need the larger UPPAAL architecture
+- continue to `behrmann03/paper-c/README.md` for non-convex symbolic-state questions
+- continue to `behrmann03/paper-e/README.md` and `behrmann03/paper-f/README.md` for priced search and priced-zone questions
 
 If you are reading the native UDBM source tree directly, use this file-to-paper mapping:
 
 - `UDBM/include/dbm/dbm.h`, `UDBM/src/dbm.c`, and `UDBM/docs/manual.tex`: read `by04` first, then `bengtsson02`; add `bblp04` for extrapolation-specific code paths.
 - `UDBM/include/dbm/fed.h`, `UDBM/src/fed.cpp`, and `UDBM/src/fed_dbm.cpp`: read `dhlp06` first; add `behrmann03` for the broader union-of-zones and system-architecture context.
 - `UDBM/include/dbm/mingraph.h` and `UDBM/src/mingraph*.c`: read `llpy97` first, then `bengtsson02`.
-- `UDBM/include/dbm/priced.h`, `UDBM/include/dbm/pfed.h`, `UDBM/src/priced.cpp`, `UDBM/src/pfed.cpp`, and `UDBM/src/infimum.cpp`: read `behrmann03` first for priced-zone context, then follow its priced timed automata material in detail.
+- `UDBM/include/dbm/priced.h`, `UDBM/include/dbm/pfed.h`, `UDBM/src/priced.cpp`, `UDBM/src/pfed.cpp`, and `UDBM/src/infimum.cpp`: start with `behrmann03/paper-intro`, then read `behrmann03/paper-d`, `behrmann03/paper-e`, and `behrmann03/paper-f` in that order for the priced timed-automata line.
 
 ## Content Refinement Workflow
 

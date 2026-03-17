@@ -21,6 +21,18 @@ Publication history noted in the thesis:
 - short version presented at `CAV'01` and published in `LNCS 2102`
 - the thesis embeds the extended paper-level version used here
 
+## What the refined local reading version now contains
+
+The local [content.md](./content.md) now preserves the paper's full priced-zone toolkit. In particular, it keeps:
+
+- the symbolic optimal-reachability setup rather than only the final algorithmic claim
+- the priced timed-automata preliminaries needed to interpret the later constructions
+- the priced-zone definition itself as the main symbolic object
+- the facets section and the operations on priced zones, which are the real technical heart of the paper
+- the implementation and experiment section together with the aircraft-landing results table
+
+This matters because the paper is not just "priced zones exist"; it is the thesis-local explanation of how ordinary zone machinery gets lifted into a cost-annotated symbolic calculus.
+
 ## What to extract while reading
 
 Focus on:
@@ -33,6 +45,13 @@ Focus on:
 For this repository, the key reading question is:
 
 "How does the classic zone toolchain get extended so that optimal-cost reachability becomes a natural symbolic operation rather than a separate theory layer?"
+
+## How it connects to the rest of `behrmann03`
+
+This is the culmination of the priced cluster.
+
+- Read [paper-d/README.md](../paper-d/README.md) first if you want the region-theoretic precursor.
+- Read [paper-e/README.md](../paper-e/README.md) first if you want the practical uniformly priced bridge from ordinary DBM machinery.
 
 ## Where it maps into this repository
 

@@ -21,6 +21,19 @@ thesis 中给出的发表历程是：
 - 作为 `BRICS Report Series RS-98-47` 发表，时间为 1998 年 12 月
 - 在 `CAV'99` 上报告，并收录于 `LNCS 1633`
 
+## 当前精修版本地阅读稿具体包含什么
+
+本地的 [content.md](./content.md) 现在已经把整篇 CDD 论证链保留下来，而不是只剩下定义名词。它明确保留了：
+
+- 动机部分，也就是为什么“维护一个 DBM 列表”对非凸 symbolic state 并不总是令人满意
+- 阅读后文所需的 timed automata 预备内容
+- CDD 本身的定义，以及它与 zones / constraints / diagram structure 的关系
+- 关键操作部分，包括 zone 到 CDD 的转换，以及若干关键 boolean / inclusion 风格操作
+- 实现和实验部分，以及性能表
+- 最后一节“towards a fully symbolic timed reachability analysis”
+
+因此，这篇是 thesis 里第一篇真正把“有限个 zone 的并作为一等符号对象”问题摆到台面上的论文。
+
 ## 阅读时要抓住什么
 
 建议重点关注：
@@ -34,6 +47,14 @@ thesis 中给出的发表历程是：
 对本仓库来说，核心问题是：
 
 "把有限个 zone 的并做成一等表示，和单纯维护一个 DBM 列表相比，到底多带来了什么？"
+
+## 它和 `behrmann03` 其他子论文是什么关系
+
+这篇是整本 thesis 的桥接点。
+
+- 它是第一篇真正进入 UDBM 风格数据结构问题的论文。
+- 如果你想先看 thesis 级 framing，先读 [paper-intro/README_zh.md](../paper-intro/README_zh.md)。
+- 如果你接下来关心的是 cost-optimal reachability，而不是 non-convex storage，下一篇读 [paper-d/README_zh.md](../paper-d/README_zh.md)。
 
 ## 在本仓库中的对应位置
 
@@ -58,4 +79,4 @@ thesis 中给出的发表历程是：
 
 如果你的问题是非凸 symbolic set、CDD、federation 一类对象，或者 symbolic-state compaction，六篇里应先读这篇。
 
-如果你接下来更关心的是最优代价可达性，就继续看 [paper-d/README.md](../paper-d/README.md)。
+如果你接下来更关心的是最优代价可达性，就继续看 [paper-d/README_zh.md](../paper-d/README_zh.md)。

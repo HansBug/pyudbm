@@ -21,6 +21,18 @@ Publication history noted in the thesis:
 - shorter version presented at `HSCC'01` and published in `LNCS 2034`
 - full version appears as `BRICS Report Series RS-01-3`
 
+## What the refined local reading version now contains
+
+The local [content.md](./content.md) now preserves the full theory-first priced-reachability story. In particular, it keeps:
+
+- the formal linearly priced timed-automata model, including price rates and cost accumulation
+- the priced-clock-region development rather than reducing the paper to a high-level statement of decidability
+- the symbolic semantics and branch-and-bound style minimum-cost algorithm
+- the paper's worked examples and visual state-space material
+- Appendix A, which is useful because it makes the symbolic state-space construction more concrete than the main text alone
+
+That makes this paper a real repository-local reference for the priced problem statement, not only a citation placeholder before the more implementation-friendly later papers.
+
 ## What to extract while reading
 
 Focus on:
@@ -33,6 +45,13 @@ Focus on:
 For this repository, the key reading question is:
 
 "What was the theory-first symbolic basis for cost-optimal timed reachability before priced zones were introduced?"
+
+## How it connects to the rest of `behrmann03`
+
+This is the theory-first start of the priced cluster.
+
+- Read [paper-e/README.md](../paper-e/README.md) next if you want the practical DBM-based bridge used in UPPAAL for uniformly priced systems.
+- Read [paper-f/README.md](../paper-f/README.md) after that if you want the more general priced-zone symbolic object.
 
 ## Where it maps into this repository
 

@@ -21,6 +21,19 @@ Publication history noted in the thesis:
 - short version presented at `TACAS'01` and published in `LNCS 2031`
 - full version published as `BRICS Report Series RS-01-4`
 
+## What the refined local reading version now contains
+
+The local [content.md](./content.md) now preserves the paper as a practical algorithm paper rather than only a priced-search slogan. In particular, it keeps:
+
+- the uniformly priced timed-automata setup and its relation to the more general linearly priced model
+- the cost-function machinery and the symbolic semantics used in the search
+- the DBM-based representation with an additional cost clock
+- the `MC` and `MC+` search orders, together with the estimates / heuristics / bounding discussion
+- the experiment sections on the bridge problem, job-shop scheduling, the Sidmar steel plant, and the biphase-mark protocol
+- all five tables, which matter because much of the paper's value is empirical and search-strategy-oriented
+
+This makes the paper a direct local bridge between "ordinary DBM-style symbolic states" and "practical cost-guided search in a real UPPAAL implementation".
+
 ## What to extract while reading
 
 Focus on:
@@ -29,10 +42,18 @@ Focus on:
 - the DBM-based representation using an extra cost clock
 - minimum-cost (`MC`) and `MC+` search orders
 - bounding and heuristic guidance in a practical UPPAAL implementation
+- the difference between semantic optimality and search guidance quality
 
 For this repository, the key reading question is:
 
 "How can standard zone / DBM machinery be reused to get practical cost-guided exploration before moving to full priced zones?"
+
+## How it connects to the rest of `behrmann03`
+
+This is the implementation bridge inside the priced cluster.
+
+- Read [paper-d/README.md](../paper-d/README.md) first if you want the theory-first priced-regions motivation.
+- Read [paper-f/README.md](../paper-f/README.md) next if you want the more general priced-zone symbolic object for linear prices.
 
 ## Where it maps into this repository
 

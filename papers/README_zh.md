@@ -95,7 +95,7 @@
 - `bdl04`
   更成熟的 `UPPAAL` 教程，偏建模模式与实际使用。
 - `behrmann03`
-  federation、CDD、共享、priced extension 等更大系统视角。
+  federation、CDD、共享、priced extension 等更大系统视角；实践里建议先从 `behrmann03/paper-intro/` 进入，再按问题分流到 `paper-c/` 或 `paper-d/` 到 `paper-f/`。
 
 ### 面向历史根源的补线路径
 
@@ -296,6 +296,26 @@
 - 为什么 CDD 曾被作为替代方案探索
 - 为什么共享、存储布局和 priced 扩展重要
 
+这个本地 thesis 条目现在实际包含：
+
+- 规范完整版本仍然是 `papers/behrmann03/paper.pdf`
+- 一份 thesis 级总导读 `papers/behrmann03/README_zh.md`
+- `paper-intro/` 以及 `paper-a/` 到 `paper-f/` 七个精修子单元，每个子目录里都有各自的 `content.md`
+
+这套拆分后的阅读包在实践里可以这样理解：
+
+- `paper-intro` 是 thesis 总地图，覆盖 motivation、formalism overview、data-structure overview、`The Making of Uppaal` 和 papers A-F summary
+- `paper-a` 与 `paper-b` 是有限状态 `visualSTATE` / ROBDD 背景簇
+- `paper-c` 是 CDD 与非凸 symbolic-set 表示这一簇
+- `paper-d`、`paper-e`、`paper-f` 是 priced timed automata 这一簇，从 priced regions 走到 DBM-guided search，再走到 priced zones
+
+这些额外结构为什么对实现特别有用：
+
+- 当问题是体系结构层面的，而不是某个单独算法时，它给出了清晰入口
+- 当问题是非凸 symbolic-state representation 时，可以直接跳到 `paper-c`
+- 当问题是 priced federation、priced search 或 priced zones 时，可以直接跳到 `paper-e` 和 `paper-f`
+- 它让 `behrmann03` 不再只是“一本以后再说的大 thesis”，而是可直接用于当前实现工作的阅读地图
+
 ### `dill89`
 
 作用：
@@ -363,14 +383,16 @@ normalization 文献线里的历史引用点。
 - 之后看 `bblp04/README_zh.md`
 - 当你碰 `mingraph`、存储或更底层 DBM 机制时，去看 `llpy97/README_zh.md` 和 `bengtsson02/README_zh.md`
 - 当你在想高层 API 的易用性和建模风格时，看 `lpy97/README_zh.md` 与 `bdl04/README_zh.md`
-- 当你需要更大的 `UPPAAL` 架构语境时，看 `behrmann03/README_zh.md`
+- 当你需要更大的 `UPPAAL` 架构语境时，先看 `behrmann03/paper-intro/README_zh.md`
+- 当你需要非凸 symbolic-state 的额外视角时，继续看 `behrmann03/paper-c/README_zh.md`
+- 当你需要 priced search 与 priced zones 的背景时，继续看 `behrmann03/paper-e/README_zh.md` 和 `behrmann03/paper-f/README_zh.md`
 
 如果你是在直接阅读原生 UDBM 源码，可以按下面这个“文件到论文”的对应关系来查：
 
 - `UDBM/include/dbm/dbm.h`、`UDBM/src/dbm.c`、`UDBM/docs/manual.tex`：先读 `by04`，再读 `bengtsson02`；如果是 extrapolation 相关代码路径，再补 `bblp04`。
 - `UDBM/include/dbm/fed.h`、`UDBM/src/fed.cpp`、`UDBM/src/fed_dbm.cpp`：先读 `dhlp06`；如果想补 unions of zones 的更大架构语境，再读 `behrmann03`。
 - `UDBM/include/dbm/mingraph.h` 和 `UDBM/src/mingraph*.c`：先读 `llpy97`，再读 `bengtsson02`。
-- `UDBM/include/dbm/priced.h`、`UDBM/include/dbm/pfed.h`、`UDBM/src/priced.cpp`、`UDBM/src/pfed.cpp`、`UDBM/src/infimum.cpp`：先读 `behrmann03` 里的 priced-zone / priced timed automata 相关部分，再回来看代码。
+- `UDBM/include/dbm/priced.h`、`UDBM/include/dbm/pfed.h`、`UDBM/src/priced.cpp`、`UDBM/src/pfed.cpp`、`UDBM/src/infimum.cpp`：先读 `behrmann03/paper-intro`，再按 `paper-d -> paper-e -> paper-f` 的顺序补完整条 priced timed automata 线。
 
 ## 论文内容精修流程
 

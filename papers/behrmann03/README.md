@@ -16,14 +16,16 @@ For UDBM-related work, the most valuable parts are the CDD paper and the three p
 
 This entry now has two layers:
 
-- thesis-level material in the root of `papers/behrmann03/`, including the full [paper.pdf](./paper.pdf), the thesis-level guides, and the refined [content.md](./content.md)
+- thesis-level material in the root of `papers/behrmann03/`, including the full [paper.pdf](./paper.pdf), `bibtex.bib`, and the thesis-level guides
 - extracted second-level directories under `paper-intro/` and `paper-a/` through `paper-f/`
 
-The root thesis PDF remains the canonical full-text record in this repository. The child directories are convenience splits of the thesis introduction and the six embedded papers listed by the thesis itself. Each child directory now has:
+The root thesis PDF remains the canonical full-text record in this repository. The child directories are convenience splits of the thesis introduction and the six embedded papers listed by the thesis itself. The refined reading artifacts live at the child-directory level, not at the root. Each child directory now has:
 
 - `paper.pdf`
 - `README.md`
 - `README_zh.md`
+- `content.md`
+- `content_assets/`
 
 Current second-level mapping:
 
@@ -36,6 +38,18 @@ Current second-level mapping:
 - [paper-f/README.md](./paper-f/README.md): `As Cheap as Possible: Efficient Cost-Optimal Reachability for Priced Timed Automata` (root PDF pages 163-193)
 
 Use the root thesis when you need the unified bibliography or the complete dissertation context. Use [paper-intro/README.md](./paper-intro/README.md) when you want the introduction material in isolation, and use the remaining child directories when you want one embedded paper in isolation.
+
+## What the refined local package now contains
+
+The child `content.md` files are no longer rough splits of the PDF. Together they now form a practical thesis-reading package with topic-based entry points.
+
+- [paper-intro/README.md](./paper-intro/README.md) now preserves the thesis-level motivation, reachability framing, formalism overview, data-structure overview, the "Making of Uppaal" section, and the author-written summary of papers A-F.
+- [paper-a/README.md](./paper-a/README.md) now preserves the full state/event-system story: formal model, consistency checks, ROBDD representation, compositional backwards reachability, local deadlock detection, and the experiment tables/figures.
+- [paper-b/README.md](./paper-b/README.md) now preserves the HSEM formal model, the reusable and compositional reachability algorithms, the syntactic approximation section, and the cell-structure experiments.
+- [paper-c/README.md](./paper-c/README.md) now preserves the motivation for non-convex symbolic sets, the CDD definition, the main CDD operations, and the implementation/experiment discussion.
+- [paper-d/README.md](./paper-d/README.md), [paper-e/README.md](./paper-e/README.md), and [paper-f/README.md](./paper-f/README.md) now preserve the priced timed-automata line in three steps: priced regions, practical DBM-guided search in UPPAAL, and priced zones with facet-based manipulation.
+
+That split matters because the thesis is broad enough that most repository work should not start with page 1 and read linearly. The child directories now let you enter exactly where your current code or documentation question lives.
 
 ## How The Six Embedded Papers Fit Together
 
@@ -62,6 +76,12 @@ If you want the shortest UDBM-facing path through this thesis, read:
 Use papers A-B mainly as historical background for the author's symbolic-model-checking perspective and tool-engineering style.
 
 ## What Each Embedded Paper Adds
+
+The short version is:
+
+- paper A-B explain the author's pre-timed symbolic-model-checking style
+- paper C explains the non-convex symbolic-set alternative most relevant to federation-style thinking
+- paper D-F explain why priced symbolic states became first-class objects in the UPPAAL line
 
 ### Paper A
 
@@ -165,6 +185,14 @@ It is especially helpful if you want to understand:
 Use this thesis selectively.
 
 - Read [paper-intro/README.md](./paper-intro/README.md) first if you want the thesis-level explanation of why these six papers belong together and how they fit into UPPAAL.
+- Read [paper-a/README.md](./paper-a/README.md) and [paper-b/README.md](./paper-b/README.md) next if you want the author's older finite-state symbolic-verification background before timed data structures take over.
 - Read [paper-c/README.md](./paper-c/README.md) first if your question is about non-convex symbolic sets, CDDs, or alternatives to plain DBM lists.
-- Read [paper-d/README.md](./paper-d/README.md), [paper-e/README.md](./paper-e/README.md), and [paper-f/README.md](./paper-f/README.md) if your question is about optimal-cost reachability and priced extensions.
-- Read [paper-a/README.md](./paper-a/README.md) and [paper-b/README.md](./paper-b/README.md) mainly when you want the broader pre-timed symbolic-model-checking background behind the thesis.
+- Read [paper-d/README.md](./paper-d/README.md) if you want the theory-first minimum-cost reachability setup.
+- Read [paper-e/README.md](./paper-e/README.md) if you want the most implementation-facing bridge from ordinary DBMs to cost-guided search.
+- Read [paper-f/README.md](./paper-f/README.md) if you want the strongest local paper on priced zones as a symbolic data structure.
+
+Three practical reading routes are usually enough:
+
+1. Architecture route: [paper-intro/README.md](./paper-intro/README.md) -> [paper-c/README.md](./paper-c/README.md) -> [paper-e/README.md](./paper-e/README.md) -> [paper-f/README.md](./paper-f/README.md)
+2. CDD / non-convex route: [paper-intro/README.md](./paper-intro/README.md) -> [paper-c/README.md](./paper-c/README.md)
+3. Priced route: [paper-intro/README.md](./paper-intro/README.md) -> [paper-d/README.md](./paper-d/README.md) -> [paper-e/README.md](./paper-e/README.md) -> [paper-f/README.md](./paper-f/README.md)
