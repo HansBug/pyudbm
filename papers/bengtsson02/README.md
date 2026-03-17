@@ -15,11 +15,13 @@ This entry now has two layers:
 - thesis-level material in the root of `papers/bengtsson02/`, including the full [paper.pdf](./paper.pdf), the thesis-level guides, and the refined [content.md](./content.md)
 - extracted second-level paper directories under `paper-a/` through `paper-e/`
 
-The root thesis PDF remains the canonical full-text record in this repository. The child directories are convenience splits of the five embedded papers listed in the thesis itself. Each child directory currently contains:
+The root thesis PDF remains the canonical full-text record in this repository. The child directories are convenience splits of the five embedded papers listed in the thesis itself. Each child directory now has a paper-level reading guide pair and a refined local reading artifact:
 
 - `paper.pdf`
 - `README.md`
 - `README_zh.md`
+- `content.md`
+- `content_assets/` when figures or tables are needed
 
 Current second-level mapping:
 
@@ -30,6 +32,83 @@ Current second-level mapping:
 - [paper-e/README.md](./paper-e/README.md): `Automated Verification of an Audio-Control Protocol using UPPAAL` (thesis pages 115-143)
 
 Use the root thesis when you need the introduction, the thesis-wide framing across all five papers, or the unified bibliography. Use the child directories when you want to read or reference one embedded paper in isolation.
+
+## How The Five Embedded Papers Fit Together
+
+The five embedded papers are not interchangeable. They form a fairly clear progression from DBM internals into broader state-space engineering and, finally, UPPAAL engine context.
+
+- [paper-a/README.md](./paper-a/README.md) is the DBM-core entry point.
+  It is the closest single embedded paper to `dbm.h` / `dbm.c`: representation, closure-oriented operations, primitive transformations, and implementation choices around raw DBMs.
+- [paper-b/README.md](./paper-b/README.md) is the normalization follow-up.
+  It explains what changes once symbolic reachability must preserve constraints on clock differences instead of only simpler upper-bound style constraints.
+- [paper-c/README.md](./paper-c/README.md) is the memory and storage paper.
+  It moves from single-DBM manipulation into passed-list growth, compact storage, and reduction strategies that later show up in `mingraph`-style machinery.
+- [paper-d/README.md](./paper-d/README.md) is the local-time / partial-order paper.
+  It is less about wrapper-surface DBM methods directly, and more about how symbolic timing structures behave inside a more aggressive exploration algorithm.
+- [paper-e/README.md](./paper-e/README.md) is the committed-location / case-study paper.
+  It shows how the modeling and exploration changes from paper-d pay off in a realistic UPPAAL verification setting rather than only in a synthetic algorithm discussion.
+
+If you want the shortest implementation-facing path through the five embedded papers, read:
+
+1. [paper-a/README.md](./paper-a/README.md)
+2. [paper-b/README.md](./paper-b/README.md)
+3. [paper-c/README.md](./paper-c/README.md)
+4. [paper-d/README.md](./paper-d/README.md)
+5. [paper-e/README.md](./paper-e/README.md)
+
+That order starts with the DBM object itself, then adds normalization, then storage, and only afterwards moves up to search-order reduction and industrial tool context.
+
+## What Each Embedded Paper Adds
+
+### Paper A
+
+Title:
+`DBM: Structures, Operations and Implementation`
+
+Repository value:
+
+- best paper-level source here for the raw DBM operation vocabulary behind `up`, `down`, reset-like updates, closure, and relation checks
+- especially useful when reading native DBM code and wanting an implementation-minded narrative instead of only a generic timed-automata explanation
+
+### Paper B
+
+Title:
+`Reachability Analysis of Timed Automata Containing Constraints on Clock Differences`
+
+Repository value:
+
+- the most direct local explanation of why normalization becomes subtler once guards and invariants contain clock-difference constraints
+- useful when reasoning about which symbolic simplifications remain sound and which require more care
+
+### Paper C
+
+Title:
+`Reducing Memory Usage in Symbolic State-Space Exploration for Timed Systems`
+
+Repository value:
+
+- strongest embedded-paper link to compact storage, passed-list pressure, and `mingraph`-adjacent design
+- useful when the question is not "how do we operate on one DBM?" but "how do we keep many symbolic states around efficiently?"
+
+### Paper D
+
+Title:
+`Partial Order Reductions for Timed Systems`
+
+Repository value:
+
+- explains the local-time semantics and symbolic restructuring needed before partial-order reduction becomes practical for timed systems
+- useful when you need to understand why reduction-friendly exploration can require changing the underlying symbolic view, not just adding a search heuristic on top
+
+### Paper E
+
+Title:
+`Automated Verification of an Audio-Control Protocol using UPPAAL`
+
+Repository value:
+
+- shows committed locations and related exploration choices paying off on a real protocol instead of a minimal academic toy
+- useful when you need a concrete UPPAAL case study explaining why modeling atomicity and avoiding unnecessary interleavings mattered in practice
 
 ## What to extract while reading
 
@@ -78,3 +157,8 @@ The later papers are still useful, but they are more UPPAAL-engine context than 
 
 - [paper-d/README.md](./paper-d/README.md) for local-time semantics and partial-order reduction
 - [paper-e/README.md](./paper-e/README.md) for committed locations and the industrial audio-control case study
+
+Another practical rule of thumb:
+
+- use papers A-C when the question is mainly "what does native UDBM do, and why?"
+- use papers D-E when the question is mainly "what kind of model-checking engine pressures shaped those data structures and APIs?"

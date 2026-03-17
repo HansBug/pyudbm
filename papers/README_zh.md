@@ -234,6 +234,26 @@
 - 带 difference constraints 的 normalization
 - 存储、压缩与 hashing 的动机
 
+这个本地 thesis 条目现在实际包含：
+
+- 一份覆盖整本 dissertation 的 thesis 级 `content.md`
+- 五个拆分出的 paper 级子目录 `paper-a/` 到 `paper-e/`，可以分别作为聚焦阅读入口
+- 一条很清楚的层次：A-C 最贴近 UDBM 内部，D-E 则补上更多 UPPAAL 引擎和案例背景
+
+如果把这五篇拆开看，它们在仓库里的分工大致是：
+
+- paper A 解释原始 DBM 结构以及最贴近 `dbm.h` / `dbm.c` 的基础操作词汇
+- paper B 解释一旦引入 clock-difference constraints，normalization 会怎样变复杂
+- paper C 解释内存约简、紧凑 symbolic-state 存储，以及 `mingraph` 一类机制背后的压力
+- paper D 解释 timed systems 里的 local-time semantics 和 partial-order reduction
+- paper E 解释 committed locations，并用一个工业级 UPPAAL 案例展示这些算法思路的实际收益
+
+为什么这层更细的结构有意义：
+
+- 它让 `bengtsson02` 不再只是“一本很厚的 thesis 可以略读”，而变成一套从 DBM 内核一路通到更高层引擎设计的分层阅读地图
+- 当你需要区分“核心 DBM 语义问题”和“搜索策略 / 工具语境问题”时，它是本地最方便的一组材料
+- 如果说 `by04` 给的是紧凑的概念基线，那么一旦你需要实现粒度，`bengtsson02` 就是仓库里最自然的下一站
+
 ### `lpw95`
 
 作用：

@@ -234,6 +234,26 @@ Main UDBM support:
 - normalization with difference constraints
 - storage, compression, and hashing motivations
 
+What the local thesis package now contains:
+
+- a thesis-level `content.md` for the whole dissertation
+- five extracted paper-level subdirectories `paper-a/` through `paper-e/`, each now serving as a focused reading unit
+- a progression where papers A-C are the most directly UDBM-internal, while papers D-E add more UPPAAL-engine and case-study context
+
+How the five embedded papers break down in practice:
+
+- paper A explains the raw DBM structure and primitive operation vocabulary closest to `dbm.h` / `dbm.c`
+- paper B explains normalization once clock-difference constraints are present
+- paper C explains memory reduction, compact symbolic-state storage, and the pressures behind `mingraph`-style machinery
+- paper D explains local-time semantics and partial-order reduction for timed systems
+- paper E explains committed locations and shows the algorithmic ideas paying off on an industrial UPPAAL case study
+
+Why this extra structure matters in practice:
+
+- it makes `bengtsson02` more than "one big thesis to skim"; it becomes a paper-by-paper map from DBM internals to broader engine design
+- it is the best local bundle when you need to separate "core DBM semantics" questions from "search strategy and tool-context" questions without leaving the repository
+- if `by04` gives the compact conceptual baseline, `bengtsson02` is the best local place to continue once you need implementation granularity
+
 ### `lpw95`
 
 Role:
