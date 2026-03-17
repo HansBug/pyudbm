@@ -63,7 +63,7 @@
 
 .. toctree::
     :maxdepth: 2
-    :caption: Foundations
+    :caption: 概念基础
     :hidden:
 
     foundations/reading-guide/index_zh
@@ -75,9 +75,6 @@
 * :doc:`foundations/what-is-uppaal/index_zh`
 * :doc:`foundations/timed-automata/index_zh`
 * :doc:`foundations/queries-and-properties/index_zh`
-
-API 参考
---------
 
 .. include:: api_doc_zh.rst
 

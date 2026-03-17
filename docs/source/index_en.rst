@@ -79,9 +79,6 @@ Concept Foundations
 * :doc:`foundations/timed-automata/index`
 * :doc:`foundations/queries-and-properties/index`
 
-API Reference
--------------
-
 .. include:: api_doc_en.rst
 
 Upstream and Source
