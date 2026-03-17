@@ -303,9 +303,6 @@ Next
 The next natural page is :doc:`../queries-and-properties/index`: once the model
 is clear, the next question is what users usually ask about it.
 
-References
-----------
-
 .. [UPP_LOC] UPPAAL official documentation, ``Locations``.
    Public link: `<https://docs.uppaal.org/language-reference/system-description/templates/locations/>`_.
 .. [UPP_EDGE] UPPAAL official documentation, ``Edges``.

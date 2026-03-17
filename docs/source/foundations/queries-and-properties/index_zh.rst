@@ -385,9 +385,6 @@ symbolic simulator 里继续检查 [UPP_QSEM_ZH]_ [UPP_VER_ZH]_。
 下一篇最自然的内容是 ``symbolic-states/``：当 query 视角建立起来以后，下一个问题就是，
 为什么 UPPAAL 不去一个一个枚举具体 timed states。
 
-参考文献
---------
-
 .. [UPP_VER_ZH] UPPAAL 官方图形界面文档，``Verifier``。
    公开链接：`<https://docs.uppaal.org/gui-reference/verifier/>`_。
 .. [UPP_QSYN_ZH] UPPAAL 官方文档，``Syntax of Symbolic Queries``。

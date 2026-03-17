@@ -403,9 +403,6 @@ The next natural page is ``symbolic-states/``: once the query viewpoint is in
 place, the next question is why UPPAAL does not enumerate concrete timed states
 one by one.
 
-References
-----------
-
 .. [UPP_VER] UPPAAL official GUI documentation, ``Verifier``.
    Public link: `<https://docs.uppaal.org/gui-reference/verifier/>`_.
 .. [UPP_QSYN] UPPAAL official documentation, ``Syntax of Symbolic Queries``.

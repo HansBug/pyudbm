@@ -154,9 +154,6 @@ UPPAAL 实际在做什么
 
 下一篇最自然的内容是 :doc:`../timed-automata/index_zh`，也就是正式介绍模型长什么样。
 
-参考文献
---------
-
 .. [UPP_HOME_ZH] UPPAAL 官方首页。
    公开链接：`<https://uppaal.org/>`_。
 .. [UPP_HELP_ZH] UPPAAL 官方文档总入口。

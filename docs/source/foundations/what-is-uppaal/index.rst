@@ -165,9 +165,6 @@ Next
 The next concept page is :doc:`../timed-automata/index`. That is where the
 actual model shape gets introduced.
 
-References
-----------
-
 .. [UPP_HOME] UPPAAL official web site.
    Public link: `<https://uppaal.org/>`_.
 .. [UPP_HELP] UPPAAL official documentation overview.
