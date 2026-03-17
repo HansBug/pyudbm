@@ -384,6 +384,8 @@ More importantly, "refinement" here means fidelity, not loose summarization or f
 
 Only Step 1 is an extraction step. From Step 2 through Step 6, the workflow must be driven purely by the LLM's own text understanding and page-level visual reading ability. Do not use additional rough cleanup scripts, batch heuristics, or secondary tool-based post-processing in those later steps.
 
+The extracted `content.md` produced in Step 1 must never be assumed to be correct. It is only a provisional artifact produced by text extraction and/or OCR, and it may contain omissions, substitutions, broken formulas, wrong structure, or misplaced figure references. Acceptance requires that the final `content.md` be made visually consistent with the PDF itself, not merely cleaner than the extractor output.
+
 ### Step 1: Export the two working views
 
 Always export both:
@@ -410,9 +412,20 @@ python -m tools.papers_to_content \
 Notes:
 
 - text mode writes one Markdown file and, by default, an asset directory beside it such as `content_assets/`
+- treat that Markdown output only as a draft for manual refinement, not as a trusted transcription of the PDF
 - image mode renders one image per page for visual inspection
+- do not assume that one page-image renderer is always faithful for every page layout; landscape pages, rotated pages, or pages dominated by one wide table/figure may be rendered with the wrong orientation, wrong canvas shape, or clipped right/bottom content depending on the renderer
 - do not write page-image output directly into a paper subdirectory under `papers/`; page-image exports are often too large and should go to a temporary path such as `/tmp/...`
 - use explicit output paths every time; do not assume a batch mode or repository-coupled defaults
+
+Practical warning for landscape or rotated pages:
+
+- during the first page-image review, explicitly look for pages whose aspect ratio or reading direction differs from the surrounding pages
+- if one page visually contains a landscape table/figure but your exported page image still looks portrait, is sideways, or appears to lose the far-right / bottom part of the content, treat that page-image export as untrusted
+- a common symptom is that repeated re-cropping still cannot recover columns, caption text, or page regions that are visibly present in the PDF
+- when this happens, verify the page again using a second PDF renderer instead of continuing to crop the bad page image; for example, if `tools.papers_to_content -ot image` was used first, re-render the affected page with another renderer such as `pdftoppm`
+- after the second render is produced, re-check page orientation, full content extent, and crop boundaries against that new page image before writing the final figure/table asset
+- for final assets, keep the figure or table itself upright for reading, but do not accidentally inherit page-side furniture such as rotated running headers, page numbers, or side titles that belong to the page rather than to the target figure/table
 
 ### Step 2: Refine page by page using only LLM text and vision
 
@@ -458,12 +471,14 @@ In particular:
 Practical screenshot workflow:
 
 - first build a figure/table inventory for the covered pages by re-reading the rendered page images; if helpful, use the PDF text only to locate candidate figure numbers or pages, but treat the page images as the source of truth
+- while building that inventory, also watch for page-level rendering failures on landscape or rotated pages; if a page image seems to have the wrong orientation or appears to omit part of a wide table/figure, stop and re-render that page with a second renderer before finalizing any crop from it
 - compare that PDF-side inventory against the current figures referenced in `content.md` and the files present in `content_assets/`
 - if figures are missing, add them before finalizing crop quality; do not accept a paper where the text refers to figures that were never inserted
 - inspect each referenced asset at full size, not only as a small thumbnail
 - when adding missing figures, make rough candidate crops first, review them as a set, and then inspect each candidate again at full size before accepting it
 - compare the asset against the source page and check all four edges deliberately
 - if any side is clipped or if extra context is leaking in, re-crop and replace the asset rather than tolerating a "good enough" screenshot
+- if clipping persists even after widening the crop, assume the page render itself may be bad rather than the crop box alone; re-render that source page with another renderer and rebuild the asset from the corrected page image
 - if the figure or table is sideways because of page layout, correct the reading direction during remake; do not keep a vertically placed or rotated asset in `content.md` when it can be normalized to an upright reading orientation
 - if a figure spans a page boundary in the Markdown structure, move the page marker and the image placement so the insertion remains faithful to the PDF flow
 - after replacing assets, update `content.md` if the figure split, order, or placement changed
@@ -486,6 +501,7 @@ In particular, treat the following as mandatory repair cases:
 - multiple separately discussed figures were incorrectly left fused into one screenshot
 - a discussed figure or table is missing entirely
 - a table is present only as rough extracted text but still lacks the visual asset needed for PDF-faithful checking
+- the page-image export used as the crop source turns out to be unreliable for that page, for example because a landscape page was rendered in the wrong orientation or a wide table was clipped before cropping even started
 
 When such a problem exists, do not keep the bad asset in place. Re-screenshot, re-crop, or fully remake the figure/table asset manually; save the corrected result into `content_assets/`; replace the old asset reference in `content.md`; and delete superseded files that are no longer used.
 
