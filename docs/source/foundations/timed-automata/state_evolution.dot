@@ -1,0 +1,19 @@
+digraph state_evolution {
+    rankdir=LR;
+    graph [pad="0.2", nodesep="0.7", ranksep="0.9", splines=true];
+    node [shape=box, style="rounded,filled", fillcolor="#f7f7f7", color="#666666", fontname="Helvetica"];
+    edge [color="#666666", fontname="Helvetica"];
+
+    s0 [label="(WaitAck, x = 0)"];
+    s3 [label="(WaitAck, x = 3)"];
+    s5 [label="(WaitAck, x = 5)"];
+    idle [label="(Idle, x = 5)", fillcolor="#f5f9ff"];
+    error [label="(Error, x = 5)", fillcolor="#fff1f1", color="#aa5555"];
+    note [shape=note, fillcolor="#fff8e8", label="No further delay:\ninv(WaitAck) is x <= 5"];
+
+    s0 -> s3 [label="delay 3"];
+    s3 -> s5 [label="delay 2"];
+    s5 -> idle [label="ack?"];
+    s5 -> error [label="timeout!"];
+    s5 -> note [style=dashed, arrowhead=none, color="#aa5555"];
+}

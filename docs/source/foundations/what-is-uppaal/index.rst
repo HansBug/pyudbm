@@ -162,8 +162,8 @@ If you only keep five ideas from this page, keep these:
 Next
 ----
 
-The next concept page should be ``timed-automata/``. That is where the actual
-model shape gets introduced.
+The next concept page is :doc:`../timed-automata/index`. That is where the
+actual model shape gets introduced.
 
 References
 ----------

@@ -68,9 +68,11 @@
 
     foundations/reading-guide/index_zh
     foundations/what-is-uppaal/index_zh
+    foundations/timed-automata/index_zh
 
 * :doc:`foundations/reading-guide/index_zh`
 * :doc:`foundations/what-is-uppaal/index_zh`
+* :doc:`foundations/timed-automata/index_zh`
 
 API 参考
 --------

@@ -1,0 +1,18 @@
+digraph request_response {
+    rankdir=LR;
+    graph [pad="0.2", nodesep="0.9", ranksep="1.0", splines=true];
+    node [shape=circle, style="filled", fillcolor="#f7f7f7", color="#666666", fontname="Helvetica"];
+    edge [color="#666666", fontname="Helvetica"];
+
+    init [shape=point, width="0.15", label=""];
+    idle [shape=doublecircle, label="Idle", fillcolor="#f5f9ff"];
+    wait [label=<
+        <B>WaitAck</B><BR/><FONT POINT-SIZE="10">inv: x &lt;= 5</FONT>
+    >, fillcolor="#fff8e8"];
+    error [label="Error", fillcolor="#fff1f1", color="#aa5555"];
+
+    init -> idle;
+    idle -> wait [label="send! / x := 0"];
+    wait -> idle [label="ack?"];
+    wait -> error [label="x >= 5 / timeout!"];
+}

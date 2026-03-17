@@ -71,9 +71,11 @@ Concept Foundations
 
     foundations/reading-guide/index
     foundations/what-is-uppaal/index
+    foundations/timed-automata/index
 
 * :doc:`foundations/reading-guide/index`
 * :doc:`foundations/what-is-uppaal/index`
+* :doc:`foundations/timed-automata/index`
 
 API Reference
 -------------

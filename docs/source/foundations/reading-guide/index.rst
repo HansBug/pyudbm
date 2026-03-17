@@ -30,8 +30,8 @@ If you are new to formal verification or model checking:
     **Start with** :doc:`../what-is-uppaal/index`.
 
 If you already know what model checking is, but timed automata still feel unfamiliar:
-    **Start with** :doc:`../what-is-uppaal/index`, then continue to the planned
-    ``timed-automata/`` page when it lands.
+    **Start with** :doc:`../what-is-uppaal/index`, then continue to
+    :doc:`../timed-automata/index`.
 
 If you already know timed automata, but symbolic states and zones still feel abstract:
     Read :doc:`../what-is-uppaal/index` for the big-picture workflow first, then
@@ -53,6 +53,7 @@ Current Coverage
     :maxdepth: 2
 
     ../what-is-uppaal/index
+    ../timed-automata/index
 
 Planned Sequence
 ----------------
