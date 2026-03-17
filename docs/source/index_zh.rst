@@ -16,13 +16,13 @@
 * **面向跨平台分发的包装方向**，目标平台覆盖 Linux、macOS 和 Windows
 
 项目状态
---------
+~~~~~~~~
 
 当前仓库仍处于持续开发中。核心 federation 构造、valuation 处理以及一批高层操作已经可用，
 但整个包仍应被视为兼容导向的进行中实现，而不是完全冻结的最终 API。
 
 快速开始
--------------
+~~~~~~~~
 
 .. code-block:: python
 
@@ -38,13 +38,20 @@
    assert zone.contains(valuation)
 
 架构
--------------
+~~~~
 
 当前公开结构可以概括为：
 
 * **包根** (``pyudbm``)：对外重导出高层兼容 API
 * **绑定层** (``pyudbm.binding``)：在原生扩展之上提供 Python 侧易用接口
 * **元数据层** (``pyudbm.config``)：暴露包版本和上游版本信息
+
+上游与源码
+~~~~~~~~~~
+
+* **GitHub 仓库**：https://github.com/HansBug/pyudbm
+* **UDBM 上游**：https://github.com/UPPAALModelChecker/UDBM
+* **UUtils 上游**：https://github.com/UPPAALModelChecker/UUtils
 
 教程
 ----
@@ -77,10 +84,3 @@
 * :doc:`foundations/queries-and-properties/index_zh`
 
 .. include:: api_doc_zh.rst
-
-上游与源码
-----------
-
-* **GitHub 仓库**：https://github.com/HansBug/pyudbm
-* **UDBM 上游**：https://github.com/UPPAALModelChecker/UDBM
-* **UUtils 上游**：https://github.com/UPPAALModelChecker/UUtils

@@ -17,7 +17,7 @@ Key Features
 * **Cross-platform packaging direction** for Linux, macOS, and Windows
 
 Project Status
---------------
+~~~~~~~~~~~~~~
 
 The repository is still under active development. Core federation construction,
 valuation handling, and several high-level operations are already available,
@@ -25,7 +25,7 @@ but the package should still be treated as a work in progress rather than a
 fully frozen public API.
 
 Quick Start
--------------
+~~~~~~~~~~~
 
 .. code-block:: python
 
@@ -41,13 +41,20 @@ Quick Start
    assert zone.contains(valuation)
 
 Architecture
--------------
+~~~~~~~~~~~~
 
 The current package is organized around a small public surface:
 
 * **Package root** (``pyudbm``): re-exports the high-level compatibility API
 * **Binding layer** (``pyudbm.binding``): Python ergonomics over the native extension
 * **Metadata layer** (``pyudbm.config``): package and upstream version metadata
+
+Upstream and Source
+~~~~~~~~~~~~~~~~~~~
+
+* **GitHub Repository**: https://github.com/HansBug/pyudbm
+* **UDBM Upstream**: https://github.com/UPPAALModelChecker/UDBM
+* **UUtils Upstream**: https://github.com/UPPAALModelChecker/UUtils
 
 Tutorials
 ---------
@@ -80,10 +87,3 @@ Concept Foundations
 * :doc:`foundations/queries-and-properties/index`
 
 .. include:: api_doc_en.rst
-
-Upstream and Source
--------------------
-
-* **GitHub Repository**: https://github.com/HansBug/pyudbm
-* **UDBM Upstream**: https://github.com/UPPAALModelChecker/UDBM
-* **UUtils Upstream**: https://github.com/UPPAALModelChecker/UUtils
