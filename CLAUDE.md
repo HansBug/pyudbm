@@ -838,6 +838,25 @@ def f(items: list[str] | None) -> dict[str, int]:
 - If shared fixtures or helpers become necessary, place them in a dedicated `test/testings/` area instead of scattering them across feature directories.
 - Keep test runtime within the timeout configured by `pytest.ini` for this repository.
 
+## Commit Message Style
+
+Follow the dominant repository convention from recent history.
+
+- For normal commits, prefer `type(scope): imperative summary`, such as
+  `feat(binding): add federation containment helpers` or
+  `test(binding): strengthen legacy compatibility coverage`.
+- Use short lowercase types such as `feat`, `fix`, `docs`, `test`, `refactor`, `chore`; keep the scope lowercase when present
+  (`binding`, `config`, `tests`, `cmake`, `packaging`, `ci`, etc.). Omit the scope only when the change genuinely spans the whole repository.
+- Write the summary as a concise imperative phrase starting with a lowercase verb (`add`, `update`, `improve`, `align`, `restore`,
+  `clean up`); do not add a trailing period.
+- For non-trivial changes, add a blank line and then a body. Match the common repository pattern:
+  a short overview sentence or paragraph first, followed by `-` bullet points for concrete changes, tests, compatibility notes,
+  docs updates, or behavior clarifications.
+- When a bullet needs to wrap, continue it on the next line with indentation rather than starting a new bullet.
+- Preserve standard trailers when applicable, especially `Co-Authored-By: Name <email>`.
+- Merge commits should keep the generated style used in history, such as `Merge branch 'main' into dev/...` or
+  `Merge pull request #52 from HansBug/dev/fixed`.
+
 ## Python Docstring Style Guide
 
 Use **reStructuredText (reST)** format exclusively for public Python docstrings, following PEP 257 and Sphinx conventions.
