@@ -1,0 +1,22 @@
+digraph dbm_closure_graph_zh {
+    rankdir=LR;
+    graph [splines=true, nodesep=0.7, ranksep=0.8];
+    node [shape=circle, style="filled", fillcolor="#f8f8f8", color="#666666", width=0.8];
+
+    x0 [label="x0"];
+    x  [label="x"];
+    y  [label="y"];
+
+    x  -> x0 [label="x - x0 <= 5"];
+    x0 -> x  [label="x0 - x <= 0"];
+    y  -> x0 [label="y - x0 <= 3"];
+    x0 -> y  [label="x0 - y <= 0"];
+
+    x -> y [label="闭包推出：x - y <= 5", color="#3f6fb5", fontcolor="#3f6fb5", style="dashed"];
+    y -> x [label="闭包推出：y - x <= 3", color="#3f6fb5", fontcolor="#3f6fb5", style="dashed"];
+
+    note [shape=box, style="rounded,filled", fillcolor="#eef6ff", color="#4f81bd",
+          label="canonical closure 会把每个条目\n都收紧到所有路径共同推出的最紧上界。"];
+
+    y -> note [arrowhead=none, style=invis];
+}

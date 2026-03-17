@@ -244,8 +244,8 @@ If you keep five ideas from this page, keep these:
 Next
 ----
 
-The next natural page is the planned ``dbm-basics/`` topic: once the zone view
-is clear, the next question is why one matrix can encode such a set of clock
+The next natural page is :doc:`../dbm-basics/index`: once the zone view is
+clear, the next question is why one matrix can encode such a set of clock
 constraints efficiently.
 
 .. [UPP_SEM_SS] UPPAAL official documentation, ``Semantics``.

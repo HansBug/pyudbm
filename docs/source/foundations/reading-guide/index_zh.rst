@@ -35,7 +35,7 @@
 
 如果你已经知道时间自动机，但符号状态(symbolic state) 和区域(zone) 还比较抽象：
     先用 :doc:`../what-is-uppaal/index_zh` 建立整体图景，然后继续读
-    :doc:`../symbolic-states/index_zh`，再接后续会补上的 ``dbm-basics/`` 页面。
+    :doc:`../symbolic-states/index_zh`，再接 :doc:`../dbm-basics/index_zh`。
 
 如果你已经知道区域(zone) 和差分约束矩阵(DBM)，但还不理解为什么会出现非凸符号集合：
     可以先快速读一遍 :doc:`../what-is-uppaal/index_zh`，再去看后续会补上的
@@ -52,6 +52,7 @@
 * :doc:`../timed-automata/index_zh`
 * :doc:`../queries-and-properties/index_zh`
 * :doc:`../symbolic-states/index_zh`
+* :doc:`../dbm-basics/index_zh`
 
 规划中的主题顺序
 ----------------

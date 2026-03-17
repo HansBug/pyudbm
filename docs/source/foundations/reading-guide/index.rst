@@ -38,7 +38,7 @@ If you already know the model shape, but you are still unsure how requirements a
 
 If you already know timed automata, but symbolic states and zones still feel abstract:
     Read :doc:`../what-is-uppaal/index` for the big-picture workflow first, then
-    continue to :doc:`../symbolic-states/index` and the planned ``dbm-basics/`` page.
+    continue to :doc:`../symbolic-states/index` and :doc:`../dbm-basics/index`.
 
 If you already know zones and DBMs, but do not yet see why non-convex symbolic sets matter:
     Skim :doc:`../what-is-uppaal/index`, then continue to the planned
@@ -56,6 +56,7 @@ Current Coverage
 * :doc:`../timed-automata/index`
 * :doc:`../queries-and-properties/index`
 * :doc:`../symbolic-states/index`
+* :doc:`../dbm-basics/index`
 
 Planned Sequence
 ----------------

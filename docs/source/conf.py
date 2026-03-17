@@ -59,7 +59,7 @@ if not os.environ.get("NO_CONTENTS_BUILD"):
         if pip_build.wait() != 0:
             raise ChildProcessError("Pip install failed with %d." % (pip_build.returncode,))
 
-        make_build_cmd = (where.first('make'), 'clean', 'bin_notest', 'build')
+        make_build_cmd = (where.first('make'), 'bin_notest', 'build')
         print("Try building extensions {cmd}...".format(cmd=repr(make_build_cmd)))
         make_build = Popen(make_build_cmd, stdout=sys.stdout, stderr=sys.stderr, env=_env, cwd=_PROJ_PATH)
         if make_build.wait() != 0:

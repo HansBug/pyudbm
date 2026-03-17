@@ -1,0 +1,22 @@
+digraph dbm_closure_graph {
+    rankdir=LR;
+    graph [splines=true, nodesep=0.7, ranksep=0.8];
+    node [shape=circle, style="filled", fillcolor="#f8f8f8", color="#666666", width=0.8];
+
+    x0 [label="x0"];
+    x  [label="x"];
+    y  [label="y"];
+
+    x  -> x0 [label="x - x0 <= 5"];
+    x0 -> x  [label="x0 - x <= 0"];
+    y  -> x0 [label="y - x0 <= 3"];
+    x0 -> y  [label="x0 - y <= 0"];
+
+    x -> y [label="closure: x - y <= 5", color="#3f6fb5", fontcolor="#3f6fb5", style="dashed"];
+    y -> x [label="closure: y - x <= 3", color="#3f6fb5", fontcolor="#3f6fb5", style="dashed"];
+
+    note [shape=box, style="rounded,filled", fillcolor="#eef6ff", color="#4f81bd",
+          label="Canonical closure makes every entry\nthe tightest bound implied by all paths."];
+
+    y -> note [arrowhead=none, style=invis];
+}

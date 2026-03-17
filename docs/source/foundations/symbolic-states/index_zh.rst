@@ -224,7 +224,7 @@ region 的视角很重要，因为它解释了为什么 timed automata 验证在
 下一步
 ------
 
-下一篇最自然的内容是后续规划中的 ``dbm-basics/``：当 zone 视角建立起来以后，接下来就该问，
+下一篇最自然的内容是 :doc:`../dbm-basics/index_zh`：当 zone 视角建立起来以后，接下来就该问，
 为什么一个矩阵能够高效表示这样一组时钟约束。
 
 .. [UPP_SEM_SS_ZH] UPPAAL 官方文档，``Semantics``。

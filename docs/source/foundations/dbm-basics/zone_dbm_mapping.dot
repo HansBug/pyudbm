@@ -1,0 +1,21 @@
+digraph zone_dbm_mapping {
+    rankdir=LR;
+    graph [splines=true, nodesep=0.6, ranksep=0.8];
+    node [shape=box, style="rounded,filled", fillcolor="#f8f8f8", color="#666666"];
+
+    zone [label="Geometric zone\n0 <= y <= 3\n0 <= x <= 5\nx - y <= 2", fillcolor="#eef9ef", color="#5b8a5b"];
+
+    rewrite [label="Rewrite with x0 = 0\nx - x0 <= 5\nx0 - x <= 0\ny - x0 <= 3\nx0 - y <= 0\nx - y <= 2", fillcolor="#fff8e8", color="#b08b40"];
+
+    matrix [shape=plain, label=<
+      <TABLE BORDER="1" CELLBORDER="1" CELLSPACING="0" CELLPADDING="6">
+        <TR><TD BGCOLOR="#f0f0f0"></TD><TD BGCOLOR="#f0f0f0">x0</TD><TD BGCOLOR="#f0f0f0">x</TD><TD BGCOLOR="#f0f0f0">y</TD></TR>
+        <TR><TD BGCOLOR="#f0f0f0">x0</TD><TD>0</TD><TD>0</TD><TD>0</TD></TR>
+        <TR><TD BGCOLOR="#f0f0f0">x</TD><TD>5</TD><TD>0</TD><TD>2</TD></TR>
+        <TR><TD BGCOLOR="#f0f0f0">y</TD><TD>3</TD><TD>3</TD><TD>0</TD></TR>
+      </TABLE>
+    >];
+
+    zone -> rewrite;
+    rewrite -> matrix [label="DBM entries", color="#666666"];
+}

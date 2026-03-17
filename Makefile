@@ -164,13 +164,13 @@ bin_clean: uutils_clean udbm_clean
 bin: uutils udbm
 bin_notest: uutils_notest udbm_notest
 
-docs: bin_notest clean build
+docs: bin_notest build
 	$(MAKE) -C "${DOC_DIR}" build
-docs_en: bin_notest clean build
+docs_en: bin_notest build
 	READTHEDOCS_LANGUAGE=en $(MAKE) -C "${DOC_DIR}" build
-docs_zh: bin_notest clean build
+docs_zh: bin_notest build
 	READTHEDOCS_LANGUAGE=zh-cn $(MAKE) -C "${DOC_DIR}" build
-pdocs: bin_notest clean build
+pdocs: bin_notest build
 	$(MAKE) -C "${DOC_DIR}" prod
 
 rst_auto: ${RST_DOC_FILES} ${RST_NONM_FILES} auto_rst_top_index.py
