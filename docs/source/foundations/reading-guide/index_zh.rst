@@ -48,12 +48,9 @@
 当前内容
 --------
 
-.. toctree::
-    :maxdepth: 2
-
-    ../what-is-uppaal/index_zh
-    ../timed-automata/index_zh
-    ../queries-and-properties/index_zh
+* :doc:`../what-is-uppaal/index_zh`
+* :doc:`../timed-automata/index_zh`
+* :doc:`../queries-and-properties/index_zh`
 
 规划中的主题顺序
 ----------------

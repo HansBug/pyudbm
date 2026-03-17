@@ -52,12 +52,9 @@ If your main concern is the future Python-facing architecture of this repository
 Current Coverage
 ----------------
 
-.. toctree::
-    :maxdepth: 2
-
-    ../what-is-uppaal/index
-    ../timed-automata/index
-    ../queries-and-properties/index
+* :doc:`../what-is-uppaal/index`
+* :doc:`../timed-automata/index`
+* :doc:`../queries-and-properties/index`
 
 Planned Sequence
 ----------------
