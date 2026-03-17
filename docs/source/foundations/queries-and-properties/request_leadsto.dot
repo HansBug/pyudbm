@@ -1,0 +1,16 @@
+digraph request_leadsto {
+    rankdir=LR;
+    graph [pad="0.2", nodesep="0.8", ranksep="1.0", splines=true];
+    node [shape=box, style="rounded,filled", fillcolor="#f7f7f7", color="#666666", fontname="Helvetica"];
+    edge [color="#666666", fontname="Helvetica"];
+
+    init [label="Idle", fillcolor="#f5f9ff"];
+    pending [label="Pending\n(p holds)", fillcolor="#fff8e8", color="#c28b19"];
+    acked [label="Acked\n(q holds)", fillcolor="#eef8ee", color="#5b8a5b"];
+    retry [label="RetryLoop", fillcolor="#eef4ff", color="#5c7fb8"];
+
+    init -> pending [label="send"];
+    pending -> acked [label="ack"];
+    pending -> retry [label="retry"];
+    retry -> retry [label="retry forever"];
+}

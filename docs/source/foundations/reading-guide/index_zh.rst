@@ -30,6 +30,9 @@
     \ **先读**\ :doc:`../what-is-uppaal/index_zh`\ **，**\ 再继续读
     :doc:`../timed-automata/index_zh`。
 
+如果你已经知道模型长什么样，但还不清楚需求通常怎么提：
+    可以从 :doc:`../timed-automata/index_zh` 接着读 :doc:`../queries-and-properties/index_zh`。
+
 如果你已经知道 timed automata，但 symbolic state 和 zone 还比较抽象：
     先用 :doc:`../what-is-uppaal/index_zh` 建立整体图景，然后继续读后续会补上的
     ``symbolic-states/`` 和 ``dbm-basics/`` 页面。
@@ -50,6 +53,7 @@
 
     ../what-is-uppaal/index_zh
     ../timed-automata/index_zh
+    ../queries-and-properties/index_zh
 
 规划中的主题顺序
 ----------------

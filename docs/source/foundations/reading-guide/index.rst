@@ -33,6 +33,9 @@ If you already know what model checking is, but timed automata still feel unfami
     **Start with** :doc:`../what-is-uppaal/index`, then continue to
     :doc:`../timed-automata/index`.
 
+If you already know the model shape, but you are still unsure how requirements are phrased:
+    Continue from :doc:`../timed-automata/index` to :doc:`../queries-and-properties/index`.
+
 If you already know timed automata, but symbolic states and zones still feel abstract:
     Read :doc:`../what-is-uppaal/index` for the big-picture workflow first, then
     continue to the planned ``symbolic-states/`` and ``dbm-basics/`` pages.
@@ -54,6 +57,7 @@ Current Coverage
 
     ../what-is-uppaal/index
     ../timed-automata/index
+    ../queries-and-properties/index
 
 Planned Sequence
 ----------------

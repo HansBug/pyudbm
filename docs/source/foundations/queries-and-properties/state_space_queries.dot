@@ -1,0 +1,23 @@
+digraph state_space_queries {
+    rankdir=LR;
+    graph [pad="0.2", nodesep="0.8", ranksep="1.0", splines=true];
+    node [shape=circle, style="filled", fillcolor="#f7f7f7", color="#666666", fontname="Helvetica"];
+    edge [color="#666666", fontname="Helvetica"];
+
+    init [shape=point, width="0.15", label=""];
+    s0 [label="Init", fillcolor="#f5f9ff"];
+    s1 [label="Wait", fillcolor="#fff8e8"];
+    goal [label="Acked", fillcolor="#eef8ee", color="#5b8a5b"];
+    bad [label="Error", fillcolor="#fff1f1", color="#aa5555"];
+    dead [label="Stuck", fillcolor="#fff5e8", color="#c97a1f"];
+    loop [label="Retry", fillcolor="#eef4ff", color="#5c7fb8"];
+    unreachable [label="Unreachable", style="dashed,filled", fillcolor="#f3f3f3", color="#bbbbbb"];
+
+    init -> s0;
+    s0 -> s1 [label="request"];
+    s1 -> goal [label="ack"];
+    s1 -> bad [label="timeout"];
+    s1 -> dead [label="blocked"];
+    s1 -> loop [label="retry"];
+    loop -> s1 [label="again"];
+}

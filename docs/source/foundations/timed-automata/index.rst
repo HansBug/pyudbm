@@ -300,8 +300,8 @@ If you keep five ideas from this page, keep these:
 Next
 ----
 
-The next natural page is ``queries-and-properties/``: once the model is clear,
-the next question is what users usually ask about it.
+The next natural page is :doc:`../queries-and-properties/index`: once the model
+is clear, the next question is what users usually ask about it.
 
 References
 ----------
