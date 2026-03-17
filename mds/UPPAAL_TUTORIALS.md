@@ -88,6 +88,21 @@
 
 未来的 theory / tutorial 部分也应该继续采用这种成对页面结构，而不是把中英混写在同一页。
 
+### 6. 不直接把这组内容塞进 `tutorials/`
+
+`docs/source/tutorials/` 更适合作为安装、快速开始、面向任务的线性教程区。
+
+而这份规划里的内容，本质上更像是围绕 UPPAAL 核心概念展开的“概念基础库”，读者往往会按自己的知识缺口跳着读，而不是从头到尾顺着读完。
+
+因此更合适的做法是：
+
+- 保留 `tutorials/` 作为操作型教程入口
+- 另开一个与 `tutorials/` 同级的路径来承载概念型内容
+- 每个主题单独占一个子目录，目录内只保留中英两个入口页和资源文件
+- 在入口页里做阅读分流，而不是只给一棵平铺目录树
+
+这也意味着：`mds/UPPAAL_TUTORIALS.md` 对应的未来内容，不应被简单理解为“再往 `tutorials/` 下堆一串 rst 页面”。
+
 ## 素材来源与主要依托
 
 这份教程规划主要建立在下面这些本地 paper guide 的基础上：
@@ -113,14 +128,22 @@
 - `lpy97` 与 `bdl04` 提供工具视角与建模视角
 - `behrmann03` 把视角扩展到 CDD、系统架构和 priced symbolic structures
 
-## 总体策略：主线篇 + 进阶篇
+## 总体策略：操作教程 + 概念基础页 + 进阶专题
 
-更合适的公开结构不是一条长长的线性教程，而是两层：
+更合适的公开结构不是把所有内容揉成一条长长的教程线，而是拆成三层：
 
-- 主线篇：给初学者建立完整直觉
-- 进阶篇：给开始关心实现、算法和 Python 重建路径的人
+- `tutorials/`：安装、快速开始、面向任务的操作教程
+- `foundations/`：面向概念理解的基础页与主题页
+- 进阶专题：在 `foundations/` 体系内逐步覆盖实现层、算法层和 Python 重建路径
 
-这样既不会把门槛抬得太高，也不会把真正重要的工程问题都省掉。
+其中 `foundations/` 这个名字只是当前建议，用意是强调“概念地基”而不是“按任务操作”。这个目录和 `tutorials/` 同级，负责承接 timed automata、query、zone、DBM、federation、CDD、搜索、priced extension 等主题。
+
+这样拆开以后：
+
+- 初学者可以先走 `tutorials/` 的安装与使用入口，再按不熟悉的概念跳到 `foundations/`
+- 读者不会把理论内容误解成必须线性读完的长教程
+- 每个概念页可以自己带图、例子、资源，而不必挤在一大堆并列 rst 文件里
+- 入口页也更容易做“你现在应该读哪里”的分流
 
 ## 主线篇规划
 
@@ -433,6 +456,60 @@
 
 这种模板既适合新手，也便于中英文成对维护。
 
+## `foundations/` 目录形状建议
+
+如果采用和 `tutorials/` 同级的新路径，当前更推荐的名字是：
+
+- `docs/source/foundations/`
+
+推荐目录形状：
+
+```text
+docs/source/foundations/
+|- index.rst
+|- index_zh.rst
+|- what-is-uppaal/
+|  |- index.rst
+|  |- index_zh.rst
+|  `- ... resources ...
+|- timed-automata/
+|  |- index.rst
+|  |- index_zh.rst
+|  `- ... resources ...
+|- queries-and-properties/
+|  |- index.rst
+|  |- index_zh.rst
+|  `- ... resources ...
+|- symbolic-states/
+|  |- index.rst
+|  |- index_zh.rst
+|  `- ... resources ...
+|- dbm-basics/
+|  |- index.rst
+|  |- index_zh.rst
+|  `- ... resources ...
+|- federations/
+|  |- index.rst
+|  |- index_zh.rst
+|  `- ... resources ...
+`- ...
+```
+
+这里有几个约束需要明确写死：
+
+- `foundations/` 根目录保留总入口页 `index.rst` 和 `index_zh.rst`
+- 每个主题子目录都只放 `index.rst`、`index_zh.rst` 和资源文件
+- 主题子目录里不要再继续拆出别的 `*.rst` 页面
+- 附图、示意图、演示代码、数据文件都作为该主题目录下的资源文件管理
+- 如果某个主题很大，也优先通过同一对 `index` 页面内部组织小节，而不是继续横向增殖 rst 文件
+
+这样做的好处是：
+
+- 页面入口稳定，Sphinx 路径也更整齐
+- 中英版本天然成对，不容易漏同步
+- 每个主题的图、示例和页面文本会自然聚在一起
+- 以后就算补资源，也不会把目录结构越长越散
+
 ## 图与公式的使用建议
 
 ### 图的建议
@@ -449,24 +526,51 @@
 - 第一次介绍一个概念时，宁可只给一个代表性公式
 - 太密的形式细节更适合放到后续页面、附注或旁栏
 
+## 入口导航建议
+
+真正重要的不只是目录存在，还要在入口页明确告诉用户“如果你现在卡在什么概念上，应该先读哪里”。
+
+因此 `docs/source/foundations/index.rst` 与 `docs/source/foundations/index_zh.rst` 不应该只是一个普通 toctree，而应该承担“阅读分流页”的作用。
+
+比较合适的入口结构是：
+
+1. 先给一句话说明：这里不是安装教程，而是 UPPAAL 概念基础页
+2. 然后给一组“我现在更像哪类读者”的分流入口
+3. 再给完整主题目录
+4. 最后给和 `papers/`、`tutorials/` 的关系说明
+
+入口处分流建议至少覆盖下面几类读者：
+
+- 如果你对 formal verification / model checking 都不熟悉：
+  先读 `what-is-uppaal/`、`timed-automata/`、`queries-and-properties/`
+- 如果你知道 timed automata，但不熟悉 symbolic state / zone：
+  先读 `symbolic-states/`，再读 `dbm-basics/`
+- 如果你已经知道 zone 和 DBM，但不清楚为什么会出现非凸表示：
+  先读 `federations/`，再读 `cdd/`
+- 如果你已经熟悉基础 symbolic semantics，想看引擎为什么能跑得动：
+  先读搜索 / extrapolation / storage 相关主题
+- 如果你主要关心这个仓库未来的 Python API 会怎么映射这些概念：
+  在基础页里补一条明确导航，指向 API 重建路线相关页面
+
+入口页还应该明确告诉读者：
+
+- `tutorials/` 解决“怎么装、怎么跑、怎么开始用”
+- `foundations/` 解决“这些概念到底是什么意思”
+- `papers/` 解决“这些讲法主要来自哪些论文与材料”
+
+换句话说，入口页不是简单列目录，而是要像一个“阅读路由器”。
+
 ## 双语组织建议
 
-未来 `docs/source/tutorials/` 下的 theory 部分建议继续沿用仓库已有的中英配对结构。
+无论最终先写哪些主题，`foundations/` 体系都应继续沿用仓库已有的中英配对方式。
 
-一个可能的目录形状是：
+也就是说：
 
-```text
-docs/source/tutorials/theory/
-|- index.rst
-|- index_zh.rst
-|- 01-what-is-uppaal.rst
-|- 01-what-is-uppaal_zh.rst
-|- 02-timed-automata-basics.rst
-|- 02-timed-automata-basics_zh.rst
-|- ...
-```
+- 根入口页成对：`index.rst` / `index_zh.rst`
+- 每个主题页也成对：`<topic>/index.rst` / `<topic>/index_zh.rst`
+- 资源文件可共享，但正文页面始终保持中英分离
 
-具体文件名可以再调整，但“成对页面”这个原则不建议改。
+这一点不建议为了省事而退化成“一个英文页 + 一份中文补丁”或者“中英混写”。
 
 ## 相比最初窄版本规划，这里做了什么修正
 
@@ -488,6 +592,8 @@ docs/source/tutorials/theory/
 - reduction-oriented 建模构造
 - priced symbolic structures
 - 未来 Python 侧的整体 API 设计
+- 与 `tutorials/` 同级的 `foundations/` 概念页目录
+- 在入口页按读者背景做阅读分流
 
 ## 主题与篇目的快速对照
 
