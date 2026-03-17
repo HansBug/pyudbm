@@ -302,6 +302,7 @@ Chinese terminology rule:
 - In Chinese `.rst` tutorial pages, use Chinese terminology as the default prose language.
 - On first mention within a page, you may introduce the English term or abbreviation in parentheses, for example `时间自动机(timed automata)` or `符号状态(symbolic state)`.
 - After that first introduction, continue using the Chinese term in normal prose instead of switching back and forth between Chinese and English.
+- Apply the same rule to explanatory text inside Chinese-facing diagrams, especially Graphviz labels, cluster titles, node descriptions, and edge labels; keep English only for code literals, page slugs, official names, and unavoidable acronyms.
 - Exceptions are limited to code literals, file paths, page slugs, official document titles, and unavoidable proper-name acronyms.
 - Before finalizing Chinese docs edits, do a pass specifically to remove leftover English-term drift in the prose.
 

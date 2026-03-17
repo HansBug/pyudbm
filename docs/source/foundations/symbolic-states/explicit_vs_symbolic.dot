@@ -1,0 +1,25 @@
+digraph explicit_vs_symbolic {
+    rankdir=LR;
+    graph [splines=true, nodesep=0.45, ranksep=0.8];
+    node [shape=box, style="rounded,filled", fillcolor="#f7f7f7", color="#666666"];
+
+    subgraph cluster_concrete {
+        label="Concrete timed states";
+        color="#cfcfcf";
+        style="rounded,dashed";
+
+        c1 [label="WaitAck\nx = 0.2"];
+        c2 [label="WaitAck\nx = 1.7"];
+        c3 [label="WaitAck\nx = 3.4"];
+        c4 [label="WaitAck\nx = 4.9"];
+        c5 [label="..."];
+    }
+
+    sym [label="One symbolic state\nlocation = WaitAck\n0 <= x <= 5", fillcolor="#eef6ff", color="#4f81bd"];
+
+    c1 -> sym [arrowhead=none, color="#888888"];
+    c2 -> sym [arrowhead=none, color="#888888"];
+    c3 -> sym [arrowhead=none, color="#888888"];
+    c4 -> sym [arrowhead=none, color="#888888"];
+    c5 -> sym [arrowhead=none, color="#888888"];
+}

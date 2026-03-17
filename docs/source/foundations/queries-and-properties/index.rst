@@ -399,9 +399,9 @@ If you keep five ideas from this page, keep these:
 Next
 ----
 
-The next natural page is ``symbolic-states/``: once the query viewpoint is in
-place, the next question is why UPPAAL does not enumerate concrete timed states
-one by one.
+The next natural page is :doc:`../symbolic-states/index`: once the query
+viewpoint is in place, the next question is why UPPAAL does not enumerate
+concrete timed states one by one.
 
 .. [UPP_VER] UPPAAL official GUI documentation, ``Verifier``.
    Public link: `<https://docs.uppaal.org/gui-reference/verifier/>`_.

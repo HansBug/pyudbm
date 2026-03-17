@@ -382,7 +382,7 @@ UPPAAL 的符号验证器(symbolic verifier) 可以生成见证轨迹(witness tr
 下一步
 ------
 
-下一篇最自然的内容是 ``symbolic-states/``：当查询视角建立起来以后，下一个问题就是，
+下一篇最自然的内容是 :doc:`../symbolic-states/index_zh`：当查询视角建立起来以后，下一个问题就是，
 为什么 UPPAAL 不去一个一个枚举具体带时间状态。
 
 .. [UPP_VER_ZH] UPPAAL 官方图形界面文档，``Verifier``。

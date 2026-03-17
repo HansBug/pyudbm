@@ -80,10 +80,12 @@ Concept Foundations
     foundations/what-is-uppaal/index
     foundations/timed-automata/index
     foundations/queries-and-properties/index
+    foundations/symbolic-states/index
 
 * :doc:`foundations/reading-guide/index`
 * :doc:`foundations/what-is-uppaal/index`
 * :doc:`foundations/timed-automata/index`
 * :doc:`foundations/queries-and-properties/index`
+* :doc:`foundations/symbolic-states/index`
 
 .. include:: api_doc_en.rst

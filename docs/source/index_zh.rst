@@ -77,10 +77,12 @@
     foundations/what-is-uppaal/index_zh
     foundations/timed-automata/index_zh
     foundations/queries-and-properties/index_zh
+    foundations/symbolic-states/index_zh
 
 * :doc:`foundations/reading-guide/index_zh`
 * :doc:`foundations/what-is-uppaal/index_zh`
 * :doc:`foundations/timed-automata/index_zh`
 * :doc:`foundations/queries-and-properties/index_zh`
+* :doc:`foundations/symbolic-states/index_zh`
 
 .. include:: api_doc_zh.rst

@@ -1,0 +1,50 @@
+digraph regions_vs_zone {
+    rankdir=LR;
+    graph [splines=true, nodesep=0.35, ranksep=0.7];
+    node [shape=box, style="rounded,filled", fillcolor="#f8f8f8", color="#666666", width=0.9, height=0.5];
+
+    subgraph cluster_regions {
+        label="Many finer regions in (x, y)-space";
+        color="#cfcfcf";
+        style="rounded,dashed";
+
+        r11 [label="r1"];
+        r12 [label="r2"];
+        r13 [label="r3"];
+        r21 [label="r4"];
+        r22 [label="r5"];
+        r23 [label="r6"];
+        r31 [label="r7"];
+        r32 [label="r8"];
+        r33 [label="r9"];
+
+        { rank=same; r11; r12; r13; }
+        { rank=same; r21; r22; r23; }
+        { rank=same; r31; r32; r33; }
+
+        r11 -> r12 [style=invis];
+        r12 -> r13 [style=invis];
+        r21 -> r22 [style=invis];
+        r22 -> r23 [style=invis];
+        r31 -> r32 [style=invis];
+        r32 -> r33 [style=invis];
+        r11 -> r21 [style=invis];
+        r21 -> r31 [style=invis];
+        r12 -> r22 [style=invis];
+        r22 -> r32 [style=invis];
+        r13 -> r23 [style=invis];
+        r23 -> r33 [style=invis];
+    }
+
+    zone [label="One zone\n0 <= y <= x <= 5", fillcolor="#eef9ef", color="#5b8a5b", width=1.6, height=0.9];
+
+    r11 -> zone [style=dashed, arrowhead=none, color="#7a7a7a"];
+    r12 -> zone [style=dashed, arrowhead=none, color="#7a7a7a"];
+    r13 -> zone [style=dashed, arrowhead=none, color="#7a7a7a"];
+    r21 -> zone [style=dashed, arrowhead=none, color="#7a7a7a"];
+    r22 -> zone [style=dashed, arrowhead=none, color="#7a7a7a"];
+    r23 -> zone [style=dashed, arrowhead=none, color="#7a7a7a"];
+    r31 -> zone [style=dashed, arrowhead=none, color="#7a7a7a"];
+    r32 -> zone [style=dashed, arrowhead=none, color="#7a7a7a"];
+    r33 -> zone [style=dashed, arrowhead=none, color="#7a7a7a"];
+}
