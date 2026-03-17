@@ -64,6 +64,13 @@ This notation is not accidental. The whole later zone / DBM story depends on
 the fact that guards and invariants are conjunctions of simple clock
 constraints rather than arbitrary real arithmetic [AD90]_ [BY04]_.
 
+**This is important enough to remember now.** Later pages will keep using this
+fact: not only zone / DBM representations, but almost the entire symbolic
+verification toolbox around UPPAAL timed automata relies on the structural
+property that guards and invariants are conjunctions of simple bound or
+difference constraints. Regions, zones, DBMs, federations, normalization, and
+extrapolation all benefit from that restriction.
+
 Returning to the running example above, the tuple can be unpacked concretely as:
 
 .. math::

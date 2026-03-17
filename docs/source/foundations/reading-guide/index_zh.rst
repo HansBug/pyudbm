@@ -12,8 +12,8 @@
 
 * UPPAAL 到底想解决什么问题？
 * 为什么带时间的系统比普通有限状态验证更难？
-* 为什么会出现 symbolic states、zones、DBMs 和 federations？
-* 在什么概念准备好之后，`pyudbm` 的高层 Python API 才会显得自然？
+* 为什么会出现符号状态(symbolic states)、区域(zone)、差分约束矩阵(DBM)和联邦(federation)？
+* 在什么概念准备好之后，`pyudbm` 的高层 Python 接口(API) 才会显得自然？
 
 如果你现在只想安装包、从源码构建，或者先跑一个快速检查，应该先看
 :doc:`/tutorials/installation/index_zh`。
@@ -21,27 +21,27 @@
 阅读分流
 --------
 
-\ **这个入口页不是普通目录，而是一个阅读路由页。**\ 不同背景的读者，起点不应该一样。
+\ **这个入口页不是普通目录，而是一个阅读分流页。**\ 不同背景的读者，起点不应该一样。
 
-如果你对 formal verification / model checking 都不熟悉：
+如果你对形式化验证(formal verification) / 模型检查(model checking) 都不熟悉：
     \ **从**\ :doc:`../what-is-uppaal/index_zh`\ **开始。**
 
-如果你知道 model checking 是什么，但 timed automata 还不熟：
+如果你知道模型检查是什么，但时间自动机(timed automata) 还不熟：
     \ **先读**\ :doc:`../what-is-uppaal/index_zh`\ **，**\ 再继续读
     :doc:`../timed-automata/index_zh`。
 
 如果你已经知道模型长什么样，但还不清楚需求通常怎么提：
     可以从 :doc:`../timed-automata/index_zh` 接着读 :doc:`../queries-and-properties/index_zh`。
 
-如果你已经知道 timed automata，但 symbolic state 和 zone 还比较抽象：
+如果你已经知道时间自动机，但符号状态(symbolic state) 和区域(zone) 还比较抽象：
     先用 :doc:`../what-is-uppaal/index_zh` 建立整体图景，然后继续读后续会补上的
     ``symbolic-states/`` 和 ``dbm-basics/`` 页面。
 
-如果你已经知道 zone 和 DBM，但还不理解为什么会出现非凸符号集合：
+如果你已经知道区域(zone) 和差分约束矩阵(DBM)，但还不理解为什么会出现非凸符号集合：
     可以先快速读一遍 :doc:`../what-is-uppaal/index_zh`，再去看后续会补上的
     ``federations/`` 和 ``cdd/`` 页面。
 
-如果你最关心的是这个仓库未来的 Python API 会怎样映射这些概念：
+如果你最关心的是这个仓库未来的 Python 接口会怎样映射这些概念：
     也建议\ **先读**\ :doc:`../what-is-uppaal/index_zh`，因为它解释了被恢复的
     ``Context`` / ``Clock`` / ``Federation`` 这套接口到底在服务怎样的验证工作流。
 
@@ -64,9 +64,9 @@
 * ``dbm-basics/``
 * ``federations/``
 * ``cdd/``
-* 搜索 / extrapolation / storage 相关主题
-* reduction 相关主题
-* priced timed automata 与 API 重建路线相关主题
+* 搜索 / 外推(extrapolation) / 存储(storage) 相关主题
+* 约简(reduction)相关主题
+* 计价时间自动机(priced timed automata) 与 API 重建路线相关主题
 
 和其他文档区域的关系
 --------------------
