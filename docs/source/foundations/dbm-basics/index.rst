@@ -634,8 +634,11 @@ That makes point containment conceptually straightforward:
 
 At the API level, this is the idea underneath valuation membership tests.
 
+Positioning And Takeaways
+-------------------------
+
 Important Properties To Keep Straight
--------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Several distinctions matter a lot in practice:
 
@@ -646,7 +649,7 @@ Several distinctions matter a lot in practice:
 * **Normalization / extrapolation is not the same as ordinary closure.** Closure preserves the exact zone; extrapolation deliberately over-approximates for termination.
 
 Why UDBM Is The Direct Implementation Layer
--------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This is exactly the level where UDBM lives most naturally.
 
@@ -662,7 +665,7 @@ That is why the layering in this repository makes sense:
 * `pyudbm` rebuilds a more natural Python-facing surface above it
 
 What To Remember
-----------------
+~~~~~~~~~~~~~~~~
 
 If you keep five ideas from this page, keep these:
 
@@ -673,7 +676,7 @@ If you keep five ideas from this page, keep these:
 * one DBM still represents only one convex zone, which is why the next page needs federations
 
 Next
-----
+~~~~
 
 The next natural page is the planned ``federations/`` topic: once one convex
 zone can be stored exactly, the next question is what to do when subtraction or
