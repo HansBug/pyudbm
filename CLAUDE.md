@@ -296,6 +296,7 @@ Writing expectations:
   - workflow diagrams
 - symbolic-vs-concrete intuition diagrams
 - If a page is conceptually central, it should usually contain more than one figure.
+- When showing a DBM as a LaTeX matrix in tutorial pages, include explicit row and column clock headers in the matrix itself, such as `x_0`, `x`, `y`, rather than showing an unlabeled bare matrix. This applies to both English and Chinese pages.
 
 Chinese terminology rule:
 

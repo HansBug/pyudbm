@@ -317,11 +317,15 @@ UDBM 代码里一格到底存的是什么
 .. math::
 
    D_{\text{start}} =
-   \begin{bmatrix}
-   (\leq, 0) & (\leq, 0) & (\leq, 0) \\
-   (\leq, 5) & (\leq, 0) & (\leq, 10) \\
-   (\leq, 3) & (<, \infty) & (\leq, 0)
-   \end{bmatrix}
+   \left[
+   \begin{array}{c|ccc}
+        & x_0 & x & y \\
+      \hline
+      x_0 & (\leq, 0) & (\leq, 0) & (\leq, 0) \\
+      x   & (\leq, 5) & (\leq, 0) & (\leq, 10) \\
+      y   & (\leq, 3) & (<, \infty) & (\leq, 0)
+   \end{array}
+   \right]
 
 这里最后一行第二列的 :math:`(<, \infty)` 表示我们一开始根本没有给出
 :math:`y - x` 的有限上界；第二行第三列的 :math:`(\leq, 10)` 则是那个故意写得偏松的
@@ -338,11 +342,15 @@ UDBM 代码里一格到底存的是什么
 .. math::
 
    D_{\text{canon}} =
-   \begin{bmatrix}
-   (\leq, 0) & (\leq, 0) & (\leq, 0) \\
-   (\leq, 5) & (\leq, 0) & (\leq, 5) \\
-   (\leq, 3) & (\leq, 3) & (\leq, 0)
-   \end{bmatrix}
+   \left[
+   \begin{array}{c|ccc}
+        & x_0 & x & y \\
+      \hline
+      x_0 & (\leq, 0) & (\leq, 0) & (\leq, 0) \\
+      x   & (\leq, 5) & (\leq, 0) & (\leq, 5) \\
+      y   & (\leq, 3) & (\leq, 3) & (\leq, 0)
+   \end{array}
+   \right]
 
 这个矩阵里的每个条目都正好对应最紧可推出上界：
 

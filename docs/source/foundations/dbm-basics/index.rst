@@ -337,11 +337,15 @@ matrix** is
 .. math::
 
    D_{\text{start}} =
-   \begin{bmatrix}
-   (\leq, 0) & (\leq, 0) & (\leq, 0) \\
-   (\leq, 5) & (\leq, 0) & (\leq, 10) \\
-   (\leq, 3) & (<, \infty) & (\leq, 0)
-   \end{bmatrix}
+   \left[
+   \begin{array}{c|ccc}
+        & x_0 & x & y \\
+      \hline
+      x_0 & (\leq, 0) & (\leq, 0) & (\leq, 0) \\
+      x   & (\leq, 5) & (\leq, 0) & (\leq, 10) \\
+      y   & (\leq, 3) & (<, \infty) & (\leq, 0)
+   \end{array}
+   \right]
 
 Here the entry :math:`(<, \infty)` in the last row and second column says that
 we initially stored no finite upper bound for :math:`y - x`; the entry
@@ -360,11 +364,15 @@ After **canonical closure**, the explicit canonical form becomes
 .. math::
 
    D_{\text{canon}} =
-   \begin{bmatrix}
-   (\leq, 0) & (\leq, 0) & (\leq, 0) \\
-   (\leq, 5) & (\leq, 0) & (\leq, 5) \\
-   (\leq, 3) & (\leq, 3) & (\leq, 0)
-   \end{bmatrix}
+   \left[
+   \begin{array}{c|ccc}
+        & x_0 & x & y \\
+      \hline
+      x_0 & (\leq, 0) & (\leq, 0) & (\leq, 0) \\
+      x   & (\leq, 5) & (\leq, 0) & (\leq, 5) \\
+      y   & (\leq, 3) & (\leq, 3) & (\leq, 0)
+   \end{array}
+   \right]
 
 Every entry now matches the tightest implied upper bound:
 
