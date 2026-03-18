@@ -297,6 +297,11 @@ Writing expectations:
 - symbolic-vs-concrete intuition diagrams
 - If a page is conceptually central, it should usually contain more than one figure.
 - When showing a DBM as a LaTeX matrix in tutorial pages, include explicit row and column clock headers in the matrix itself, such as `x_0`, `x`, `y`, rather than showing an unlabeled bare matrix. This applies to both English and Chinese pages.
+- For geometric DBM / zone figures, prefer checked-in `.plot.py` generators that produce `.plot.py.svg` outputs through the existing docs build chain rather than hand-drawn screenshots.
+- Prefer keeping DBM / zone plot figures language-neutral when practical, so the same SVG can usually be reused by English and Chinese pages; put most explanatory prose in the surrounding `.rst` text instead of inside the plot.
+- For operation-oriented geometric figures, prefer before/after side-by-side comparisons so readers can see how a DBM operation changes the represented zone.
+- Do not open too many high-level sections on a single tutorial page when they are really explaining one continuous topic. Group related material under a limited number of top-level sections, and use lower-level subsections inside them.
+- Before setting section boundaries, identify the page's main narrative spine and make the top-level table-of-contents view reflect that spine clearly. A reader scanning the section list should see a few coherent stages, not a flat pile of near-duplicate topics.
 
 Chinese terminology rule:
 

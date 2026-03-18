@@ -11,8 +11,11 @@ differences. That is exactly expressive enough for the guard and invariant
 language used in timed automata, and it supports the core symbolic operations
 that UDBM exposes in practice [UPP_VER_DBM]_ [BY04_DBM]_ [BENG02_DBM]_ [UDBM_REPO]_.
 
+Representation, Encoding, And Design Intuition
+----------------------------------------------
+
 The Running Zone
-----------------
+~~~~~~~~~~~~~~~~
 
 Start from one concrete convex zone over clocks ``x`` and ``y``:
 
@@ -38,6 +41,16 @@ constraints too:
 Once everything has the shape "clock minus clock is bounded above", a matrix is
 exactly the natural container.
 
+On the plane, the same zone is visually straightforward. The figure below is
+deliberately language-neutral: it only shows the :math:`x` / :math:`y` axes,
+the relevant boundary lines, and the filled feasible region for
+:math:`0 \leq y \leq 3,\; 0 \leq x \leq 5,\; x - y \leq 2`:
+
+.. image:: zone_geometry.plot.py.svg
+   :width: 72%
+   :align: center
+   :alt: Geometric view of the running zone on the x-y plane.
+
 If we fix the clock order as :math:`(x_0, x, y)`, the running example can be
 written directly as the DBM
 
@@ -61,7 +74,7 @@ Each cell still uses the same pair notation. For example:
 * the entry :math:`(\leq, 5)` in row ``x`` and column ``x_0`` means :math:`x - x_0 \leq 5`
 
 The Core Encoding Idea
-----------------------
+~~~~~~~~~~~~~~~~~~~~~~
 
 For clocks :math:`x_0, x_1, \ldots, x_n`, a DBM stores entries
 
@@ -112,10 +125,10 @@ So what you are looking at is not "a table of numbers", but a clock-indexed
 family of difference constraints.
 
 What One Cell Stores In UDBM Code
----------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 At the mathematical level it is convenient to describe :math:`D_{ij}` as the
-pair :math:`(c_{ij}, \triangleleft_{ij})`. In the actual UDBM code, however,
+pair :math:`(\triangleleft_{ij}, c_{ij})`. In the actual UDBM code, however,
 one DBM cell is stored as a single integer of type ``raw_t`` [UDBM_CONSTRAINTS]_.
 
 The packing rule in ``constraints.h`` is:
@@ -147,7 +160,7 @@ of carrying an explicit struct pair in every cell. The thin C++ wrapper in
 ``bound``, ``is_strict``, and ``is_weak`` [UDBM_RAW_HPP]_.
 
 Infinity Is Part Of Real DBMs
------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Real DBMs do not consist only of small finite numbers. In actual symbolic
 exploration, many entries mean "there is no finite upper bound currently
@@ -193,7 +206,7 @@ So any explanation of DBMs that pretends every entry is always a small finite
 number is leaving out an essential part of how the library really behaves.
 
 Why The Zero Clock Matters
---------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The zero clock is the trick that makes the representation uniform.
 
@@ -290,7 +303,7 @@ So the main thing to remember is simple:
 indirectly implied tighter bound back into the matrix** [UDBM_DBM_C_CODE]_.
 
 Canonical Is Not The Same As Minimal
-------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This point is easy to miss:
 
@@ -440,6 +453,16 @@ Operationally, this means:
 * every valuation violating the guard disappears
 * closure propagates the consequences to all other pairwise bounds
 
+The before/after picture below makes that intersection concrete: the left panel
+is the input zone :math:`Z`, the right panel is the result after adding
+:math:`y \geq 2`, and the dashed outline keeps the original region visible for
+comparison:
+
+.. image:: dbm_constrain.plot.py.svg
+   :width: 88%
+   :align: center
+   :alt: Before and after geometric comparison for constrain.
+
 In UDBM's C API, this shows up as functions such as ``dbm_constrain`` and
 ``dbm_constrain1`` in ``dbm.h`` / ``dbm.c``: they take a raw encoded
 constraint, tighten the touched entries, and then rely on closure to finish the
@@ -482,6 +505,16 @@ For DBMs this has a very characteristic effect:
 So ``up`` does not mean "forget everything". It means "keep exactly what still
 matters after all clocks may advance together."
 
+The figure below shows that geometric expansion directly: the left panel is the
+original region, while the right panel shows the result of ``up`` inside the
+same viewing window. You can see the absolute upper bounds disappear while the
+surviving difference constraints still shape the zone:
+
+.. image:: dbm_up.plot.py.svg
+   :width: 88%
+   :align: center
+   :alt: Before and after geometric comparison for up.
+
 In the actual UDBM implementation, ``dbm_up`` is strikingly literal: for each
 non-reference clock it sets the cell ``DBM(i, 0)`` to ``dbm_LS_INFINITY``.
 That is precisely the code-level meaning of "remove the upper bound
@@ -503,6 +536,15 @@ If ``up`` grows the zone into the future, ``down`` expands it backward toward
 earlier valuations. In verification algorithms this is the natural dual used by
 backward reasoning and predecessor-style operations.
 
+The corresponding geometric effect is shown below: the left panel is the input
+zone, and the right panel shows how ``down`` expands it toward earlier
+valuations in the same fixed viewing window:
+
+.. image:: dbm_down.plot.py.svg
+   :width: 88%
+   :align: center
+   :alt: Before and after geometric comparison for down.
+
 Reset And Update
 ~~~~~~~~~~~~~~~~
 
@@ -521,6 +563,16 @@ while all mixed constraints involving :math:`x` are recomputed consistently.
 
 More general updates such as :math:`x := c` or value-copy style operations are
 variations on the same pattern: replace one clock's relations, then re-close.
+
+Geometrically, reset is easiest to read as "collapse the region onto a fixed
+clock value." In the figure below, the green vertical segment in the right
+panel is the result after :math:`x := 2`, while the dashed outline still shows
+the old region:
+
+.. image:: dbm_reset.plot.py.svg
+   :width: 88%
+   :align: center
+   :alt: Before and after geometric comparison for reset.
 
 Again, the implementation is very direct. ``dbm_updateValue`` in ``dbm.c`` sets
 ``DBM(k, 0)`` and ``DBM(0, k)`` to the weak encoded bounds for
@@ -541,6 +593,16 @@ That is what ``free`` or ``freeClock`` style operations do:
 Semantically, this is a controlled abstraction: the resulting zone says
 "whatever the forgotten clock is, as long as the remaining constraints still
 make sense."
+
+That widening is visible geometrically too. In the figure below, the right
+panel shows the slice obtained after freeing one clock: the remaining
+constraints still shape the region, but the forgotten direction becomes much
+less constrained:
+
+.. image:: dbm_free.plot.py.svg
+   :width: 88%
+   :align: center
+   :alt: Before and after geometric comparison for free.
 
 The code follows that idea closely. In ``dbm_freeClock``, UDBM sets most cells
 in the freed clock's row to ``dbm_LS_INFINITY`` and rebuilds the column from

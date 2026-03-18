@@ -15,3 +15,4 @@ psutil>=5.8.0
 ipykernel>=6.15
 py-cpuinfo>=8.0.0
 sphinxcontrib-svg2pdfconverter
+matplotlib>=3.5
