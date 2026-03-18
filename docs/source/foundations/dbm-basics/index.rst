@@ -38,11 +38,27 @@ constraints too:
 Once everything has the shape "clock minus clock is bounded above", a matrix is
 exactly the natural container.
 
-.. graphviz:: zone_dbm_mapping.dot
+If we fix the clock order as :math:`(x_0, x, y)`, the running example can be
+written directly as the DBM
 
-The figure shows the whole translation pattern in one place: geometry on the
-left, uniform difference constraints in the middle, and the matrix view on the
-right.
+.. math::
+
+   D_{\text{zone}} =
+   \left[
+   \begin{array}{c|ccc}
+        & x_0 & x & y \\
+      \hline
+      x_0 & (\leq, 0) & (\leq, 0) & (\leq, 0) \\
+      x   & (\leq, 5) & (\leq, 0) & (\leq, 2) \\
+      y   & (\leq, 3) & (\leq, 3) & (\leq, 0)
+   \end{array}
+   \right]
+
+Each cell still uses the same pair notation. For example:
+
+* the entry :math:`(\leq, 2)` in row ``x`` and column ``y`` means :math:`x - y \leq 2`
+* the entry :math:`(\leq, 3)` in row ``y`` and column ``x`` means :math:`y - x \leq 3`
+* the entry :math:`(\leq, 5)` in row ``x`` and column ``x_0`` means :math:`x - x_0 \leq 5`
 
 The Core Encoding Idea
 ----------------------
@@ -51,7 +67,7 @@ For clocks :math:`x_0, x_1, \ldots, x_n`, a DBM stores entries
 
 .. math::
 
-   D_{ij} = (c_{ij}, \triangleleft_{ij})
+   D_{ij} = (\triangleleft_{ij}, c_{ij})
 
 meaning that the represented zone requires
 
@@ -61,8 +77,8 @@ meaning that the represented zone requires
 
 Here:
 
-* :math:`c_{ij}` is an integer bound
 * :math:`\triangleleft_{ij}` is either :math:`<` or :math:`\leq`
+* :math:`c_{ij}` is an integer bound
 * the pair therefore remembers both the number and whether the bound is strict
 
 In tutorial prose, it is often enough to read :math:`D_{ij}` simply as
@@ -70,12 +86,30 @@ In tutorial prose, it is often enough to read :math:`D_{ij}` simply as
 
 Three entries from the running example are worth reading explicitly:
 
-* :math:`D_{x,x_0} = 5` means :math:`x - x_0 \leq 5`, hence :math:`x \leq 5`
-* :math:`D_{x_0,y} = 0` means :math:`x_0 - y \leq 0`, hence :math:`y \geq 0`
-* :math:`D_{x,y} = 2` means :math:`x - y \leq 2`
+* :math:`D_{x,x_0} = (\leq, 5)` means :math:`x - x_0 \leq 5`, hence :math:`x \leq 5`
+* :math:`D_{x_0,y} = (\leq, 0)` means :math:`x_0 - y \leq 0`, hence :math:`y \geq 0`
+* :math:`D_{x,y} = (\leq, 2)` means :math:`x - y \leq 2`
 
 So a DBM is not "just any square table". Its rows and columns are indexed by
 clocks, and each cell talks about one clock difference.
+
+Using the same running example, the full matrix is
+
+.. math::
+
+   D_{\text{zone}} =
+   \left[
+   \begin{array}{c|ccc}
+        & x_0 & x & y \\
+      \hline
+      x_0 & (\leq, 0) & (\leq, 0) & (\leq, 0) \\
+      x   & (\leq, 5) & (\leq, 0) & (\leq, 2) \\
+      y   & (\leq, 3) & (\leq, 3) & (\leq, 0)
+   \end{array}
+   \right]
+
+So what you are looking at is not "a table of numbers", but a clock-indexed
+family of difference constraints.
 
 What One Cell Stores In UDBM Code
 ---------------------------------
@@ -132,12 +166,18 @@ cell. In fact, ``dbm_weakRaw`` explicitly refuses to weaken infinity, because
 That means a real DBM often looks more like this than like the fully finite
 example in the first figure:
 
-.. code-block:: text
+.. math::
 
-          x0     x      y
-   x0    <=0    <=0    <=0
-   x     <INF   <=0    <INF
-   y     <INF   <INF   <=0
+   D_{\text{init}} =
+   \left[
+   \begin{array}{c|ccc}
+        & x_0 & x & y \\
+      \hline
+      x_0 & (\leq, 0) & (\leq, 0) & (\leq, 0) \\
+      x   & (<, \infty) & (\leq, 0) & (<, \infty) \\
+      y   & (<, \infty) & (<, \infty) & (\leq, 0)
+   \end{array}
+   \right]
 
 This is essentially the shape created by ``dbm_init`` when ``CLOCKS_POSITIVE``
 is enabled: the first row and diagonal are ``<= 0``, while the remaining cells
