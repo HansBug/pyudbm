@@ -9,8 +9,11 @@ UPPAAL is not used only to draw timed automata. It is used to check
 requirements against them. The verifier does this by on-the-fly exploration of
 the symbolic state-space [UPP_VER]_.
 
+What Queries Are Really Asking
+------------------------------
+
 The Core Intuition
-------------------
+~~~~~~~~~~~~~~~~~~
 
 Most beginner questions about a model are variants of one of these:
 
@@ -23,7 +26,7 @@ UPPAAL's classic symbolic query language is built around exactly that kind of
 question [LPY97_QP]_ [BY04_QP]_ [UPP_QSYN]_ [UPP_QSEM]_.
 
 The Running State-Space Picture
--------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The easiest way to understand the common queries is to look at a small
 state-space sketch:
@@ -47,7 +50,7 @@ This one picture already separates several common questions:
 Those queries sound similar in English, but they are logically different.
 
 From State Predicates To Queries
---------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 UPPAAL queries are built from **state predicates**.
 
@@ -76,7 +79,7 @@ This page focuses on the first, second, fourth, and fifth forms, because they
 cover most early modeling questions.
 
 A Minimal Semantic Backbone
----------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 UPPAAL's official query semantics is phrased over a timed transition system
 
@@ -279,8 +282,11 @@ and similarly
 
 [UPP_QSEM]_.
 
+Beyond The Four Basic Shapes
+----------------------------
+
 Deadlock As A Property
-----------------------
+~~~~~~~~~~~~~~~~~~~~~~
 
 UPPAAL treats ``deadlock`` as a special state predicate.
 
@@ -305,7 +311,7 @@ That is why
 is such a common sanity check in UPPAAL tutorials and models [BDL04_QP]_.
 
 Leads-To Is Stronger Than Reachability
---------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 UPPAAL also supports the derived-style property
 
@@ -343,7 +349,7 @@ So leads-to is the right mental model for requirements such as:
 * every train that approaches the gate eventually crosses
 
 Witnesses, Counterexamples, And Why Queries Feel Useful
--------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Queries are not only logical formulas. In practice, they are useful because the
 tool can often show **why** they are true or false.
@@ -361,7 +367,7 @@ This is one reason query formulation matters so much: two properties that sound
 similar in prose may produce very different diagnostic traces.
 
 Beyond Yes/No Queries
----------------------
+~~~~~~~~~~~~~~~~~~~~~
 
 The current symbolic query syntax in UPPAAL also includes forms such as
 ``sup``, ``inf``, and ``bounds`` for asking quantitative questions over clocks
@@ -372,8 +378,11 @@ This page does not go into those yet. For now, the main lesson is simpler:
 * first decide whether you are asking about existence, invariance, eventuality, or progress
 * then choose the query form that matches that intent
 
+Positioning And Takeaways
+-------------------------
+
 Why This Matters For ``pyudbm``
--------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 `pyudbm` does not yet expose UPPAAL's full query language, but the query view
 already explains why clock constraints matter at all.
@@ -386,7 +395,7 @@ constraints. That means:
 * later pages on symbolic states, zones, DBMs, and federations are exactly the machinery that makes these queries tractable
 
 What To Remember
-----------------
+~~~~~~~~~~~~~~~~
 
 If you keep five ideas from this page, keep these:
 
@@ -397,7 +406,7 @@ If you keep five ideas from this page, keep these:
 * ``p --> q`` is a progress-style property, not just another reachability query
 
 Next
-----
+~~~~
 
 The next natural page is :doc:`../symbolic-states/index`: once the query
 viewpoint is in place, the next question is why UPPAAL does not enumerate

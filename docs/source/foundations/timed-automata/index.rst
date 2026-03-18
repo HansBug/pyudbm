@@ -10,8 +10,11 @@ automaton looks like a finite-state machine, but it is extended with
 real-valued clocks, clock constraints, resets, and location invariants
 [UPP_LOC]_ [UPP_EDGE]_ [UPP_SEM]_.
 
+Basic Objects And States
+------------------------
+
 The Running Example
--------------------
+~~~~~~~~~~~~~~~~~~~
 
 Consider a tiny request/response controller with one clock ``x``:
 
@@ -33,7 +36,7 @@ This is already a timed automaton, not just a control sketch:
 * the guard ``x >= 5`` enables the timeout edge exactly at the deadline
 
 The Basic Definition
---------------------
+~~~~~~~~~~~~~~~~~~~~
 
 One standard definition writes a timed automaton as
 
@@ -117,7 +120,7 @@ mathematical tuple above, it is enough to record the action names as
 :math:`\mathrm{send}`, :math:`\mathrm{ack}`, and :math:`\mathrm{timeout}`.
 
 Why A State Needs A Valuation
------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In an ordinary finite automaton, a control location is often enough to describe
 the current state. In a timed automaton, it is not.
@@ -190,8 +193,11 @@ For the running example, ``(WaitAck, x = 1)`` and ``(WaitAck, x = 4.9)`` are
 different states even though the control location is the same. One is still far
 from the timeout boundary; the other is almost forced to leave immediately.
 
+Operational Semantics And Composition
+-------------------------------------
+
 Two Kinds Of Transition
------------------------
+~~~~~~~~~~~~~~~~~~~~~~~
 
 Timed automata evolve in two fundamentally different ways:
 
@@ -248,7 +254,7 @@ The key semantic point is that the automaton may delay from ``x = 0`` to
 to happen.
 
 From One Automaton To A Network
--------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 UPPAAL usually works with **networks** of timed automata rather than only one
 automaton in isolation. A global state then has the shape
@@ -270,7 +276,7 @@ This page stays with a single automaton because that is the smallest setting in
 which clocks, guards, resets, and invariants already make semantic sense.
 
 Common Intuition Traps
-----------------------
+~~~~~~~~~~~~~~~~~~~~~~
 
 Three confusions are especially common when timed automata are new:
 
@@ -278,8 +284,11 @@ Three confusions are especially common when timed automata are new:
 * **An invariant is not just another guard.** A guard controls an edge; an invariant controls how long time may remain in a location.
 * **Reaching a boundary often forces a choice.** If no more delay is legal, the next move must be discrete or the run deadlocks.
 
+Positioning And Takeaways
+-------------------------
+
 Why This Matters For ``pyudbm``
--------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This repository does not yet expose the whole UPPAAL language or full network
 semantics. But the timed-automata viewpoint already explains why the Python API
@@ -294,7 +303,7 @@ plumbing. It is exposing the symbolic layer underneath guards, invariants, and
 reachable timed states.
 
 What To Remember
-----------------
+~~~~~~~~~~~~~~~~
 
 If you keep five ideas from this page, keep these:
 
@@ -305,7 +314,7 @@ If you keep five ideas from this page, keep these:
 * these clock constraints are exactly what later become zones and DBMs
 
 Next
-----
+~~~~
 
 The next natural page is :doc:`../queries-and-properties/index`: once the model
 is clear, the next question is what users usually ask about it.

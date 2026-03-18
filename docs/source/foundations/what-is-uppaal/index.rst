@@ -14,8 +14,11 @@ For this repository, the big picture matters because `pyudbm` wraps one layer
 of that world. UDBM is not the whole UPPAAL story, but it supports one of the
 most important symbolic representations inside it.
 
+From The Problem To The Tool
+----------------------------
+
 A Tiny Example
---------------
+~~~~~~~~~~~~~~
 
 Consider a small request/response controller:
 
@@ -47,7 +50,7 @@ This is not yet a timed-automaton diagram. It is only here to make the story
 concrete before we introduce more terminology.
 
 Why Not Just Test It?
----------------------
+~~~~~~~~~~~~~~~~~~~~~
 
 Testing and simulation are still useful, but they answer a different question.
 
@@ -63,7 +66,7 @@ too long. Time introduces many possible delays, so bugs can hide between the
 runs you happened to test [LPY97]_ [BDL04]_.
 
 Why Time Makes Things Harder
-----------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In an untimed model, a state is often described mainly by control flow:
 "where am I in the program or automaton?"
@@ -121,7 +124,7 @@ but a tool environment with a GUI, a verifier, simulators, and command-line
 use [UPP_HELP]_ [UPP_FEATURES]_.
 
 Why Symbolic States Appear
---------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If clocks are real-valued, then there are too many exact timed states to list
 one by one. That is why UPPAAL does not work only with single concrete states.
@@ -136,8 +139,11 @@ You do not need the details yet. For now, the key idea is simple:
 Later pages explain zones, DBMs, and federations. This page only needs to give
 you the reason they appear at all.
 
+Positioning And Takeaways
+-------------------------
+
 Why This Matters For ``pyudbm``
--------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 `pyudbm` does not currently implement the whole UPPAAL tool chain. It wraps the
 UDBM layer. But that layer makes much more sense when you remember the larger
@@ -149,7 +155,7 @@ repository restores high-level objects such as ``Context``, ``Clock``, and
 ``Federation``.
 
 What To Remember
-----------------
+~~~~~~~~~~~~~~~~
 
 If you only keep five ideas from this page, keep these:
 
@@ -160,7 +166,7 @@ If you only keep five ideas from this page, keep these:
 * **Symbolic states are the practical answer to that difficulty.**
 
 Next
-----
+~~~~
 
 The next concept page is :doc:`../timed-automata/index`. That is where the
 actual model shape gets introduced.

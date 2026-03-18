@@ -10,8 +10,11 @@ very small timed automaton already has infinitely many concrete states. UPPAAL
 therefore explores the state-space using **symbolic states represented by
 constraints** rather than by single valuations [UPP_VER_SS]_ [UPP_TRACE_SS]_.
 
+From Explicit States To Symbolic States
+---------------------------------------
+
 The Running Pressure
---------------------
+~~~~~~~~~~~~~~~~~~~~
 
 Return to the small request/response automaton from the previous pages. Inside
 location ``WaitAck``, the clock ``x`` may satisfy:
@@ -39,7 +42,7 @@ The picture is intentionally simple: many concrete timed states in the same
 control location can be summarized by one symbolic description.
 
 Why Explicit Timed States Explode
----------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 UPPAAL's semantics is defined over a timed transition system whose states have
 the form
@@ -62,7 +65,7 @@ With two clocks the space is even richer. If a model allows both ``x`` and
 of states, but a geometric space of possible valuations.
 
 Why Symbolic States Help
-------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 The official UPPAAL documentation gives the operational intuition very clearly:
 the verifier explores symbolic states, and the symbolic simulator shows
@@ -96,8 +99,11 @@ For the running location ``WaitAck``, the simplest example is:
 This single set stands for every concrete state whose control location is
 ``WaitAck`` and whose clock value stays inside the deadline window.
 
+Regions, Zones, And Symbolic Successors
+---------------------------------------
+
 Regions And Zones Are Not The Same
-----------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Two symbolic ideas are easy to mix up:
 
@@ -111,7 +117,7 @@ zone-style constraints because delay, guard intersection, reset, and inclusion
 tests become much more natural there [BY04_SS]_ [LPW95_SS]_.
 
 A Concrete One-Clock Example
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Suppose there is only one clock ``x`` and the largest constant mentioned by the
 model is `2`.
@@ -171,7 +177,7 @@ The tradeoff is important:
 * naive zone graphs may still be infinite, which is why later pages need normalization and extrapolation
 
 What Symbolic Successors Look Like
-----------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Once valuations are grouped into a zone, the next step is to lift ordinary
 timed-automata transitions from single valuations to sets of valuations.
@@ -206,7 +212,7 @@ operation vocabulary later looks like ``up``, guard intersection, reset, and
 containment tests.
 
 Common Intuition Traps
-----------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Three confusions are especially common here:
 
@@ -214,8 +220,11 @@ Three confusions are especially common here:
 * **A zone is not an arbitrary shape.** It is a constraint-defined set of valuations, and in the basic DBM story it is convex.
 * **A symbolic trace is not a promise about every point you see in it.** UPPAAL's symbolic-trace documentation explicitly warns that simulator traces are backward stable, but not necessarily forward stable [UPP_TRACE_SS]_.
 
+Positioning And Takeaways
+-------------------------
+
 Why This Matters For ``pyudbm``
--------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This page is exactly where the role of `pyudbm` becomes easier to explain.
 
@@ -231,7 +240,7 @@ constraint technology that makes symbolic states workable, not trying to replace
 the whole verifier.
 
 What To Remember
-----------------
+~~~~~~~~~~~~~~~~
 
 If you keep five ideas from this page, keep these:
 
@@ -242,7 +251,7 @@ If you keep five ideas from this page, keep these:
 * the later DBM layer exists because these zone operations need an efficient concrete representation
 
 Next
-----
+~~~~
 
 The next natural page is :doc:`../dbm-basics/index`: once the zone view is
 clear, the next question is why one matrix can encode such a set of clock
