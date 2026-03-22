@@ -121,15 +121,74 @@ class Clock:
     """
 
     def __init__(self, context: "Context", name: str, index: int):
+        """
+        Initialize one clock object inside a context.
+
+        The constructor is normally called by :class:`Context` while it creates
+        the declared clock set. ``index`` is the user-clock position, while the
+        derived :attr:`dbm_index` is shifted by one because UDBM reserves DBM
+        index ``0`` for the reference clock.
+
+        :param context: Owning context.
+        :type context: Context
+        :param name: User-visible clock name.
+        :type name: str
+        :param index: Zero-based user-clock index.
+        :type index: int
+        :return: ``None``.
+        :rtype: None
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x"])
+            >>> context.x.index
+            0
+            >>> context.x.dbm_index
+            1
+        """
         self.context = context
         self.index = index
         self.name = name
         self.dbm_index = index + 1
 
     def __repr__(self) -> str:
+        """
+        Return a debugging representation of the clock.
+
+        :return: Representation containing the fully-qualified name.
+        :rtype: str
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x"], name="c")
+            >>> repr(context.x)
+            '<Clock c.x>'
+        """
         return "<Clock {0}>".format(self.get_full_name())
 
     def __sub__(self, other: Any) -> "VariableDifference":
+        """
+        Build a symbolic difference between two clocks.
+
+        The result is a :class:`VariableDifference`, not a numeric value. Both
+        clocks must belong to the same context because UDBM diagonal
+        constraints are context-local.
+
+        :param other: Right-hand clock.
+        :type other: Any
+        :return: Symbolic clock difference.
+        :rtype: VariableDifference
+        :raises ValueError: If the clocks come from different contexts.
+
+        Example::
+
+            >>> from pyudbm import Context, VariableDifference
+            >>> context = Context(["x", "y"])
+            >>> isinstance(context.x - context.y, VariableDifference)
+            True
+        """
         if not isinstance(other, Clock):
             return NotImplemented
         if other.context is not self.context:
@@ -137,36 +196,150 @@ class Clock:
         return VariableDifference([self, other])
 
     def __le__(self, bound: Any) -> Any:
+        """
+        Build the non-strict upper-bound constraint ``clock <= bound``.
+
+        :param bound: Integer upper bound.
+        :type bound: Any
+        :return: Federation representing the constraint.
+        :rtype: Any
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x"])
+            >>> str(context.x <= 2)
+            '(x<=2)'
+        """
         if not _is_exact_int(bound):
             return NotImplemented
         return Federation(Constraint(self, None, bound, False))
 
     def __ge__(self, bound: Any) -> Any:
+        """
+        Build the non-strict lower-bound constraint ``clock >= bound``.
+
+        :param bound: Integer lower bound.
+        :type bound: Any
+        :return: Federation representing the constraint.
+        :rtype: Any
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x"])
+            >>> str(context.x >= 2)
+            '(2<=x)'
+        """
         if not _is_exact_int(bound):
             return NotImplemented
         return Federation(Constraint(None, self, -bound, False))
 
     def __lt__(self, bound: Any) -> Any:
+        """
+        Build the strict upper-bound constraint ``clock < bound``.
+
+        :param bound: Integer upper bound.
+        :type bound: Any
+        :return: Federation representing the strict constraint.
+        :rtype: Any
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x"])
+            >>> str(context.x < 2)
+            '(x<2)'
+        """
         if not _is_exact_int(bound):
             return NotImplemented
         return Federation(Constraint(self, None, bound, True))
 
     def __gt__(self, bound: Any) -> Any:
+        """
+        Build the strict lower-bound constraint ``clock > bound``.
+
+        :param bound: Integer lower bound.
+        :type bound: Any
+        :return: Federation representing the strict constraint.
+        :rtype: Any
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x"])
+            >>> str(context.x > 2)
+            '(2<x)'
+        """
         if not _is_exact_int(bound):
             return NotImplemented
         return Federation(Constraint(None, self, -bound, True))
 
     def __eq__(self, bound: Any) -> Any:
+        """
+        Build equality to a constant, or compare clock identity otherwise.
+
+        With an integer operand this returns the zone ``clock == bound``. With
+        any non-integer operand it falls back to normal Python object identity.
+
+        :param bound: Integer bound or arbitrary object.
+        :type bound: Any
+        :return: Constraint federation or boolean identity result.
+        :rtype: Any
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x"])
+            >>> str(context.x == 2)
+            '(x==2)'
+            >>> context.x == context["x"]
+            True
+        """
         if _is_exact_int(bound):
             return Federation(Constraint(self, None, bound, False)) & Federation(Constraint(None, self, -bound, False))
         return self is bound
 
     def __ne__(self, bound: Any) -> Any:
+        """
+        Build disequality to a constant, or compare identity otherwise.
+
+        With an integer operand the result is the union ``clock < bound`` or
+        ``clock > bound``. With non-integer operands this is the negation of
+        :meth:`__eq__`.
+
+        :param bound: Integer bound or arbitrary object.
+        :type bound: Any
+        :return: Constraint federation or boolean identity result.
+        :rtype: Any
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x"])
+            >>> str(context.x != 2)
+            '(2<x) | (x<2)'
+            >>> context.x != context["x"]
+            False
+        """
         if _is_exact_int(bound):
             return Federation(Constraint(self, None, bound, True)) | Federation(Constraint(None, self, -bound, True))
         return not self.__eq__(bound)
 
     def __hash__(self) -> int:
+        """
+        Return the hash derived from the fully-qualified clock name.
+
+        :return: Hash value.
+        :rtype: int
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x"], name="c")
+            >>> hash(context.x) == hash(context.x.get_full_name())
+            True
+        """
         return hash(self.get_full_name())
 
     def get_full_name(self) -> str:
@@ -229,6 +402,21 @@ class Valuation(dict):
     """
 
     def __init__(self, context: "Context"):
+        """
+        Initialize an empty valuation for one context.
+
+        :param context: Owning context.
+        :type context: Context
+        :return: ``None``.
+        :rtype: None
+
+        Example::
+
+            >>> from pyudbm import Context, Valuation
+            >>> valuation = Valuation(Context(["x"]))
+            >>> len(valuation)
+            0
+        """
         super().__init__()
         self.context = context
 
@@ -243,6 +431,26 @@ class Valuation(dict):
         return self.context[key]
 
     def __setitem__(self, key: Union[str, Clock], value: Any) -> None:
+        """
+        Store a value using either a clock name or a :class:`Clock` key.
+
+        :param key: Clock name or clock object.
+        :type key: str or Clock
+        :param value: Concrete clock value.
+        :type value: Any
+        :return: ``None``.
+        :rtype: None
+
+        Example::
+
+            >>> from pyudbm import Context, Valuation
+            >>> context = Context(["x", "y"])
+            >>> valuation = Valuation(context)
+            >>> valuation["x"] = 1
+            >>> valuation[context.y] = 2
+            >>> valuation[context.x], valuation[context.y]
+            (1, 2)
+        """
         super().__setitem__(self._normalize_key(key), value)
 
     def check(self) -> None:
@@ -297,6 +505,25 @@ class IntValuation(Valuation):
     """
 
     def __setitem__(self, key: Union[str, Clock], value: Any) -> None:
+        """
+        Store one integer-valued clock assignment.
+
+        :param key: Clock name or clock object.
+        :type key: str or Clock
+        :param value: Integer value to assign.
+        :type value: Any
+        :return: ``None``.
+        :rtype: None
+        :raises TypeError: If ``value`` is not a plain integer.
+
+        Example::
+
+            >>> from pyudbm import Context, IntValuation
+            >>> valuation = IntValuation(Context(["x"]))
+            >>> valuation["x"] = 3
+            >>> valuation[valuation.context.x]
+            3
+        """
         if not _is_exact_int(value):
             raise TypeError("Integer valuations require integer values.")
         super().__setitem__(key, value)
@@ -327,6 +554,25 @@ class FloatValuation(Valuation):
     """
 
     def __setitem__(self, key: Union[str, Clock], value: Any) -> None:
+        """
+        Store one real-valued clock assignment.
+
+        :param key: Clock name or clock object.
+        :type key: str or Clock
+        :param value: Integer or floating-point value.
+        :type value: Any
+        :return: ``None``.
+        :rtype: None
+        :raises TypeError: If ``value`` is neither ``int`` nor ``float``.
+
+        Example::
+
+            >>> from pyudbm import Context, FloatValuation
+            >>> valuation = FloatValuation(Context(["x"]))
+            >>> valuation["x"] = 1.5
+            >>> valuation[valuation.context.x]
+            1.5
+        """
         if not _is_exact_int_or_float(value):
             raise TypeError("Float valuations require int or float values.")
         super().__setitem__(key, value)
@@ -356,11 +602,31 @@ class VariableDifference:
         >>> diagonal = context.x - context.y
         >>> (diagonal <= 3) == (context.y - context.x >= -3)
         True
-        >>> (diagonal == 1) == ((context.x == 2) & (context.y == 1))
+        >>> str(diagonal == 1)
+        '(1<=x & x-y==1)'
+        >>> (diagonal == 1) == ((context.x - context.y) == 1)
         True
     """
 
     def __init__(self, variables: List[Clock]):
+        """
+        Initialize a symbolic difference ``left - right``.
+
+        :param variables: Exactly two clocks from the same context.
+        :type variables: List[Clock]
+        :return: ``None``.
+        :rtype: None
+        :raises ValueError: If the input does not contain exactly two
+            compatible clocks.
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x", "y"])
+            >>> difference = context.x - context.y
+            >>> [clock.name for clock in difference.vars]
+            ['x', 'y']
+        """
         if len(variables) != 2:
             raise ValueError("VariableDifference requires exactly two clocks.")
         if variables[0].context is not variables[1].context:
@@ -370,26 +636,102 @@ class VariableDifference:
         self.context = variables[0].context
 
     def __le__(self, bound: Any) -> Any:
+        """
+        Build the diagonal constraint ``left - right <= bound``.
+
+        :param bound: Integer upper bound.
+        :type bound: Any
+        :return: Federation representing the diagonal constraint.
+        :rtype: Any
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x", "y"])
+            >>> str(context.x - context.y <= 2)
+            '(x-y<=2)'
+        """
         if not _is_exact_int(bound):
             return NotImplemented
         return Federation(Constraint(self.vars[0], self.vars[1], bound, False))
 
     def __ge__(self, bound: Any) -> Any:
+        """
+        Build the diagonal constraint ``left - right >= bound``.
+
+        :param bound: Integer lower bound.
+        :type bound: Any
+        :return: Federation representing the diagonal constraint.
+        :rtype: Any
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x", "y"])
+            >>> str(context.x - context.y >= 2)
+            '(y-x<=-2)'
+        """
         if not _is_exact_int(bound):
             return NotImplemented
         return Federation(Constraint(self.vars[1], self.vars[0], -bound, False))
 
     def __lt__(self, bound: Any) -> Any:
+        """
+        Build the strict diagonal constraint ``left - right < bound``.
+
+        :param bound: Integer upper bound.
+        :type bound: Any
+        :return: Federation representing the diagonal constraint.
+        :rtype: Any
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x", "y"])
+            >>> str(context.x - context.y < 2)
+            '(x-y<2)'
+        """
         if not _is_exact_int(bound):
             return NotImplemented
         return Federation(Constraint(self.vars[0], self.vars[1], bound, True))
 
     def __gt__(self, bound: Any) -> Any:
+        """
+        Build the strict diagonal constraint ``left - right > bound``.
+
+        :param bound: Integer lower bound.
+        :type bound: Any
+        :return: Federation representing the diagonal constraint.
+        :rtype: Any
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x", "y"])
+            >>> str(context.x - context.y > 2)
+            '(y-x<-2)'
+        """
         if not _is_exact_int(bound):
             return NotImplemented
         return Federation(Constraint(self.vars[1], self.vars[0], -bound, True))
 
     def __eq__(self, bound: Any) -> Any:
+        """
+        Build the equality zone ``left - right == bound``.
+
+        :param bound: Integer difference value.
+        :type bound: Any
+        :return: Federation representing the equality, or ``False`` for
+            non-integer operands.
+        :rtype: Any
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x", "y"])
+            >>> str(context.x - context.y == 2)
+            '(2<=x & x-y==2)'
+        """
         if not _is_exact_int(bound):
             return False
         return Federation(Constraint(self.vars[0], self.vars[1], bound, False)) & Federation(
@@ -397,6 +739,22 @@ class VariableDifference:
         )
 
     def __ne__(self, bound: Any) -> Any:
+        """
+        Build the disequality zone ``left - right != bound``.
+
+        :param bound: Integer difference value.
+        :type bound: Any
+        :return: Federation representing the disequality, or ``True`` for
+            non-integer operands.
+        :rtype: Any
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x", "y"])
+            >>> str(context.x - context.y != 2)
+            '(y-x<-2) | (x-y<2)'
+        """
         if not _is_exact_int(bound):
             return True
         return Federation(Constraint(self.vars[0], self.vars[1], bound, True)) | Federation(
@@ -440,6 +798,31 @@ class Constraint:
     """
 
     def __init__(self, arg1: Optional[Clock], arg2: Optional[Clock], val: int, is_strict: bool):
+        """
+        Initialize one symbolic DBM constraint wrapper.
+
+        :param arg1: Left clock operand, or ``None`` for the reference clock.
+        :type arg1: Clock or None
+        :param arg2: Right clock operand, or ``None`` for the reference clock.
+        :type arg2: Clock or None
+        :param val: Integer bound.
+        :type val: int
+        :param is_strict: Whether the bound is strict.
+        :type is_strict: bool
+        :return: ``None``.
+        :rtype: None
+        :raises TypeError: If operands or the bound have invalid types.
+        :raises ValueError: If no operand is given or the clocks belong to
+            different contexts.
+
+        Example::
+
+            >>> from pyudbm import Constraint, Context
+            >>> context = Context(["x", "y"])
+            >>> constraint = Constraint(context.x, context.y, 3, False)
+            >>> constraint.context is context
+            True
+        """
         if not isinstance(val, int):
             raise TypeError("Constraint bounds must be integers.")
         if arg1 is None and arg2 is None:
@@ -513,6 +896,28 @@ class Federation:
     """
 
     def __init__(self, arg: Union["Context", Constraint]):
+        """
+        Initialize a federation from a context or one constraint.
+
+        Passing a :class:`Context` creates that context's zero federation.
+        Passing a :class:`Constraint` creates a one-DBM federation containing
+        the corresponding symbolic zone.
+
+        :param arg: Context or constraint source.
+        :type arg: Context or Constraint
+        :return: ``None``.
+        :rtype: None
+        :raises TypeError: If ``arg`` is neither a context nor a constraint.
+
+        Example::
+
+            >>> from pyudbm import Constraint, Context, Federation
+            >>> context = Context(["x"])
+            >>> Federation(context).is_zero()
+            True
+            >>> Federation(Constraint(context.x, None, 2, False)) == (context.x <= 2)
+            True
+        """
         if isinstance(arg, Constraint):
             self._fed = _NativeFederation(len(arg.context.clocks) + 1, arg._constraint)
             self.context = arg.context
@@ -546,6 +951,19 @@ class Federation:
         return values
 
     def __str__(self) -> str:
+        """
+        Return UDBM-style textual rendering of the federation.
+
+        :return: Human-readable symbolic zone expression.
+        :rtype: str
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x"])
+            >>> str(context.x < 2)
+            '(x<2)'
+        """
         return self._fed.to_string(self._clock_names()).replace(" && ", " & ").replace(" || ", " | ")
 
     def copy(self) -> "Federation":
@@ -574,37 +992,177 @@ class Federation:
         return Federation._from_native(self.context, self._fed.copy())
 
     def __and__(self, other: "Federation") -> "Federation":
+        """
+        Return the exact intersection of two federations.
+
+        :param other: Other federation in the same context.
+        :type other: Federation
+        :return: Intersection result.
+        :rtype: Federation
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x"])
+            >>> left = context.x >= 1
+            >>> right = context.x <= 3
+            >>> (left & right) == ((context.x >= 1) & (context.x <= 3))
+            True
+        """
         self._require_compatible(other)
         return Federation._from_native(self.context, self._fed.and_op(other._fed))
 
     def __iand__(self, other: "Federation") -> "Federation":
+        """
+        Intersect this federation with another one in place.
+
+        :param other: Other federation in the same context.
+        :type other: Federation
+        :return: ``self`` after intersection.
+        :rtype: Federation
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x"])
+            >>> zone = context.x >= 1
+            >>> zone &= (context.x <= 3)
+            >>> zone == ((context.x >= 1) & (context.x <= 3))
+            True
+        """
         self._require_compatible(other)
         self._fed.iand(other._fed)
         return self
 
     def __or__(self, other: "Federation") -> "Federation":
+        """
+        Return the set-theoretic union of two federations.
+
+        :param other: Other federation in the same context.
+        :type other: Federation
+        :return: Union result.
+        :rtype: Federation
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x"])
+            >>> union = (context.x == 0) | (context.x == 1)
+            >>> union.get_size()
+            2
+        """
         self._require_compatible(other)
         return Federation._from_native(self.context, self._fed.or_op(other._fed))
 
     def __ior__(self, other: "Federation") -> "Federation":
+        """
+        Union this federation with another one in place.
+
+        :param other: Other federation in the same context.
+        :type other: Federation
+        :return: ``self`` after union.
+        :rtype: Federation
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x"])
+            >>> zone = context.x == 0
+            >>> zone |= (context.x == 1)
+            >>> zone.get_size()
+            2
+        """
         self._require_compatible(other)
         self._fed.ior(other._fed)
         return self
 
     def __add__(self, other: "Federation") -> "Federation":
+        """
+        Return the convex union of two federations.
+
+        Unlike :meth:`__or__`, this computes UDBM's convex-hull style addition
+        and may introduce new valuations between the operands.
+
+        :param other: Other federation in the same context.
+        :type other: Federation
+        :return: Convex union result.
+        :rtype: Federation
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x"])
+            >>> hull = (context.x == 0) + (context.x == 2)
+            >>> hull == ((context.x >= 0) & (context.x <= 2))
+            True
+        """
         self._require_compatible(other)
         return Federation._from_native(self.context, self._fed.add_op(other._fed))
 
     def __iadd__(self, other: "Federation") -> "Federation":
+        """
+        Replace this federation by its convex union with another one.
+
+        :param other: Other federation in the same context.
+        :type other: Federation
+        :return: ``self`` after convex union.
+        :rtype: Federation
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x"])
+            >>> zone = context.x == 0
+            >>> zone += (context.x == 2)
+            >>> zone == ((context.x >= 0) & (context.x <= 2))
+            True
+        """
         self._require_compatible(other)
         self._fed.iadd(other._fed)
         return self
 
     def __sub__(self, other: "Federation") -> "Federation":
+        """
+        Return the set difference ``self \\ other``.
+
+        :param other: Other federation in the same context.
+        :type other: Federation
+        :return: Difference result.
+        :rtype: Federation
+
+        Example::
+
+            >>> from pyudbm import Context, IntValuation
+            >>> context = Context(["x"])
+            >>> zone = ((context.x >= 0) & (context.x <= 2)) - (context.x == 1)
+            >>> kept = IntValuation(context)
+            >>> kept["x"] = 0
+            >>> removed = IntValuation(context)
+            >>> removed["x"] = 1
+            >>> zone.contains(kept), zone.contains(removed)
+            (True, False)
+        """
         self._require_compatible(other)
         return Federation._from_native(self.context, self._fed.minus_op(other._fed))
 
     def __isub__(self, other: "Federation") -> "Federation":
+        """
+        Subtract another federation from this one in place.
+
+        :param other: Other federation in the same context.
+        :type other: Federation
+        :return: ``self`` after subtraction.
+        :rtype: Federation
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x"])
+            >>> zone = (context.x >= 0) & (context.x <= 2)
+            >>> zone -= (context.x == 1)
+            >>> zone == (((context.x >= 0) & (context.x < 1)) | ((context.x > 1) & (context.x <= 2)))
+            True
+        """
         self._require_compatible(other)
         self._fed.isub(other._fed)
         return self
@@ -808,27 +1366,117 @@ class Federation:
         return ret
 
     def __eq__(self, other: Any) -> bool:
+        """
+        Return whether two federations denote the same symbolic set.
+
+        :param other: Object to compare with.
+        :type other: Any
+        :return: ``True`` if both federations are equal.
+        :rtype: bool
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x"])
+            >>> (context.x == 1) == ((context.x <= 1) & (context.x >= 1))
+            True
+        """
         if not isinstance(other, Federation):
             return False
         self._require_compatible(other)
         return self._fed.eq(other._fed)
 
     def __ne__(self, other: Any) -> bool:
+        """
+        Return whether two federations denote different symbolic sets.
+
+        :param other: Object to compare with.
+        :type other: Any
+        :return: ``True`` if the federations differ.
+        :rtype: bool
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x"])
+            >>> (context.x == 1) != (context.x == 2)
+            True
+        """
         return not self == other
 
     def __le__(self, other: "Federation") -> bool:
+        """
+        Return whether ``self`` is a subset of ``other``.
+
+        :param other: Other federation in the same context.
+        :type other: Federation
+        :return: ``True`` if inclusion holds.
+        :rtype: bool
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x"])
+            >>> (context.x == 1) <= (context.x <= 1)
+            True
+        """
         self._require_compatible(other)
         return self._fed.le(other._fed)
 
     def __ge__(self, other: "Federation") -> bool:
+        """
+        Return whether ``self`` is a superset of ``other``.
+
+        :param other: Other federation in the same context.
+        :type other: Federation
+        :return: ``True`` if reverse inclusion holds.
+        :rtype: bool
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x"])
+            >>> (context.x <= 1) >= (context.x == 1)
+            True
+        """
         self._require_compatible(other)
         return self._fed.ge(other._fed)
 
     def __lt__(self, other: "Federation") -> bool:
+        """
+        Return whether ``self`` is a strict subset of ``other``.
+
+        :param other: Other federation in the same context.
+        :type other: Federation
+        :return: ``True`` if strict inclusion holds.
+        :rtype: bool
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x"])
+            >>> (context.x == 1) < (context.x <= 1)
+            True
+        """
         self._require_compatible(other)
         return self._fed.lt(other._fed)
 
     def __gt__(self, other: "Federation") -> bool:
+        """
+        Return whether ``self`` is a strict superset of ``other``.
+
+        :param other: Other federation in the same context.
+        :type other: Federation
+        :return: ``True`` if strict reverse inclusion holds.
+        :rtype: bool
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x"])
+            >>> (context.x <= 1) > (context.x == 1)
+            True
+        """
         self._require_compatible(other)
         return self._fed.gt(other._fed)
 
@@ -1082,6 +1730,21 @@ class Federation:
         return self._fed.is_empty()
 
     def __hash__(self) -> int:
+        """
+        Return the native order-insensitive federation hash.
+
+        :return: Hash value.
+        :rtype: int
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x", "y"])
+            >>> left = (context.x == 1) | (context.y == 1)
+            >>> right = (context.y == 1) | (context.x == 1)
+            >>> hash(left) == hash(right)
+            True
+        """
         return self._fed.hash()
 
     def hash(self) -> int:
@@ -1145,6 +1808,25 @@ class Context:
     """
 
     def __init__(self, clock_names: Iterable[str], name: Optional[str] = None):
+        """
+        Initialize a context and create all declared clocks.
+
+        :param clock_names: Names of clocks to create.
+        :type clock_names: Iterable[str]
+        :param name: Optional display prefix.
+        :type name: str or None
+        :return: ``None``.
+        :rtype: None
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x", "y"], name="c")
+            >>> [clock.name for clock in context.clocks]
+            ['x', 'y']
+            >>> context.name
+            'c'
+        """
         self.clocks = []  # type: List[Clock]
         self.name = name
 
@@ -1180,6 +1862,22 @@ class Context:
         self.name = name
 
     def __getitem__(self, arg: str) -> Clock:
+        """
+        Return one clock by its declared name.
+
+        :param arg: Clock name.
+        :type arg: str
+        :return: Matching clock object.
+        :rtype: Clock
+        :raises KeyError: If no unique clock with that name exists.
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x", "y"])
+            >>> context["x"] is context.x
+            True
+        """
         names = [clock for clock in self.clocks if clock.name == arg]
         if not names:
             raise KeyError(arg)
