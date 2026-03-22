@@ -22,7 +22,7 @@ Clock
 -----------------------------------------------------
 
 .. autoclass:: Clock
-    :members: __init__,__repr__,__sub__,__le__,__ge__,__lt__,__gt__,__eq__,__ne__,__hash__,getFullName
+    :members: __init__,__repr__,__sub__,__le__,__ge__,__lt__,__gt__,__eq__,__ne__,__hash__,get_full_name
 
 
 Valuation
@@ -64,13 +64,13 @@ Federation
 -----------------------------------------------------
 
 .. autoclass:: Federation
-    :members: __init__,__str__,copy,__and__,__iand__,__or__,__ior__,__add__,__iadd__,__sub__,__isub__,up,down,reduce,freeClock,setZero,hasZero,setInit,convexHull,__eq__,__ne__,__le__,__ge__,__lt__,__gt__,intern,predt,contains,updateValue,resetValue,getSize,extrapolateMaxBounds,isZero,isEmpty,__hash__,hash
+    :members: __init__,__str__,copy,__and__,__iand__,__or__,__ior__,__add__,__iadd__,__sub__,__isub__,up,down,reduce,free_clock,set_zero,has_zero,set_init,convex_hull,__eq__,__ne__,__le__,__ge__,__lt__,__gt__,intern,predt,contains,update_value,reset_value,get_size,extrapolate_max_bounds,is_zero,is_empty,__hash__,hash
 
 
 Context
 -----------------------------------------------------
 
 .. autoclass:: Context
-    :members: __init__,setName,__getitem__,getZeroFederation
+    :members: __init__,set_name,__getitem__,get_zero_federation
 
 
