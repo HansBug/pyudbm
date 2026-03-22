@@ -72,7 +72,7 @@ class Clock:
         self.dbm_index = index + 1
 
     def __repr__(self) -> str:
-        return "<Clock {0}>".format(self.getFullName())
+        return "<Clock {0}>".format(self.get_full_name())
 
     def __sub__(self, other: Any) -> "VariableDifference":
         if not isinstance(other, Clock):
@@ -112,9 +112,9 @@ class Clock:
         return not self.__eq__(bound)
 
     def __hash__(self) -> int:
-        return hash(self.getFullName())
+        return hash(self.get_full_name())
 
-    def getFullName(self) -> str:
+    def get_full_name(self) -> str:
         """
         Return the fully-qualified clock name.
 
@@ -261,11 +261,11 @@ class Constraint:
     :type arg2: Clock or None
     :param val: Integer bound.
     :type val: int
-    :param isStrict: Whether the bound is strict.
-    :type isStrict: bool
+    :param is_strict: Whether the bound is strict.
+    :type is_strict: bool
     """
 
-    def __init__(self, arg1: Optional[Clock], arg2: Optional[Clock], val: int, isStrict: bool):
+    def __init__(self, arg1: Optional[Clock], arg2: Optional[Clock], val: int, is_strict: bool):
         if not isinstance(val, int):
             raise TypeError("Constraint bounds must be integers.")
         if arg1 is None and arg2 is None:
@@ -283,7 +283,7 @@ class Constraint:
 
         i = arg1.dbm_index if arg1 is not None else 0
         j = arg2.dbm_index if arg2 is not None else 0
-        self._constraint = _NativeConstraint(i, j, val, isStrict)
+        self._constraint = _NativeConstraint(i, j, val, is_strict)
 
 
 class Federation:
@@ -324,7 +324,7 @@ class Federation:
             raise ValueError("Federation operations require the same context.")
 
     def _clock_names(self) -> List[str]:
-        return ["0"] + [clock.getFullName() for clock in self.context.clocks]
+        return ["0"] + [clock.get_full_name() for clock in self.context.clocks]
 
     def _valuation_vector(self, valuation: Valuation) -> List[Union[int, float]]:
         values = [0]
@@ -404,27 +404,27 @@ class Federation:
         self._fed.merge_reduce(0, level)
         return self
 
-    def freeClock(self, clock: Clock) -> "Federation":
+    def free_clock(self, clock: Clock) -> "Federation":
         if not isinstance(clock, Clock):
-            raise TypeError("freeClock expects a Clock instance.")
+            raise TypeError("free_clock expects a Clock instance.")
         if clock.context is not self.context:
-            raise ValueError("freeClock requires a clock from the same context.")
+            raise ValueError("free_clock requires a clock from the same context.")
         ret = self.copy()
         ret._fed.free_clock(clock.dbm_index)
         return ret
 
-    def setZero(self) -> "Federation":
+    def set_zero(self) -> "Federation":
         self._fed.set_zero()
         return self
 
-    def hasZero(self) -> bool:
+    def has_zero(self) -> bool:
         return self._fed.has_zero()
 
-    def setInit(self) -> "Federation":
+    def set_init(self) -> "Federation":
         self._fed.set_init()
         return self
 
-    def convexHull(self) -> "Federation":
+    def convex_hull(self) -> "Federation":
         ret = self.copy()
         ret._fed.convex_hull()
         return ret
@@ -472,20 +472,20 @@ class Federation:
             return self._fed.contains_float(values)
         raise TypeError("Unknown valuation type.")
 
-    def updateValue(self, clock: Clock, value: int) -> "Federation":
+    def update_value(self, clock: Clock, value: int) -> "Federation":
         if clock.context is not self.context:
             raise ValueError("Clock update requires the same context.")
         ret = self.copy()
         ret._fed.update_value(clock.dbm_index, value)
         return ret
 
-    def resetValue(self, clock: Clock) -> "Federation":
-        return self.updateValue(clock, 0)
+    def reset_value(self, clock: Clock) -> "Federation":
+        return self.update_value(clock, 0)
 
-    def getSize(self) -> int:
+    def get_size(self) -> int:
         return self._fed.size()
 
-    def extrapolateMaxBounds(self, bounds: Mapping[Clock, int]) -> "Federation":
+    def extrapolate_max_bounds(self, bounds: Mapping[Union[str, Clock], int]) -> "Federation":
         normalized_bounds = {}
         for key, value in bounds.items():
             if isinstance(key, str):
@@ -503,7 +503,7 @@ class Federation:
 
         missing_clocks = [clock for clock in self.context.clocks if clock not in normalized_bounds]
         if missing_clocks:
-            raise ValueError("extrapolateMaxBounds requires bounds for every clock.")
+            raise ValueError("extrapolate_max_bounds requires bounds for every clock.")
 
         ret = self.copy()
         vector = [0] * (len(self.context.clocks) + 1)
@@ -513,10 +513,10 @@ class Federation:
         ret._fed.extrapolate_max_bounds(vector)
         return ret
 
-    def isZero(self) -> bool:
-        return self == self.context.getZeroFederation()
+    def is_zero(self) -> bool:
+        return self == self.context.get_zero_federation()
 
-    def isEmpty(self) -> bool:
+    def is_empty(self) -> bool:
         return self._fed.is_empty()
 
     def __hash__(self) -> int:
@@ -548,7 +548,7 @@ class Context:
             else:
                 setattr(self, clock_name, clock)
 
-    def setName(self, name: Optional[str]) -> None:
+    def set_name(self, name: Optional[str]) -> None:
         """
         Set the context display name.
 
@@ -568,7 +568,7 @@ class Context:
             raise KeyError("Ambiguous clock name: {0}".format(arg))
         return names[0]
 
-    def getZeroFederation(self) -> Federation:
+    def get_zero_federation(self) -> Federation:
         """
         Return the zero federation for this context.
 

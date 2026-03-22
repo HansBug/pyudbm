@@ -74,17 +74,17 @@ class TestBindingApi:
     def test_zero(self):
         c = self.c
 
-        assert not (c.x == 1).hasZero()
-        assert not (c.x > 1).hasZero()
-        assert (c.x < 1).hasZero()
-        assert ((c.x == 1) & (c.z == 2)).setZero() == ((c.x == 0) & (c.y == 0) & (c.z == 0))
-        assert ((c.x == 1) & (c.z == 2)).setZero().hasZero()
+        assert not (c.x == 1).has_zero()
+        assert not (c.x > 1).has_zero()
+        assert (c.x < 1).has_zero()
+        assert ((c.x == 1) & (c.z == 2)).set_zero() == ((c.x == 0) & (c.y == 0) & (c.z == 0))
+        assert ((c.x == 1) & (c.z == 2)).set_zero().has_zero()
 
     def test_update_clocks(self):
         c = self.c
 
-        assert ((c.x == 1) | (c.z == 2)).updateValue(c.x, 2) == (c.x == 2)
-        assert ((c.x == 1) & (c.z == 2)).resetValue(c.x) == ((c.x == 0) & (c.z == 2))
+        assert ((c.x == 1) | (c.z == 2)).update_value(c.x, 2) == (c.x == 2)
+        assert ((c.x == 1) & (c.z == 2)).reset_value(c.x) == ((c.x == 0) & (c.z == 2))
 
     def test_str(self):
         c = self.c
@@ -108,9 +108,9 @@ class TestBindingApi:
         c = self.c
         federation = (c.x >= 1) | (c.x <= 1)
 
-        assert federation.getSize() == 2
+        assert federation.get_size() == 2
         federation.reduce()
-        assert federation.getSize() == 1
+        assert federation.get_size() == 1
 
     def test_convex_hull(self):
         c = self.c
@@ -119,7 +119,7 @@ class TestBindingApi:
         d3 = (c.x - c.y <= 1) & (c.y - c.x <= 1) & (c.x >= 1) & (c.y >= 1) & (c.x <= 4) & (c.y <= 4)
 
         assert (d1 + d2) == d3
-        assert (d1 | d2).convexHull() == d3
+        assert (d1 | d2).convex_hull() == d3
 
         d1 += d2
         assert d1 == d3
@@ -150,10 +150,10 @@ class TestBindingApi:
 
         trial.up()
         trial.down()
-        trial.freeClock(c.x)
-        trial.convexHull()
+        trial.free_clock(c.x)
+        trial.convex_hull()
         trial.predt(trial)
-        trial.resetValue(c.x)
+        trial.reset_value(c.x)
 
         assert original == trial
 
@@ -161,7 +161,7 @@ class TestBindingApi:
         c = self.c
         federation = (c.x - c.y <= 1) & (c.y - c.x <= 1) & (c.x >= 1) & (c.y >= 1) & (c.y <= 4)
 
-        federation.setInit()
+        federation.set_init()
 
         assert federation == ((c.x >= 0) & (c.y >= 0) & (c.z >= 0))
         assert federation != ((c.x >= 1) & (c.y >= 0) & (c.z >= 0))
@@ -187,19 +187,19 @@ class TestBindingApi:
         federation = (c.x - c.y <= 1) & (c.x < 150) & (c.z < 150) & (c.x - c.z <= 1000)
         bounds = {c.x: 100, c.y: 300, c.z: 400}
 
-        assert federation.extrapolateMaxBounds(bounds) == ((c.x - c.y <= 1) & (c.z < 150))
+        assert federation.extrapolate_max_bounds(bounds) == ((c.x - c.y <= 1) & (c.z < 150))
 
     def test_free_clock(self):
         c = self.c
-        assert ((c.x >= 10) & (c.y >= 10)).freeClock(c.x) == (c.y >= 10)
+        assert ((c.x >= 10) & (c.y >= 10)).free_clock(c.x) == (c.y >= 10)
 
     def test_zero_federation(self):
         c = self.c
-        assert c.getZeroFederation().isZero()
-        assert c.getZeroFederation().hasZero()
-        assert Federation(c).isZero()
-        assert not (c.x == 1).isZero()
-        assert (c.x == 1) != c.getZeroFederation()
+        assert c.get_zero_federation().is_zero()
+        assert c.get_zero_federation().has_zero()
+        assert Federation(c).is_zero()
+        assert not (c.x == 1).is_zero()
+        assert (c.x == 1) != c.get_zero_federation()
 
     def test_hash(self):
         c = self.c
@@ -210,11 +210,11 @@ class TestBindingApi:
     def test_is_empty(self):
         c = self.c
 
-        assert ((c.x == 1) & (c.x != 1)).isEmpty()
-        assert not ((c.x == 1) | (c.x != 1)).isEmpty()
-        assert not (c.x == 1).isEmpty()
-        assert not ((c.x == 1) & (c.y != 1)).isEmpty()
-        assert (((c.x == 1) & (c.x != 1)) | ((c.y == 1) & (c.y != 1))).isEmpty()
+        assert ((c.x == 1) & (c.x != 1)).is_empty()
+        assert not ((c.x == 1) | (c.x != 1)).is_empty()
+        assert not (c.x == 1).is_empty()
+        assert not ((c.x == 1) & (c.y != 1)).is_empty()
+        assert (((c.x == 1) & (c.x != 1)) | ((c.y == 1) & (c.y != 1))).is_empty()
 
     def test_clock_public_edge_cases(self):
         context = Context(["x", "y"], name="c")
@@ -222,7 +222,7 @@ class TestBindingApi:
         anonymous = Context(["x"])
 
         assert repr(context.x) == "<Clock c.x>"
-        assert anonymous.x.getFullName() == "x"
+        assert anonymous.x.get_full_name() == "x"
         assert context.x == context.x
         assert context.x != context.y
 
@@ -384,33 +384,33 @@ class TestBindingApi:
             federation.contains(valuation)
 
         with pytest.raises(ValueError):
-            federation.updateValue(other.x, 1)
+            federation.update_value(other.x, 1)
 
         with pytest.raises(TypeError):
-            federation.freeClock("x")
+            federation.free_clock("x")
 
         with pytest.raises(ValueError):
-            federation.freeClock(other.x)
+            federation.free_clock(other.x)
 
     def test_extrapolate_max_bounds_public_validation(self):
         context = Context(["x", "y", "z"])
         other = Context(["x"])
         federation = (context.x - context.y <= 1) & (context.x < 150) & (context.z < 150) & (context.x - context.z <= 1000)
 
-        result = federation.extrapolateMaxBounds({"x": 100, "y": 300, "z": 400})
+        result = federation.extrapolate_max_bounds({"x": 100, "y": 300, "z": 400})
         assert result == ((context.x - context.y <= 1) & (context.z < 150))
 
         with pytest.raises(ValueError, match="requires bounds for every clock"):
-            federation.extrapolateMaxBounds({"x": 100})
+            federation.extrapolate_max_bounds({"x": 100})
 
         with pytest.raises(ValueError, match="Duplicate bounds provided for clock: x"):
-            federation.extrapolateMaxBounds({"x": 100, context.x: 200, context.y: 300, context.z: 400})
+            federation.extrapolate_max_bounds({"x": 100, context.x: 200, context.y: 300, context.z: 400})
 
         with pytest.raises(TypeError):
-            federation.extrapolateMaxBounds({context.x: 100, context.y: 200, 1: 300})
+            federation.extrapolate_max_bounds({context.x: 100, context.y: 200, 1: 300})
 
         with pytest.raises(ValueError):
-            federation.extrapolateMaxBounds({other.x: 100, context.y: 200, context.z: 300})
+            federation.extrapolate_max_bounds({other.x: 100, context.y: 200, context.z: 300})
 
     def test_context_public_edge_cases(self, caplog):
         with caplog.at_level("WARNING", logger="pyudbm"):
@@ -420,9 +420,9 @@ class TestBindingApi:
         assert warned["clocks"].name == "clocks"
 
         context = Context(["x"])
-        context.setName("renamed")
+        context.set_name("renamed")
 
-        assert context.x.getFullName() == "renamed.x"
+        assert context.x.get_full_name() == "renamed.x"
 
         with pytest.raises(KeyError):
             _ = context["missing"]
@@ -430,3 +430,22 @@ class TestBindingApi:
         ambiguous = Context(["x", "x"])
         with pytest.raises(KeyError, match="Ambiguous clock name: x"):
             _ = ambiguous["x"]
+
+    def test_camel_case_binding_methods_are_gone(self):
+        context = Context(["x", "y"])
+        federation = context.x <= 1
+
+        assert not hasattr(context.x, "getFullName")
+        assert not hasattr(context, "setName")
+        assert not hasattr(context, "getZeroFederation")
+        assert not hasattr(federation, "freeClock")
+        assert not hasattr(federation, "setZero")
+        assert not hasattr(federation, "hasZero")
+        assert not hasattr(federation, "setInit")
+        assert not hasattr(federation, "convexHull")
+        assert not hasattr(federation, "updateValue")
+        assert not hasattr(federation, "resetValue")
+        assert not hasattr(federation, "getSize")
+        assert not hasattr(federation, "extrapolateMaxBounds")
+        assert not hasattr(federation, "isZero")
+        assert not hasattr(federation, "isEmpty")
