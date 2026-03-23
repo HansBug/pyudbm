@@ -50,8 +50,7 @@ test-command = [
 ## Linux build configuration
 [tool.cibuildwheel.linux]
 archs = ["x86_64", "aarch64"] # Build for x86_64 and arm64
-#skip = ["pp* *musllinux*"] # dependencies do not build for musl
-skip = ["pp*"] # dependencies do not build for musl
+skip = ["pp*", "*musllinux*"] # native dependency chain is currently validated only on glibc-based Linux wheels
 before-build = [
     "bash -lc 'exec bash \"{package}/cibw/linux_before_build.sh\" \"{package}\"'",
 ]
