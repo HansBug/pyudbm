@@ -35,9 +35,9 @@ export CMAKE_GENERATOR=Ninja
 
 echo "PROJECT_ROOT=$PROJECT_ROOT"
 echo "CC=$CC CXX=$CXX"
-pip install -U ninja
-pip install pybind11[global]
-pip install -U "cmake<4"
+python -m pip install -U ninja
+python -m pip install pybind11[global]
+python -m pip install -U "cmake<4"
 
 BIN_INSTALL="$(resolve_path bin_install)"
 

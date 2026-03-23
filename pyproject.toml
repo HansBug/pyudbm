@@ -19,7 +19,7 @@ before-build = [
     "bash -lc 'pkg=\"{package}\"; pkg_u=$(cygpath -u \"$pkg\"); exec bash \"$pkg_u/cibw/windows_before_build.sh\" \"$pkg\"'",
 ]
 before-test = [# Unittest for windows
-    "pip install -r {project}/requirements-test.txt",
+    "python -m pip install -r {project}/requirements-test.txt",
 ]
 test-command = [
     "rm -rf {project}/UUtils_build {project}/UDBM_build {project}/UCDD_build {project}/bin_install",
@@ -36,7 +36,7 @@ before-build = [
     "bash -lc 'exec bash \"{package}/cibw/macos_before_build.sh\" \"{package}\"'",
 ]
 before-test = [# Unittest for macos
-    "pip install -r {project}/requirements-test.txt",
+    "python -m pip install -r {project}/requirements-test.txt",
 ]
 test-command = [
     "rm -rf {project}/UUtils_build {project}/UDBM_build {project}/UCDD_build {project}/bin_install",
@@ -56,7 +56,7 @@ before-build = [
     "bash -lc 'exec bash \"{package}/cibw/linux_before_build.sh\" \"{package}\"'",
 ]
 before-test = [# Unittest for linux
-    "pip install -r {project}/requirements-test.txt",
+    "python -m pip install -r {project}/requirements-test.txt",
 ]
 test-command = [
     "rm -rf {project}/UUtils_build {project}/UDBM_build {project}/UCDD_build {project}/bin_install",

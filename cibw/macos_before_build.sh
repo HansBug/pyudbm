@@ -49,9 +49,9 @@ export CMAKE_GENERATOR=Ninja
 
 "$PROJECT_ROOT/macos_kill_cmake.sh"
 
-pip install -U ninja
-pip install pybind11[global]
-pip install -U "cmake<4"
+python -m pip install -U ninja
+python -m pip install pybind11[global]
+python -m pip install -U "cmake<4"
 
 uname -m
 echo "$CIBW_ARCHS"

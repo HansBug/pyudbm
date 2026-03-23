@@ -48,9 +48,9 @@ echo "PROJECT_ROOT=$PROJECT_ROOT"
 echo "MINGW_BIN=$MINGW_BIN"
 "$CC" --version
 "$CXX" --version
-pip install -U ninja
-pip install pybind11[global]
-pip install -U "cmake<4"
+python -m pip install -U ninja
+python -m pip install pybind11[global]
+python -m pip install -U "cmake<4"
 ls -al
 whoami
 pwd
