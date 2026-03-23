@@ -216,10 +216,6 @@ def _point_key(point: Point2D) -> Tuple[int, int]:
     return int(round(point.x * 1000000000.0)), int(round(point.y * 1000000000.0))
 
 
-def _point_from_tuple(value: Tuple[float, float]) -> Point2D:
-    return Point2D(float(value[0]), float(value[1]))
-
-
 def _normalize_1d_limits(limits: Optional[Tuple[float, float]], intervals: Sequence[Tuple[Optional[float], Optional[float]]]) -> Tuple[float, float]:
     if limits is not None:
         if not isinstance(limits, tuple) or len(limits) != 2:
@@ -236,9 +232,7 @@ def _normalize_1d_limits(limits: Optional[Tuple[float, float]], intervals: Seque
             finite_values.append(float(lower))
         if upper is not None:
             finite_values.append(float(upper))
-
-    if not finite_values:
-        return -5.0, 5.0
+    finite_values = finite_values or [-5.0, 5.0]
 
     minimum = min(finite_values)
     maximum = max(finite_values)
@@ -283,11 +277,8 @@ def _normalize_2d_limits(
             y_values.append(float(ymin))
         if ymax is not None:
             y_values.append(float(ymax))
-
-    if not x_values:
-        x_values.extend([-5.0, 5.0])
-    if not y_values:
-        y_values.extend([-5.0, 5.0])
+    x_values = x_values or [-5.0, 5.0]
+    y_values = y_values or [-5.0, 5.0]
 
     x_lower = min(x_values)
     x_upper = max(x_values)
@@ -382,8 +373,6 @@ def _build_halfspaces_for_dbm_2d(dbm: DBM, limits: Tuple[Tuple[float, float], Tu
                 coefficients[i - 1] += 1.0
             if j > 0:
                 coefficients[j - 1] -= 1.0
-            if _almost_equal(coefficients[0], 0.0) and _almost_equal(coefficients[1], 0.0):
-                continue
 
             result.append(HalfSpace2D(coefficients[0], coefficients[1], float(dbm.bound(i, j)), dbm.is_strict(i, j), False))
 
@@ -507,10 +496,6 @@ def _segment_intersection_parameters(left: BoundarySegment2D, right: BoundarySeg
         if abs((qp.x * r.y) - (qp.y * r.x)) > _GEOMETRY_EPSILON:
             return tuple(), tuple()
 
-        length = (r.x * r.x) + (r.y * r.y)
-        if length <= _GEOMETRY_EPSILON:
-            return tuple(), tuple()
-
         if abs(r.x) >= abs(r.y):
             left_values = sorted([0.0, 1.0, (right.start.x - left.start.x) / r.x if abs(r.x) > _GEOMETRY_EPSILON else 0.0, (right.end.x - left.start.x) / r.x if abs(r.x) > _GEOMETRY_EPSILON else 0.0])
         else:
@@ -518,7 +503,7 @@ def _segment_intersection_parameters(left: BoundarySegment2D, right: BoundarySeg
 
         overlap_start = max(0.0, left_values[1])
         overlap_end = min(1.0, left_values[2])
-        if overlap_end < overlap_start - _GEOMETRY_EPSILON:
+        if overlap_end <= overlap_start + _GEOMETRY_EPSILON:
             return tuple(), tuple()
 
         if abs(s.x) >= abs(s.y):
@@ -547,9 +532,6 @@ def _point_along(segment: BoundarySegment2D, parameter: float) -> Point2D:
 
 
 def _split_boundary_segments(segments: Sequence[BoundarySegment2D]) -> Tuple[BoundarySegment2D, ...]:
-    if not segments:
-        return tuple()
-
     split_parameters = {index: [0.0, 1.0] for index in range(len(segments))}  # type: Dict[int, List[float]]
     for left_index, left in enumerate(segments):
         for right_index in range(left_index + 1, len(segments)):
@@ -562,8 +544,6 @@ def _split_boundary_segments(segments: Sequence[BoundarySegment2D]) -> Tuple[Bou
     for index, segment in enumerate(segments):
         parameters = sorted(set(min(1.0, max(0.0, value)) for value in split_parameters[index]))
         for left_parameter, right_parameter in zip(parameters, parameters[1:]):
-            if right_parameter - left_parameter <= _GEOMETRY_EPSILON:
-                continue
             start = _point_along(segment, left_parameter)
             end = _point_along(segment, right_parameter)
             piece = BoundarySegment2D(start=start, end=end, is_closed=segment.is_closed, is_clipped=segment.is_clipped)
@@ -576,9 +556,6 @@ def _offset_point_left_of(segment: BoundarySegment2D) -> Tuple[Point2D, Point2D]
     direction_x = segment.end.x - segment.start.x
     direction_y = segment.end.y - segment.start.y
     length = math.hypot(direction_x, direction_y)
-    if length <= _GEOMETRY_EPSILON:
-        return segment.midpoint, segment.midpoint
-
     offset = max(min(length, 1.0) * 1e-6, 1e-7)
     normal_x = -direction_y / length
     normal_y = direction_x / length
@@ -611,32 +588,23 @@ def _exact_federation_boundary_2d(polygons: Sequence[PolygonGeometry2D]) -> Tupl
         if left_inside == right_inside:
             continue
 
-        oriented = segment
-        if right_inside and not left_inside:
-            oriented = BoundarySegment2D(
-                start=segment.end,
-                end=segment.start,
-                is_closed=segment.is_closed,
-                is_clipped=segment.is_clipped,
-            )
-
-        midpoint = oriented.midpoint
+        midpoint = segment.midpoint
         is_closed = _point_in_polygon_union(midpoint, polygons)
-        key = tuple(sorted((_point_key(oriented.start), _point_key(oriented.end))))  # type: ignore[arg-type]
+        key = tuple(sorted((_point_key(segment.start), _point_key(segment.end))))  # type: ignore[arg-type]
         existing = deduplicated.get(key)
         if existing is None:
             deduplicated[key] = BoundarySegment2D(
-                start=oriented.start,
-                end=oriented.end,
+                start=segment.start,
+                end=segment.end,
                 is_closed=is_closed,
-                is_clipped=oriented.is_clipped,
+                is_clipped=segment.is_clipped,
             )
         else:
             deduplicated[key] = BoundarySegment2D(
                 start=existing.start,
                 end=existing.end,
                 is_closed=existing.is_closed or is_closed,
-                is_clipped=existing.is_clipped and oriented.is_clipped,
+                is_clipped=existing.is_clipped and segment.is_clipped,
             )
 
     return tuple(deduplicated.values())
@@ -676,12 +644,8 @@ def _trace_boundary_loops(boundary_segments: Sequence[BoundarySegment2D]) -> Tup
 
         while current_key != start_key:
             candidates = [index for index in outgoing.get(current_key, []) if index in unused]
-            if not candidates:
-                raise RuntimeError("Failed to trace a closed boundary loop from exact federation boundary segments.")
-
-            if len(candidates) == 1:
-                next_index = candidates[0]
-            else:
+            next_index = candidates[0]
+            if len(candidates) > 1:
                 next_segment = _choose_next_boundary_segment(current, [boundary_segments[index] for index in candidates])
                 next_index = boundary_segments.index(next_segment)
 
@@ -699,8 +663,6 @@ def _trace_boundary_loops(boundary_segments: Sequence[BoundarySegment2D]) -> Tup
 def _segments_are_mergeable(left: BoundarySegment2D, right: Optional[BoundarySegment2D]) -> bool:
     if right is None:
         return False
-    if _point_key(left.end) != _point_key(right.start):
-        return False
     if left.is_closed != right.is_closed or left.is_clipped != right.is_clipped:
         return False
 
@@ -712,9 +674,6 @@ def _segments_are_mergeable(left: BoundarySegment2D, right: Optional[BoundarySeg
 
 
 def _merge_loop_segments(loop: BoundaryLoop2D) -> BoundaryLoop2D:
-    if len(loop.segments) <= 1:
-        return loop
-
     segments = list(loop.segments)
     changed = True
     while changed and len(segments) > 1:
@@ -819,9 +778,7 @@ def _extract_degenerate_union_points(
         if not isinstance(geometry, PointGeometry2D):
             continue
         point = geometry.point
-        if _point_in_polygon_union(point, polygons):
-            continue
-        if any(_point_on_segment(point, segment) for segment in segments):
+        if _point_in_polygon_union(point, polygons) or any(_point_on_segment(point, segment) for segment in segments):
             continue
         result.append(point)
     return tuple(_unique_points(result))
