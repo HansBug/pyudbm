@@ -960,85 +960,284 @@ discipline and prefer source-only edits rather than touching generated outputs.
 - For user-facing string-producing APIs such as `__str__`, `__repr__`, formatting helpers, and stable textual exports, prefer exact expected output in examples instead of vague placeholder text when the output is deterministic.
 - If an API returns a detached snapshot, a read-only view, or data that will not track future mutations, state that explicitly in the docstring.
 - Use docstrings to document semantics, invariants, and user-visible behavior. Do not fill them with implementation trivia that does not affect users.
+- For operator overloads, explicitly say what Python syntax means semantically. In this repository many operators build symbolic constraints or perform set algebra, so do not leave readers guessing whether an operator returns a boolean, a federation, or a helper object.
+- For mutating versus non-mutating APIs, state that distinction in the first paragraph, not only indirectly in an example.
+- For constructors and factories, explain what kind of initial symbolic state is created, not just the accepted parameter types.
+- For validation-heavy methods, document accepted name forms and realistic failure modes. In this codebase that often means spelling out whether inputs may be integer indices, bare clock names, qualified clock names like ``"c.x"``, or the reference clock ``"0"``.
+- Prefer one canonical runnable setup for examples unless a different setup is required by the API under discussion. The default example context should usually be ``Context(["x", "y"], name="c")`` so examples stay comparable across the module.
+
+### Binding-Oriented Docstring Conventions
+
+When documenting `pyudbm.binding` APIs, prefer writing in terms of the actual
+symbolic model rather than abstract placeholder prose.
+
+- Name the semantic role early: “symbolic clock”, “detached DBM snapshot”, “union of DBMs”, “valuation over one context”.
+- Call out the upstream model when it matters: reference clock `0`, DBM dimension `n + 1`, federation as a union of convex zones, and clock differences as symbolic expressions rather than numeric subtraction.
+- For APIs that return structured data, document both the container shape and the element meaning. “Nested list” is not enough; say whether it is row-major, whether it includes clock `0`, and what each cell contains.
+- For APIs with historical semantics, mention legacy behavior directly when it affects usage, especially copy-vs-mutate behavior and expression-building syntax.
+- Keep examples short but complete. A good example normally has setup, one operation, and one observable result.
+
+### Preferred Example Setup
+
+Unless a narrower example is clearer, prefer reusing this setup in binding
+docstrings:
+
+```python
+>>> from pyudbm import Context
+>>> context = Context(["x", "y"], name="c")
+>>> zone = (context.x <= 10) & (context.x - context.y < 3)
+```
+
+This keeps clock naming, reference-clock behavior, and printed output
+consistent across the module.
 
 ### Module Template
 
 ```python
 """
-Brief one-line description.
+Legacy-style high-level UDBM API.
 
-Longer description of the module purpose and how it fits into :mod:`pyudbm`.
+This module exposes the main symbolic modeling layer of :mod:`pyudbm`. It
+keeps the historical ``Context`` / ``Clock`` / ``Federation`` programming
+model while delegating DBM algorithms to the native UDBM library.
 
-The module contains:
-* :class:`SomeClass` - Brief summary
-* :func:`some_function` - Brief summary
+Conceptually:
+
+* a DBM represents one convex zone;
+* a federation is a finite union of DBMs;
+* DBM index ``0`` is the implicit reference clock;
+* expressions such as ``c.x < 5`` build symbolic constraints instead of
+  Python booleans.
 
 Example::
 
-    >>> from pyudbm.some_module import some_function
-    >>> some_function()
-    expected_result
+    >>> from pyudbm import Context
+    >>> context = Context(["x", "y"], name="c")
+    >>> zone = (context.x <= 10) & (context.x - context.y < 3)
+    >>> str(zone)
+    '(c.x-c.y<3 & c.x<=10)'
 """
 ```
 
 ### Class Template
 
 ```python
-class SomeClass:
+class DBM:
     """
-    Brief one-line description.
+    Immutable read-only DBM snapshot.
 
-    Longer explanation of responsibilities and expected usage.
+    A :class:`DBM` represents one convex zone extracted from a federation. It
+    stays detached from future mutations of the source federation, so it is
+    safe to inspect or render even after the original federation changes.
 
-    :param dim: Dimension of the DBM.
-    :type dim: int
-    :ivar dim: Stored DBM dimension.
-    :vartype dim: int
+    In UDBM terms, the first row and column always correspond to the implicit
+    reference clock ``0``. User clocks therefore start at matrix index ``1``
+    even though they are exposed by name at the Python level.
+
+    :param context: Context whose clock names label this DBM.
+    :type context: Context
+    :param native: Native detached DBM snapshot.
+    :type native: _NativeDBM
+    :ivar context: Context whose clock names label the exported matrix.
+    :vartype context: Context
 
     Example::
 
-        >>> obj = SomeClass(3)
-        >>> obj.dim
+        >>> from pyudbm import Context
+        >>> context = Context(["x", "y"], name="c")
+        >>> federation = (context.x <= 10) & (context.y <= 7)
+        >>> dbm = federation.to_dbm_list()[0]
+        >>> dbm.dimension
+        3
+        >>> dbm.clock_names
+        ('0', 'c.x', 'c.y')
+    """
+```
+
+### Property Template
+
+```python
+@property
+def clock_names(self) -> tuple:
+    """
+    Return the matrix headers including the reference clock ``0``.
+
+    The tuple order matches the DBM row and column order used by
+    :meth:`raw`, :meth:`bound`, :meth:`to_matrix`, and
+    :meth:`format_matrix`.
+
+    :return: Tuple of row and column names in DBM index order.
+    :rtype: tuple
+
+    Example::
+
+        >>> from pyudbm import Context
+        >>> dbm = (Context(["x"], name="c").x <= 1).to_dbm_list()[0]
+        >>> dbm.clock_names
+        ('0', 'c.x')
+    """
+```
+
+### Non-Mutating Method Template
+
+```python
+def free_clock(self, clock: Clock) -> "Federation":
+    """
+    Return a copy with one clock removed from all constraints.
+
+    This method does not mutate the original federation. The returned
+    federation belongs to the same :class:`Context` but no longer constrains
+    the given clock.
+
+    :param clock: Clock to unconstrain.
+    :type clock: Clock
+    :return: Modified federation copy.
+    :rtype: Federation
+    :raises TypeError: If ``clock`` is not a :class:`Clock`.
+    :raises ValueError: If ``clock`` belongs to a different context.
+
+    Example::
+
+        >>> from pyudbm import Context
+        >>> context = Context(["x", "y"], name="c")
+        >>> original = (context.x <= 10) & (context.y <= 7)
+        >>> relaxed = original.free_clock(context.x)
+        >>> str(original)
+        '(c.x<=10 & c.y<=7)'
+        >>> str(relaxed)
+        '(c.y<=7)'
+    """
+```
+
+### In-Place Method Template
+
+```python
+def set_zero(self) -> "Federation":
+    """
+    Reset this federation in place to the zero zone and return ``self``.
+
+    The zero zone fixes every user clock to the reference clock ``0``. Unlike
+    methods such as :meth:`up` or :meth:`free_clock`, this method mutates the
+    current federation object.
+
+    :return: ``self`` after the reset.
+    :rtype: Federation
+
+    Example::
+
+        >>> from pyudbm import Context
+        >>> context = Context(["x", "y"])
+        >>> zone = (context.x == 1) & (context.y == 2)
+        >>> zone.set_zero() == ((context.x == 0) & (context.y == 0))
+        True
+        >>> zone.has_zero()
+        True
+    """
+```
+
+### Operator-Overload Template
+
+```python
+def __lt__(self, bound: Any) -> Any:
+    """
+    Build the strict upper-bound constraint ``clock < bound``.
+
+    This operator does not return a boolean. It returns a
+    :class:`Federation` representing the symbolic zone
+    ``clock - x0 < bound``.
+
+    :param bound: Integer upper bound.
+    :type bound: Any
+    :return: Federation representing the strict constraint.
+    :rtype: Any
+
+    Example::
+
+        >>> from pyudbm import Context
+        >>> context = Context(["x"])
+        >>> result = context.x < 2
+        >>> str(result)
+        '(x<2)'
+    """
+```
+
+### Validation-Heavy Method Template
+
+```python
+def raw(self, i: Union[int, str], j: Union[int, str]) -> int:
+    """
+    Return the raw UDBM matrix cell at ``(i, j)``.
+
+    ``i`` and ``j`` may be integer DBM indices or clock-name strings. String
+    indices accept ``"0"``, bare clock names such as ``"x"``, and qualified
+    names such as ``"c.x"`` when this DBM belongs to context ``c``.
+
+    :param i: Row index or clock name.
+    :type i: int or str
+    :param j: Column index or clock name.
+    :type j: int or str
+    :return: Raw encoded DBM value.
+    :rtype: int
+    :raises TypeError: If an index is neither an integer nor a string.
+    :raises IndexError: If an integer index is outside ``0`` through
+        ``dimension - 1``.
+    :raises ValueError: If a string index does not identify a clock in this
+        DBM context.
+
+    Example::
+
+        >>> from pyudbm import Context
+        >>> dbm = (Context(["x"], name="c").x <= 1).to_dbm_list()[0]
+        >>> dbm.raw("c.x", "0")
         3
     """
 ```
 
-### Function or Method Template
+### Better-Than-Placeholder Example
+
+Avoid placeholder docstrings like this:
 
 ```python
-def some_function(value: int, strict: bool = False) -> int:
+def __and__(self, other: "Federation") -> "Federation":
     """
-    Brief one-line description.
+    Do intersection.
 
-    Longer explanation of behavior or important semantic notes.
-
-    :param value: Input value to encode.
-    :type value: int
-    :param strict: Whether strict semantics should be used, defaults to ``False``.
-    :type strict: bool, optional
-    :return: Encoded raw DBM bound.
-    :rtype: int
-    :raises ValueError: If ``value`` is outside the accepted range.
-
-    Example::
-
-        >>> some_function(5, strict=True)
-        10
+    :param other: Other object.
+    :type other: Federation
+    :return: Result.
+    :rtype: Federation
     """
 ```
 
-### Parameter, Return, and Exception Patterns
+Prefer a complete binding-aware version:
 
 ```python
-:param name: Description
-:type name: int
-:param strict: Description, defaults to ``False``
-:type strict: bool, optional
-:return: Encoded value
-:rtype: int
-:return: ``None``.
-:rtype: None
-:raises ValueError: If the input is invalid.
+def __and__(self, other: "Federation") -> "Federation":
+    """
+    Return the exact intersection of two federations.
+
+    Both operands must belong to the same :class:`Context`. The result is a
+    new federation; neither input is mutated.
+
+    :param other: Other federation in the same context.
+    :type other: Federation
+    :return: Intersection result.
+    :rtype: Federation
+    :raises TypeError: If ``other`` is not a federation.
+    :raises ValueError: If the federations come from different contexts.
+
+    Example::
+
+        >>> from pyudbm import Context
+        >>> context = Context(["x"], name="c")
+        >>> left = context.x >= 1
+        >>> right = context.x <= 3
+        >>> result = left & right
+        >>> str(result)
+        '(1<=c.x & c.x<=3)'
+        >>> str(left)
+        '(1<=c.x)'
+    """
 ```
 
 ### Documentation Editing
