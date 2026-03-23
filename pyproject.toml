@@ -16,36 +16,7 @@ skip = ["pp*", "cp31?t-*"] # Do not build for PyPy or free-threaded CPython
 #archs = ["x86", 'AMD64']
 archs = ['AMD64']
 before-build = [
-    "choco install mingw -y",
-    "set \"MINGW_BIN=C:\\ProgramData\\mingw64\\mingw64\\bin\" && if not exist \"%MINGW_BIN%\\gcc.exe\" set \"MINGW_BIN=C:\\mingw64\\bin\" && if not exist \"%MINGW_BIN%\\gcc.exe\" exit /b 1 && set \"PATH=%MINGW_BIN%;%PATH%\" && set \"CC=%MINGW_BIN%\\gcc.exe\" && set \"CXX=%MINGW_BIN%\\g++.exe\" && set \"CMAKE_GENERATOR=Ninja\" && echo MINGW_BIN=%MINGW_BIN% && \"%CC%\" --version && \"%CXX%\" --version",
-    "pip install -U ninja",
-    "pip install pybind11[global]",
-    "pip install -U \"cmake<4\"",
-    "ls -al",
-    "whoami",
-    "pwd",
-    "bash --version",
-    "echo {package}",
-
-    # dont drop these () at the both sides, otherwise the CI will fail after concat all commands with &&
-    # "(if \"%PYTHON_ARCH%\"==\"32\" (cmake -S UDBM -B build -A Win32 -DCMAKE_BUILD_TYPE=Release) else (cmake -S UDBM -B build -A x64 -DCMAKE_BUILD_TYPE=Release))",
-    # Win32 is no longer suported
-    "cmake -G \"$CMAKE_GENERATOR\" -S UUtils -B UUtils_build -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_C_FLAGS='-static-libgcc' -DCMAKE_CXX_FLAGS='-static-libgcc -static-libstdc++' -DCMAKE_EXE_LINKER_FLAGS='-static-libgcc -static-libstdc++' -DCMAKE_SHARED_LINKER_FLAGS='-static-libgcc -static-libstdc++' -DCMAKE_BUILD_TYPE=Release",
-    "cmake --build UUtils_build --config Release",
-    "ctest --test-dir UUtils_build --output-on-failure -C Release",
-    "cmake --install UUtils_build --prefix bin_install --config Release",
-
-#    "cmake -S UDBM -B UDBM_build -DCMAKE_BUILD_TYPE=Release -DUUtils_DIR=\"bin_install\\lib\\cmake\\UUtils\"",
-#    "cmake -S UDBM -B UDBM_build -DCMAKE_BUILD_TYPE=Release -DUUtils_DIR=$(readlink -f bin_install/lib*/cmake/UUtils)",
-    "cmake -G \"$CMAKE_GENERATOR\" -S UDBM -B UDBM_build -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_C_FLAGS='-static-libgcc' -DCMAKE_CXX_FLAGS='-static-libgcc -static-libstdc++' -DCMAKE_EXE_LINKER_FLAGS='-static-libgcc -static-libstdc++' -DCMAKE_SHARED_LINKER_FLAGS='-static-libgcc -static-libstdc++' -DCMAKE_BUILD_TYPE=Release -DUUtils_DIR={package}\\bin_install\\lib\\cmake\\UUtils",
-    "cmake --build UDBM_build --config Release",
-    "ctest --test-dir UDBM_build --output-on-failure -C Release",
-    "cmake --install UDBM_build --prefix bin_install --config Release",
-
-    "cmake -G \"$CMAKE_GENERATOR\" -S UCDD -B UCDD_build -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_C_FLAGS='-static-libgcc' -DCMAKE_CXX_FLAGS='-static-libgcc -static-libstdc++' -DCMAKE_EXE_LINKER_FLAGS='-static-libgcc -static-libstdc++' -DCMAKE_SHARED_LINKER_FLAGS='-static-libgcc -static-libstdc++' -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH={package}\\bin_install -DUUtils_DIR={package}\\bin_install\\lib\\cmake\\UUtils -DUDBM_DIR={package}\\bin_install\\lib\\cmake\\UDBM -DFIND_FATAL=OFF",
-    "cmake --build UCDD_build --config Release",
-    "ctest --test-dir UCDD_build --output-on-failure -C Release",
-    "cmake --install UCDD_build --prefix bin_install --config Release",
+    "bash -lc 'pkg=\"{package}\"; pkg_u=$(cygpath -u \"$pkg\"); exec bash \"$pkg_u/tools/windows_cibw_before_build.sh\" \"$pkg\"'",
 ]
 before-test = [# Unittest for windows
     "pip install -r {project}/requirements-test.txt",
