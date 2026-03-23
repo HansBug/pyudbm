@@ -388,7 +388,8 @@ Python dependency layers in this repository:
 
 Concrete dependency notes from the current files:
 
-- `requirements.txt` is currently empty because the restored high-level binding does not need extra runtime Python dependencies.
+- `requirements.txt` currently includes:
+  - `hbutils`
 - `requirements-build.txt` currently contains:
   - `pybind11[global]`
   - `build>=0.7.0`
@@ -893,6 +894,56 @@ def f(items: list[str] | None) -> dict[str, int]:
 - If the standard library is sufficient, prefer it.
 - Use `os.path` or `pathlib` for paths.
 - Be explicit about subprocess behavior, path handling, and encodings instead of relying on platform defaults.
+
+### `hbutils` Reuse Guidance
+
+`hbutils` is now an explicit repository dependency. Before adding small
+repository-local helpers for generic Python infrastructure work, first check
+whether `hbutils` already provides a stable utility that fits the task.
+
+Useful upstream entry points:
+
+- GitHub repository: <https://github.com/HansBug/hbutils>
+- README: <https://github.com/HansBug/hbutils/blob/main/README.md>
+- Package source tree: <https://github.com/HansBug/hbutils/tree/main/hbutils>
+- API documentation: <https://hbutils.readthedocs.io/>
+
+What it already covers at a high level, based on the upstream README:
+
+- `hbutils.collection`: collection utilities such as grouping, deduplication, and sequence helpers.
+- `hbutils.design`: reusable design-pattern helpers instead of ad hoc local implementations.
+- `hbutils.encoding`: encoding, decoding, and hashing helpers.
+- `hbutils.file`: file-stream and file-like-object helpers.
+- `hbutils.logging`: logging and output-formatting helpers.
+- `hbutils.model`: decorators and model helpers for Python classes.
+- `hbutils.random`: random strings, hashes, and other random-data helpers.
+- `hbutils.reflection`: introspection helpers.
+- `hbutils.scale`: human-readable size and duration parsing/formatting helpers.
+- `hbutils.string`: small but useful string helpers.
+- `hbutils.system`: cross-platform filesystem and environment helpers.
+- `hbutils.testing`: test helpers for isolation, capture, comparison, and test data generation.
+
+Practical rule for this repository:
+
+- If the task is “generic Python utility work” rather than UDBM-specific semantics, prefer checking `hbutils` first.
+- If an `hbutils` helper is a good fit, prefer using it instead of creating a new local mini-framework or one-off utility wrapper.
+- Keep the wrapper thin: use `hbutils` as a dependency, not as content to copy into this repository.
+- Do not introduce a dependency on obscure `hbutils` behavior blindly; verify the exact API from the upstream source or docs before relying on it.
+- Because this repository supports Python `3.7-3.14`, be careful not to assume a latest-only `hbutils` API exists in every supported environment. Prefer conservative, already-documented helpers.
+- If the standard library is clearer or more stable for a tiny task, use the standard library.
+
+Repository-specific hints:
+
+- `test/conftest.py` already imports `TextAligner` from `hbutils.testing`, so test-side reuse is already accepted here.
+- For test isolation or output comparison, check `hbutils.testing` before writing custom temporary-directory or text-alignment helpers.
+- For small cross-platform filesystem helpers in maintenance code, check `hbutils.system` before introducing shell-heavy or platform-specific logic.
+- For generic collection and string cleanup code in Python, check `hbutils.collection` and `hbutils.string` before adding new utility functions under `tools/` or `test/`.
+
+What not to do:
+
+- Do not copy substantial `hbutils` source code into `pyudbm`.
+- Do not rewrite core UDBM wrapper semantics in terms of unrelated `hbutils` abstractions.
+- Do not add `hbutils` usage where it obscures straightforward DBM or federation semantics.
 
 ### API Semantics Rules
 
