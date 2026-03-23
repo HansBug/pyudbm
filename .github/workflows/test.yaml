@@ -114,11 +114,7 @@ jobs:
         run: |
           pip install -r requirements.txt
           pip install -r requirements-test.txt
-          if [ "$OS_NAME" = "MacOS" ] && { [ "${{ matrix.python-version }}" = "3.8" ] || [ "${{ matrix.python-version }}" = "3.9" ]; }; then
-            echo "Skip requirements-plot on macOS ${{ matrix.python-version }} due upstream matplotlib/font bus errors on the public arm64 runner."
-          else
-            pip install -r requirements-plot.txt
-          fi
+          pip install -r requirements-plot.txt
           pip install -r requirements-build.txt
       - name: Build and run unittest
         env:
