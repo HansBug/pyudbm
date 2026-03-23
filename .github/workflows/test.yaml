@@ -70,6 +70,7 @@ jobs:
         run: |
           choco install tree cloc wget curl make
           choco install ninja make mingw
+          echo "C:/mingw64/bin" >> "$GITHUB_PATH"
       - name: Kill Primitive CMake on MacOS
         if: ${{ env.OS_NAME == 'MacOS' }}
         shell: bash
@@ -89,12 +90,13 @@ jobs:
         shell: bash
         run: |
           python -m pip install setuptools wheel
+          python -m pip install ninja
           python -m pip install "pybind11[global]"
           python -m pip install -U 'cmake<4'
       - name: Build native dependencies
         shell: bash
         run: |
-          CC=gcc CXX=g++ CTEST_CFG=Release make bin
+          CTEST_CFG=Release make bin
       - name: Prepare Python env
         shell: bash
         run: |

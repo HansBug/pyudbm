@@ -40,6 +40,26 @@ def _parse_version_tuple(version: str):
     return tuple(int(part) for part in version.split('.'))
 
 
+def _find_gnu_compiler(cxx: bool = False):
+    candidates = (
+        ['g++', 'g++-14', 'g++-13', 'g++-12', 'g++-11', 'g++-10', 'g++-9']
+        if cxx else
+        ['gcc', 'gcc-14', 'gcc-13', 'gcc-12', 'gcc-11', 'gcc-10', 'gcc-9']
+    )
+    for candidate in candidates:
+        compiler = shutil.which(candidate)
+        if not compiler:
+            continue
+        try:
+            out = subprocess.check_output([compiler, '-v'], stderr=subprocess.STDOUT).decode()
+        except (OSError, subprocess.CalledProcessError):
+            continue
+        if 'gcc version' in out.lower():
+            return compiler
+
+    return candidates[0]
+
+
 class CMakeExtension(Extension):
     def __init__(self, name, sourcedir=''):
         Extension.__init__(self, name, sources=[])
@@ -66,26 +86,23 @@ class CMakeBuild(build_ext):
         logging.basicConfig(level=logging.INFO)
 
         extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
+        cfg = os.environ.get('CTEST_CFG') or ('Debug' if self.debug else 'Release')
+        generator = os.environ.get('CMAKE_GENERATOR', 'Ninja')
+        cc = os.environ.get('CC') or _find_gnu_compiler(False)
+        cxx = os.environ.get('CXX') or _find_gnu_compiler(True)
         cmake_args = ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + extdir,
                       '-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=' + extdir,
-                      '-DPYTHON_EXECUTABLE=' + sys.executable]
+                      '-DPYTHON_EXECUTABLE=' + sys.executable,
+                      '-G', generator,
+                      '-DCMAKE_BUILD_TYPE=' + cfg,
+                      '-DCMAKE_C_COMPILER=' + cc,
+                      '-DCMAKE_CXX_COMPILER=' + cxx]
 
-        cfg = os.environ.get('CTEST_CFG') or 'Debug' if self.debug else 'Release'
-        build_args = ['--config', cfg]
-
-        if platform.system() == "Windows":
-            cmake_args += ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), extdir)]
-            cmake_args += ['-DCMAKE_RUNTIME_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), extdir)]
-            if sys.maxsize > 2 ** 32:
-                cmake_args += ['-A', 'x64']
-            else:
-                cmake_args += ['-A', 'Win32']
-            build_args += ['--', '/m']
-        else:
-            cmake_args += ['-DCMAKE_BUILD_TYPE=' + cfg]
-            build_args += ['--', '-j2']
+        build_args = ['--config', cfg, '--', '-j2']
 
         env = os.environ.copy()
+        env['CC'] = cc
+        env['CXX'] = cxx
         env['CXXFLAGS'] = '{} -DVERSION_INFO=\\"{}\\"'.format(env.get('CXXFLAGS', ''),
                                                               self.distribution.get_version())
         if not os.path.exists(self.build_temp):
@@ -98,7 +115,7 @@ class CMakeBuild(build_ext):
 
         b2_cmds = [shutil.which('cmake'), '--build', '.'] + build_args
         logging.info(f'Build with {b2_cmds!r} ...')
-        subprocess.check_call(b2_cmds, cwd=self.build_temp)
+        subprocess.check_call(b2_cmds, cwd=self.build_temp, env=env)
 
 
 setup(

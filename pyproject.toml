@@ -2,6 +2,7 @@
 requires = [
     "setuptools>=42",
     "wheel",
+    "ninja",
     "pybind11[global]",
     "cmake<4",
 ]
@@ -15,7 +16,9 @@ skip = ["pp*", "cp31?t-*"] # Do not build for PyPy or free-threaded CPython
 #archs = ["x86", 'AMD64']
 archs = ['AMD64']
 before-build = [
+    "export PATH=\"/c/mingw64/bin:$PATH\" && export CC=gcc && export CXX=g++ && export CMAKE_GENERATOR=Ninja && echo CC=$CC CXX=$CXX",
     "choco install mingw -y",
+    "pip install -U ninja",
     "pip install pybind11[global]",
     "pip install -U \"cmake<4\"",
     "ls -al",
@@ -27,38 +30,30 @@ before-build = [
     # dont drop these () at the both sides, otherwise the CI will fail after concat all commands with &&
     # "(if \"%PYTHON_ARCH%\"==\"32\" (cmake -S UDBM -B build -A Win32 -DCMAKE_BUILD_TYPE=Release) else (cmake -S UDBM -B build -A x64 -DCMAKE_BUILD_TYPE=Release))",
     # Win32 is no longer suported
-    "cmake -S UUtils -B UUtils_build -DCMAKE_BUILD_TYPE=Release",
+    "cmake -G \"$CMAKE_GENERATOR\" -S UUtils -B UUtils_build -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_BUILD_TYPE=Release",
     "cmake --build UUtils_build --config Release",
     "ctest --test-dir UUtils_build --output-on-failure -C Release",
     "cmake --install UUtils_build --prefix bin_install --config Release",
 
 #    "cmake -S UDBM -B UDBM_build -DCMAKE_BUILD_TYPE=Release -DUUtils_DIR=\"bin_install\\lib\\cmake\\UUtils\"",
 #    "cmake -S UDBM -B UDBM_build -DCMAKE_BUILD_TYPE=Release -DUUtils_DIR=$(readlink -f bin_install/lib*/cmake/UUtils)",
-    "cmake -S UDBM -B UDBM_build -DCMAKE_BUILD_TYPE=Release -DUUtils_DIR={package}\\bin_install\\lib\\cmake\\UUtils",
+    "cmake -G \"$CMAKE_GENERATOR\" -S UDBM -B UDBM_build -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_BUILD_TYPE=Release -DUUtils_DIR={package}\\bin_install\\lib\\cmake\\UUtils",
     "cmake --build UDBM_build --config Release",
     "ctest --test-dir UDBM_build --output-on-failure -C Release",
     "cmake --install UDBM_build --prefix bin_install --config Release",
 
     "gcc --version",
     "g++ --version",
-    "cmake -G \"MinGW Makefiles\" -S UUtils -B UUtils_build_ucdd -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Release",
-    "cmake --build UUtils_build_ucdd --config Release",
-    "cmake --install UUtils_build_ucdd --prefix bin_install_ucdd --config Release",
-
-    "cmake -G \"MinGW Makefiles\" -S UDBM -B UDBM_build_ucdd -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Release -DUUtils_DIR={package}\\bin_install_ucdd\\lib\\cmake\\UUtils",
-    "cmake --build UDBM_build_ucdd --config Release",
-    "cmake --install UDBM_build_ucdd --prefix bin_install_ucdd --config Release",
-
-    "cmake -G \"MinGW Makefiles\" -S UCDD -B UCDD_build_ucdd -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH={package}\\bin_install_ucdd -DUUtils_DIR={package}\\bin_install_ucdd\\lib\\cmake\\UUtils -DUDBM_DIR={package}\\bin_install_ucdd\\lib\\cmake\\UDBM -DFIND_FATAL=OFF",
-    "cmake --build UCDD_build_ucdd --config Release",
-    "ctest --test-dir UCDD_build_ucdd --output-on-failure -C Release",
-    "cmake --install UCDD_build_ucdd --prefix bin_install_ucdd --config Release",
+    "cmake -G \"$CMAKE_GENERATOR\" -S UCDD -B UCDD_build -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH={package}\\bin_install -DUUtils_DIR={package}\\bin_install\\lib\\cmake\\UUtils -DUDBM_DIR={package}\\bin_install\\lib\\cmake\\UDBM -DFIND_FATAL=OFF",
+    "cmake --build UCDD_build --config Release",
+    "ctest --test-dir UCDD_build --output-on-failure -C Release",
+    "cmake --install UCDD_build --prefix bin_install --config Release",
 ]
 before-test = [# Unittest for windows
     "pip install -r {project}/requirements-test.txt",
 ]
 test-command = [
-    "rm -rf {project}/UUtils_build {project}/UDBM_build {project}/UUtils_build_ucdd {project}/UDBM_build_ucdd {project}/UCDD_build_ucdd {project}/bin_install {project}/bin_install_ucdd",
+    "rm -rf {project}/UUtils_build {project}/UDBM_build {project}/UCDD_build {project}/bin_install",
     "cp -rf {project}/test test",
     "cp {project}/pytest.ini pytest.ini",
     "pytest test -sv -m unittest --log-level=DEBUG",
@@ -69,7 +64,9 @@ test-command = [
 [tool.cibuildwheel.macos]
 archs = ["x86_64", "arm64"] # Build for x86_64 and arm64
 before-build = [
+    "export CC=$(for cmd in gcc-14 gcc-13 gcc-12 gcc-11 gcc-10 gcc-9 gcc; do if command -v \"$cmd\" >/dev/null 2>&1 && \"$cmd\" -v 2>&1 | grep -qi \"gcc version\"; then echo \"$cmd\"; break; fi; done) && export CXX=$(for cmd in g++-14 g++-13 g++-12 g++-11 g++-10 g++-9 g++; do if command -v \"$cmd\" >/dev/null 2>&1 && \"$cmd\" -v 2>&1 | grep -qi \"gcc version\"; then echo \"$cmd\"; break; fi; done) && export CMAKE_GENERATOR=Ninja && echo CC=$CC CXX=$CXX",
     "./macos_kill_cmake.sh",
+    "pip install -U ninja",
     "pip install pybind11[global]",
     "pip install -U 'cmake<4'",
     "uname -m",
@@ -77,19 +74,19 @@ before-build = [
     "if [ \"$CIBW_ARCHS\" = \"arm64\" ]; then echo detected arm64; else echo detected x86_64; fi",
     "echo xxx",
     # something wrong with this line, xxhash compile arch is still x86_64 when CIBW_ARCHS is surly 'arm64'
-    "if [ \"$CIBW_ARCHS\" = \"arm64\" ]; then cmake -S UUtils -B UUtils_build -DCMAKE_OSX_ARCHITECTURES=\"arm64\" -DCMAKE_SYSTEM_PROCESSOR=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TRY_COMPILE_OSX_ARCHITECTURES=arm64; else cmake -S UUtils -B UUtils_build -DCMAKE_OSX_ARCHITECTURES=\"x86_64\" -DCMAKE_SYSTEM_PROCESSOR=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TRY_COMPILE_OSX_ARCHITECTURES=x86_64; fi",
+    "if [ \"$CIBW_ARCHS\" = \"arm64\" ]; then cmake -G \"$CMAKE_GENERATOR\" -S UUtils -B UUtils_build -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_OSX_ARCHITECTURES=\"arm64\" -DCMAKE_SYSTEM_PROCESSOR=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TRY_COMPILE_OSX_ARCHITECTURES=arm64; else cmake -G \"$CMAKE_GENERATOR\" -S UUtils -B UUtils_build -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_OSX_ARCHITECTURES=\"x86_64\" -DCMAKE_SYSTEM_PROCESSOR=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TRY_COMPILE_OSX_ARCHITECTURES=x86_64; fi",
 #    "cmake -S UUtils -B UUtils_build -DCMAKE_BUILD_TYPE=Release",
     "cmake --build UUtils_build --config Release",
     "ctest --test-dir UUtils_build --output-on-failure -C Release",
     "cmake --install UUtils_build --prefix bin_install --config Release",
 
-    "if [ \"$CIBW_ARCHS\" = \"arm64\" ]; then cmake -S UDBM -B UDBM_build -DUUtils_DIR=$(readlink -f bin_install/lib*/cmake/UUtils) -DCMAKE_OSX_ARCHITECTURES=\"arm64\" -DCMAKE_SYSTEM_PROCESSOR=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TRY_COMPILE_OSX_ARCHITECTURES=arm64; else cmake -S UDBM -B UDBM_build -DUUtils_DIR=$(readlink -f bin_install/lib*/cmake/UUtils) -DCMAKE_OSX_ARCHITECTURES=\"x86_64\" -DCMAKE_SYSTEM_PROCESSOR=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TRY_COMPILE_OSX_ARCHITECTURES=x86_64; fi",
+    "if [ \"$CIBW_ARCHS\" = \"arm64\" ]; then cmake -G \"$CMAKE_GENERATOR\" -S UDBM -B UDBM_build -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DUUtils_DIR=$(readlink -f bin_install/lib*/cmake/UUtils) -DCMAKE_OSX_ARCHITECTURES=\"arm64\" -DCMAKE_SYSTEM_PROCESSOR=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TRY_COMPILE_OSX_ARCHITECTURES=arm64; else cmake -G \"$CMAKE_GENERATOR\" -S UDBM -B UDBM_build -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DUUtils_DIR=$(readlink -f bin_install/lib*/cmake/UUtils) -DCMAKE_OSX_ARCHITECTURES=\"x86_64\" -DCMAKE_SYSTEM_PROCESSOR=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TRY_COMPILE_OSX_ARCHITECTURES=x86_64; fi",
 #    "cmake -S UDBM -B UDBM_build -DCMAKE_BUILD_TYPE=Release -DUUtils_DIR=$(readlink -f bin_install/lib*/cmake/UUtils)",
     "cmake --build UDBM_build --config Release",
     "ctest --test-dir UDBM_build --output-on-failure -C Release",
     "cmake --install UDBM_build --prefix bin_install --config Release",
 
-    "if [ \"$CIBW_ARCHS\" = \"arm64\" ]; then cmake -S UCDD -B UCDD_build -DCMAKE_PREFIX_PATH=$(readlink -f bin_install) -DUUtils_DIR=$(readlink -f bin_install/lib*/cmake/UUtils) -DUDBM_DIR=$(readlink -f bin_install/lib*/cmake/UDBM) -DCMAKE_OSX_ARCHITECTURES=\"arm64\" -DCMAKE_SYSTEM_PROCESSOR=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TRY_COMPILE_OSX_ARCHITECTURES=arm64 -DFIND_FATAL=OFF; else cmake -S UCDD -B UCDD_build -DCMAKE_PREFIX_PATH=$(readlink -f bin_install) -DUUtils_DIR=$(readlink -f bin_install/lib*/cmake/UUtils) -DUDBM_DIR=$(readlink -f bin_install/lib*/cmake/UDBM) -DCMAKE_OSX_ARCHITECTURES=\"x86_64\" -DCMAKE_SYSTEM_PROCESSOR=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TRY_COMPILE_OSX_ARCHITECTURES=x86_64 -DFIND_FATAL=OFF; fi",
+    "if [ \"$CIBW_ARCHS\" = \"arm64\" ]; then cmake -G \"$CMAKE_GENERATOR\" -S UCDD -B UCDD_build -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_PREFIX_PATH=$(readlink -f bin_install) -DUUtils_DIR=$(readlink -f bin_install/lib*/cmake/UUtils) -DUDBM_DIR=$(readlink -f bin_install/lib*/cmake/UDBM) -DCMAKE_OSX_ARCHITECTURES=\"arm64\" -DCMAKE_SYSTEM_PROCESSOR=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TRY_COMPILE_OSX_ARCHITECTURES=arm64 -DFIND_FATAL=OFF; else cmake -G \"$CMAKE_GENERATOR\" -S UCDD -B UCDD_build -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_PREFIX_PATH=$(readlink -f bin_install) -DUUtils_DIR=$(readlink -f bin_install/lib*/cmake/UUtils) -DUDBM_DIR=$(readlink -f bin_install/lib*/cmake/UDBM) -DCMAKE_OSX_ARCHITECTURES=\"x86_64\" -DCMAKE_SYSTEM_PROCESSOR=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TRY_COMPILE_OSX_ARCHITECTURES=x86_64 -DFIND_FATAL=OFF; fi",
     "cmake --build UCDD_build --config Release",
     "ctest --test-dir UCDD_build --output-on-failure -C Release",
     "cmake --install UCDD_build --prefix bin_install --config Release",
@@ -112,20 +109,22 @@ archs = ["x86_64", "aarch64"] # Build for x86_64 and arm64
 #skip = ["pp* *musllinux*"] # dependencies do not build for musl
 skip = ["pp*"] # dependencies do not build for musl
 before-build = [
+    "export CC=gcc && export CXX=g++ && export CMAKE_GENERATOR=Ninja && echo CC=$CC CXX=$CXX",
+    "pip install -U ninja",
     "pip install pybind11[global]",
     "pip install -U 'cmake<4'",
 
-    "cmake -S UUtils -B UUtils_build -DCMAKE_BUILD_TYPE=Release",
+    "cmake -G \"$CMAKE_GENERATOR\" -S UUtils -B UUtils_build -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_BUILD_TYPE=Release",
     "cmake --build UUtils_build --config Release",
     "ctest --test-dir UUtils_build --output-on-failure -C Release",
     "cmake --install UUtils_build --prefix bin_install --config Release",
 
-    "cmake -S UDBM -B UDBM_build -DCMAKE_BUILD_TYPE=Release -DUUtils_DIR=$(readlink -f bin_install/lib*/cmake/UUtils)",
+    "cmake -G \"$CMAKE_GENERATOR\" -S UDBM -B UDBM_build -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_BUILD_TYPE=Release -DUUtils_DIR=$(readlink -f bin_install/lib*/cmake/UUtils)",
     "cmake --build UDBM_build --config Release",
     "ctest --test-dir UDBM_build --output-on-failure -C Release",
     "cmake --install UDBM_build --prefix bin_install --config Release",
 
-    "cmake -S UCDD -B UCDD_build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$(readlink -f bin_install) -DUUtils_DIR=$(readlink -f bin_install/lib*/cmake/UUtils) -DUDBM_DIR=$(readlink -f bin_install/lib*/cmake/UDBM) -DFIND_FATAL=OFF",
+    "cmake -G \"$CMAKE_GENERATOR\" -S UCDD -B UCDD_build -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$(readlink -f bin_install) -DUUtils_DIR=$(readlink -f bin_install/lib*/cmake/UUtils) -DUDBM_DIR=$(readlink -f bin_install/lib*/cmake/UDBM) -DFIND_FATAL=OFF",
     "cmake --build UCDD_build --config Release",
     "ctest --test-dir UCDD_build --output-on-failure -C Release",
     "cmake --install UCDD_build --prefix bin_install --config Release",
