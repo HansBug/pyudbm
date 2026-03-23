@@ -985,6 +985,66 @@ Follow the dominant repository convention from recent history.
 - Merge commits should keep the generated style used in history, such as `Merge branch 'main' into dev/...` or
   `Merge pull request #52 from HansBug/dev/fixed`.
 
+## Pull Request Workflow
+
+When the task includes creating or updating a pull request, treat the PR as
+part of the deliverable rather than an afterthought.
+
+### Core Rules
+
+- If the current branch already has an open PR, update that PR instead of creating a duplicate.
+- Keep the PR title aligned with the dominant change on the branch, not just the latest small follow-up commit.
+- After pushing commits that materially change scope, update the PR body in the same task so the PR stays accurate.
+- Prefer editing PR metadata with `gh pr view`, `gh pr edit`, and related non-interactive commands.
+
+### PR Body Structure
+
+Use a compact structure like this unless the repository or user asks for a
+different format:
+
+```markdown
+## Summary
+
+One short paragraph explaining the branch-level outcome.
+
+## Changes
+
+- concrete change 1
+- concrete change 2
+- concrete change 3
+
+## Validation
+
+- `command 1`
+- `command 2`
+```
+
+Additional expectations:
+
+- `Summary` should describe the user-visible or reviewer-relevant result, not just restate the branch name.
+- `Changes` should cover the whole branch diff, including important docs, test, packaging, or workflow updates when they materially affect review.
+- `Validation` should list the commands run and concise outcomes. Do not paste large raw build logs into the PR body unless the user explicitly wants that.
+- If something was not validated, say so plainly instead of implying it was covered.
+
+### Labels and Assignees
+
+- Use only labels that already exist in the repository unless the user explicitly asks you to create new ones.
+- Apply labels that match the branch-level scope. In this repository the common defaults are:
+  - `enhancement` for feature work or meaningful behavior expansion
+  - `bug` for fixes to incorrect behavior
+  - `documentation` for docs-only or docs-heavy changes
+- It is fine to apply more than one label when the branch genuinely spans multiple categories.
+- When choosing an assignee, prefer the current editor / owner of the branch if that identity is clear from local and GitHub context.
+- Determine that identity from concrete signals such as `git config user.name`, `git config user.email`, `gh pr view` author data, and the branch owner on the remote.
+- If the responsible person is ambiguous, do not guess wildly; ask the user or leave the PR unassigned.
+
+### Reviewer-Facing Hygiene
+
+- Keep the PR description synchronized with the actual diff reviewers will see.
+- Mention supporting process or contributor-guide changes when they affect how future work should be done.
+- Avoid noisy changelog-style repetition; include enough detail for review, but compress low-signal trivia.
+- If tests are very fast, prefer rerunning the relevant subset before updating the PR validation section.
+
 ## reST Documentation and Docstring Style Guide
 
 Use **reStructuredText (reST)** conventions for both public Python docstrings and repository `.rst` documentation
