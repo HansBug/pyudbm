@@ -79,6 +79,7 @@
     foundations/queries-and-properties/index_zh
     foundations/symbolic-states/index_zh
     foundations/dbm-basics/index_zh
+    foundations/federations/index_zh
 
 * :doc:`foundations/reading-guide/index_zh`
 * :doc:`foundations/what-is-uppaal/index_zh`
@@ -86,5 +87,6 @@
 * :doc:`foundations/queries-and-properties/index_zh`
 * :doc:`foundations/symbolic-states/index_zh`
 * :doc:`foundations/dbm-basics/index_zh`
+* :doc:`foundations/federations/index_zh`
 
 .. include:: api_doc_zh.rst

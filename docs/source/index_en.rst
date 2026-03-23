@@ -82,6 +82,7 @@ Concept Foundations
     foundations/queries-and-properties/index
     foundations/symbolic-states/index
     foundations/dbm-basics/index
+    foundations/federations/index
 
 * :doc:`foundations/reading-guide/index`
 * :doc:`foundations/what-is-uppaal/index`
@@ -89,5 +90,6 @@ Concept Foundations
 * :doc:`foundations/queries-and-properties/index`
 * :doc:`foundations/symbolic-states/index`
 * :doc:`foundations/dbm-basics/index`
+* :doc:`foundations/federations/index`
 
 .. include:: api_doc_en.rst
