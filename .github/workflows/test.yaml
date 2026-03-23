@@ -83,7 +83,9 @@ jobs:
         shell: bash
         run: |
           brew install tree cloc wget curl make
-          brew install git ninja make gcc@11 || brew install git ninja make gcc@12 || brew install git ninja make gcc
+          brew install git ninja make
+          echo "CC=$(xcrun --find clang)" >> "$GITHUB_ENV"
+          echo "CXX=$(xcrun --find clang++)" >> "$GITHUB_ENV"
       - name: Set up python ${{ matrix.python-version }}
         uses: actions/setup-python@v6
         with:

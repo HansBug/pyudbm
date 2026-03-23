@@ -11,17 +11,27 @@ GNU_GCC_CANDIDATES := gcc-9 gcc-10 gcc-11 gcc-12 gcc-13 gcc-14 gcc
 GNU_GXX_CANDIDATES := g++-9 g++-10 g++-11 g++-12 g++-13 g++-14 g++
 DETECTED_GCC       := $(shell bash -lc 'for cmd in $(GNU_GCC_CANDIDATES); do if command -v $$cmd >/dev/null 2>&1 && $$cmd -v 2>&1 | grep -qi "gcc version"; then echo $$cmd; exit 0; fi; done')
 DETECTED_GXX       := $(shell bash -lc 'for cmd in $(GNU_GXX_CANDIDATES); do if command -v $$cmd >/dev/null 2>&1 && $$cmd -v 2>&1 | grep -qi "gcc version"; then echo $$cmd; exit 0; fi; done')
+DETECTED_CLANG     := $(shell bash -lc 'if command -v xcrun >/dev/null 2>&1; then xcrun --find clang 2>/dev/null && exit 0; fi; command -v clang 2>/dev/null')
+DETECTED_CLANGXX   := $(shell bash -lc 'if command -v xcrun >/dev/null 2>&1; then xcrun --find clang++ 2>/dev/null && exit 0; fi; command -v clang++ 2>/dev/null')
+
+ifeq ($(UNAME_S),Darwin)
+DEFAULT_CC := $(if $(DETECTED_CLANG),$(DETECTED_CLANG),clang)
+DEFAULT_CXX := $(if $(DETECTED_CLANGXX),$(DETECTED_CLANGXX),clang++)
+else
+DEFAULT_CC := $(if $(DETECTED_GCC),$(DETECTED_GCC),gcc)
+DEFAULT_CXX := $(if $(DETECTED_GXX),$(DETECTED_GXX),g++)
+endif
 
 ifeq ($(origin CC), default)
-CC := $(if $(DETECTED_GCC),$(DETECTED_GCC),gcc)
+CC := $(DEFAULT_CC)
 else ifeq ($(origin CC), undefined)
-CC := $(if $(DETECTED_GCC),$(DETECTED_GCC),gcc)
+CC := $(DEFAULT_CC)
 endif
 
 ifeq ($(origin CXX), default)
-CXX := $(if $(DETECTED_GXX),$(DETECTED_GXX),g++)
+CXX := $(DEFAULT_CXX)
 else ifeq ($(origin CXX), undefined)
-CXX := $(if $(DETECTED_GXX),$(DETECTED_GXX),g++)
+CXX := $(DEFAULT_CXX)
 endif
 
 ifeq ($(OS),Windows_NT)

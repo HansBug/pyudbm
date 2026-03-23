@@ -67,6 +67,23 @@ def _find_gnu_compiler(cxx: bool = False):
     return candidates[0]
 
 
+def _find_macos_compiler(cxx: bool = False):
+    tool = 'clang++' if cxx else 'clang'
+
+    xcrun = shutil.which('xcrun')
+    if xcrun:
+        try:
+            return subprocess.check_output([xcrun, '--find', tool]).decode().strip()
+        except (OSError, subprocess.CalledProcessError):
+            pass
+
+    compiler = shutil.which(tool)
+    if compiler:
+        return compiler
+
+    return tool
+
+
 def _copy_windows_runtime_dlls(extdir: str, compiler_path: str):
     if platform.system() != 'Windows':
         return
@@ -116,8 +133,12 @@ class CMakeBuild(build_ext):
         extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
         cfg = os.environ.get('CTEST_CFG') or ('Debug' if self.debug else 'Release')
         generator = os.environ.get('CMAKE_GENERATOR', 'Ninja')
-        cc = os.environ.get('CC') or _find_gnu_compiler(False)
-        cxx = os.environ.get('CXX') or _find_gnu_compiler(True)
+        if platform.system() == 'Darwin':
+            cc = os.environ.get('CC') or _find_macos_compiler(False)
+            cxx = os.environ.get('CXX') or _find_macos_compiler(True)
+        else:
+            cc = os.environ.get('CC') or _find_gnu_compiler(False)
+            cxx = os.environ.get('CXX') or _find_gnu_compiler(True)
         cmake_args = ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + extdir,
                       '-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=' + extdir,
                       '-DPYTHON_EXECUTABLE=' + sys.executable,

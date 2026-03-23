@@ -32,6 +32,7 @@ test-command = [
 ## macOS build configuration
 [tool.cibuildwheel.macos]
 archs = ["x86_64", "arm64"] # Build for x86_64 and arm64
+environment = { CC = "clang", CXX = "clang++" }
 before-build = [
     "bash -c 'exec bash \"{package}/cibw/macos_before_build.sh\" \"{package}\"'",
 ]

@@ -24,15 +24,23 @@ print(Path(matches[0]).resolve())
 PY
 }
 
-select_gcc() {
-    local kind="$1"
-    local cmd
-    for cmd in "${kind}-9" "${kind}-10" "${kind}-11" "${kind}-12" "${kind}-13" "${kind}-14" "$kind"; do
-        if command -v "$cmd" >/dev/null 2>&1 && "$cmd" -v 2>&1 | grep -qi "gcc version"; then
-            printf '%s\n' "$cmd"
+select_clang() {
+    local tool="$1"
+    local resolved
+
+    if command -v xcrun >/dev/null 2>&1; then
+        resolved="$(xcrun --find "$tool" 2>/dev/null || true)"
+        if [[ -n "$resolved" && -x "$resolved" ]]; then
+            printf '%s\n' "$resolved"
             return 0
         fi
-    done
+    fi
+
+    if command -v "$tool" >/dev/null 2>&1; then
+        command -v "$tool"
+        return 0
+    fi
+
     return 1
 }
 
@@ -41,10 +49,8 @@ PROJECT_ROOT="$(resolve_path "$PROJECT_ROOT")"
 
 cd "$PROJECT_ROOT"
 
-brew list gcc@11 >/dev/null 2>&1 || brew install gcc@11 || brew install gcc@12 || brew install gcc
-
-export CC="$(select_gcc gcc)"
-export CXX="$(select_gcc g++)"
+export CC="$(select_clang clang)"
+export CXX="$(select_clang clang++)"
 export CMAKE_GENERATOR=Ninja
 
 "$PROJECT_ROOT/macos_kill_cmake.sh"
