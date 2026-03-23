@@ -229,7 +229,8 @@ def _point_key(point: Point2D) -> Tuple[int, int]:
     return int(round(point.x * 1000000000.0)), int(round(point.y * 1000000000.0))
 
 
-def _normalize_1d_limits(limits: Optional[Tuple[float, float]], intervals: Sequence[Tuple[Optional[float], Optional[float]]]) -> Tuple[float, float]:
+def _normalize_1d_limits(limits: Optional[Tuple[float, float]],
+                         intervals: Sequence[Tuple[Optional[float], Optional[float]]]) -> Tuple[float, float]:
     if limits is not None:
         if not isinstance(limits, tuple) or len(limits) != 2:
             raise ValueError("1D limits must be a tuple of the form (xmin, xmax).")
@@ -256,8 +257,8 @@ def _normalize_1d_limits(limits: Optional[Tuple[float, float]], intervals: Seque
 
 
 def _normalize_2d_limits(
-    limits: Optional[Tuple[Tuple[float, float], Tuple[float, float]]],
-    bounds: Sequence[Tuple[Optional[float], Optional[float], Optional[float], Optional[float]]],
+        limits: Optional[Tuple[Tuple[float, float], Tuple[float, float]]],
+        bounds: Sequence[Tuple[Optional[float], Optional[float], Optional[float], Optional[float]]],
 ) -> Tuple[Tuple[float, float], Tuple[float, float]]:
     if limits is not None:
         if not isinstance(limits, tuple) or len(limits) != 2:
@@ -374,7 +375,8 @@ def _merge_interval_pair(left: Interval1D, right: Interval1D) -> Interval1D:
     )
 
 
-def _build_halfspaces_for_dbm_2d(dbm: DBM, limits: Tuple[Tuple[float, float], Tuple[float, float]]) -> Tuple[HalfSpace2D, ...]:
+def _build_halfspaces_for_dbm_2d(dbm: DBM, limits: Tuple[Tuple[float, float], Tuple[float, float]]) -> Tuple[
+    HalfSpace2D, ...]:
     result = []  # type: List[HalfSpace2D]
     for i in range(dbm.dimension):
         for j in range(dbm.dimension):
@@ -387,7 +389,8 @@ def _build_halfspaces_for_dbm_2d(dbm: DBM, limits: Tuple[Tuple[float, float], Tu
             if j > 0:
                 coefficients[j - 1] -= 1.0
 
-            result.append(HalfSpace2D(coefficients[0], coefficients[1], float(dbm.bound(i, j)), dbm.is_strict(i, j), False))
+            result.append(
+                HalfSpace2D(coefficients[0], coefficients[1], float(dbm.bound(i, j)), dbm.is_strict(i, j), False))
 
     (xmin, xmax), (ymin, ymax) = limits
     result.extend(
@@ -404,7 +407,7 @@ def _build_halfspaces_for_dbm_2d(dbm: DBM, limits: Tuple[Tuple[float, float], Tu
 def _pairwise_line_intersections(halfspaces: Sequence[HalfSpace2D]) -> List[Point2D]:
     points = []  # type: List[Point2D]
     for index, left in enumerate(halfspaces):
-        for right in halfspaces[index + 1 :]:
+        for right in halfspaces[index + 1:]:
             determinant = (left.a * right.b) - (left.b * right.a)
             if abs(determinant) <= _GEOMETRY_EPSILON:
                 continue
@@ -466,9 +469,11 @@ def _segment_from_points(start: Point2D, end: Point2D, halfspaces: Sequence[Half
     )
 
 
-def _extract_dbm_geometry_2d(dbm: DBM, limits: Tuple[Tuple[float, float], Tuple[float, float]]) -> Union[EmptyGeometry, PolygonGeometry2D, SegmentGeometry2D, PointGeometry2D]:
+def _extract_dbm_geometry_2d(dbm: DBM, limits: Tuple[Tuple[float, float], Tuple[float, float]]) -> Union[
+    EmptyGeometry, PolygonGeometry2D, SegmentGeometry2D, PointGeometry2D]:
     halfspaces = _build_halfspaces_for_dbm_2d(dbm, limits)
-    candidate_points = [point for point in _pairwise_line_intersections(halfspaces) if _point_in_halfspaces(point, halfspaces, respect_strict=False)]
+    candidate_points = [point for point in _pairwise_line_intersections(halfspaces) if
+                        _point_in_halfspaces(point, halfspaces, respect_strict=False)]
     unique_points = _unique_points(candidate_points)
     if not unique_points:
         return EmptyGeometry(dimension=2)
@@ -497,7 +502,8 @@ def _orientation(point_a: Point2D, point_b: Point2D, point_c: Point2D) -> float:
     return ((point_b.x - point_a.x) * (point_c.y - point_a.y)) - ((point_b.y - point_a.y) * (point_c.x - point_a.x))
 
 
-def _segment_intersection_parameters(left: BoundarySegment2D, right: BoundarySegment2D) -> Tuple[Tuple[float, ...], Tuple[float, ...]]:
+def _segment_intersection_parameters(left: BoundarySegment2D, right: BoundarySegment2D) -> Tuple[
+    Tuple[float, ...], Tuple[float, ...]]:
     p = left.start
     q = right.start
     r = Point2D(left.end.x - left.start.x, left.end.y - left.start.y)
@@ -510,9 +516,13 @@ def _segment_intersection_parameters(left: BoundarySegment2D, right: BoundarySeg
             return tuple(), tuple()
 
         if abs(r.x) >= abs(r.y):
-            left_values = sorted([0.0, 1.0, (right.start.x - left.start.x) / r.x if abs(r.x) > _GEOMETRY_EPSILON else 0.0, (right.end.x - left.start.x) / r.x if abs(r.x) > _GEOMETRY_EPSILON else 0.0])
+            left_values = sorted(
+                [0.0, 1.0, (right.start.x - left.start.x) / r.x if abs(r.x) > _GEOMETRY_EPSILON else 0.0,
+                 (right.end.x - left.start.x) / r.x if abs(r.x) > _GEOMETRY_EPSILON else 0.0])
         else:
-            left_values = sorted([0.0, 1.0, (right.start.y - left.start.y) / r.y if abs(r.y) > _GEOMETRY_EPSILON else 0.0, (right.end.y - left.start.y) / r.y if abs(r.y) > _GEOMETRY_EPSILON else 0.0])
+            left_values = sorted(
+                [0.0, 1.0, (right.start.y - left.start.y) / r.y if abs(r.y) > _GEOMETRY_EPSILON else 0.0,
+                 (right.end.y - left.start.y) / r.y if abs(r.y) > _GEOMETRY_EPSILON else 0.0])
 
         overlap_start = max(0.0, left_values[1])
         overlap_end = min(1.0, left_values[2])
@@ -520,11 +530,15 @@ def _segment_intersection_parameters(left: BoundarySegment2D, right: BoundarySeg
             return tuple(), tuple()
 
         if abs(s.x) >= abs(s.y):
-            right_start = (left.start.x + (r.x * overlap_start) - right.start.x) / s.x if abs(s.x) > _GEOMETRY_EPSILON else 0.0
-            right_end = (left.start.x + (r.x * overlap_end) - right.start.x) / s.x if abs(s.x) > _GEOMETRY_EPSILON else 0.0
+            right_start = (left.start.x + (r.x * overlap_start) - right.start.x) / s.x if abs(
+                s.x) > _GEOMETRY_EPSILON else 0.0
+            right_end = (left.start.x + (r.x * overlap_end) - right.start.x) / s.x if abs(
+                s.x) > _GEOMETRY_EPSILON else 0.0
         else:
-            right_start = (left.start.y + (r.y * overlap_start) - right.start.y) / s.y if abs(s.y) > _GEOMETRY_EPSILON else 0.0
-            right_end = (left.start.y + (r.y * overlap_end) - right.start.y) / s.y if abs(s.y) > _GEOMETRY_EPSILON else 0.0
+            right_start = (left.start.y + (r.y * overlap_start) - right.start.y) / s.y if abs(
+                s.y) > _GEOMETRY_EPSILON else 0.0
+            right_end = (left.start.y + (r.y * overlap_end) - right.start.y) / s.y if abs(
+                s.y) > _GEOMETRY_EPSILON else 0.0
 
         return (overlap_start, overlap_end), (right_start, right_end)
 
@@ -627,7 +641,8 @@ def _segment_angle(segment: BoundarySegment2D) -> float:
     return math.atan2(segment.end.y - segment.start.y, segment.end.x - segment.start.x)
 
 
-def _choose_next_boundary_segment(current: BoundarySegment2D, candidates: Sequence[BoundarySegment2D]) -> BoundarySegment2D:
+def _choose_next_boundary_segment(current: BoundarySegment2D,
+                                  candidates: Sequence[BoundarySegment2D]) -> BoundarySegment2D:
     current_angle = _segment_angle(current)
     best_segment = candidates[0]
     best_turn = None  # type: Optional[float]
@@ -659,7 +674,8 @@ def _trace_boundary_loops(boundary_segments: Sequence[BoundarySegment2D]) -> Tup
             candidates = [index for index in outgoing.get(current_key, []) if index in unused]
             next_index = candidates[0]
             if len(candidates) > 1:
-                next_segment = _choose_next_boundary_segment(current, [boundary_segments[index] for index in candidates])
+                next_segment = _choose_next_boundary_segment(current,
+                                                             [boundary_segments[index] for index in candidates])
                 next_index = boundary_segments.index(next_segment)
 
             current = boundary_segments[next_index]
@@ -746,7 +762,7 @@ def _point_in_loop(point: Point2D, loop: BoundaryLoop2D) -> bool:
     for index, left in enumerate(vertices):
         right = vertices[(index + 1) % len(vertices)]
         intersects = ((left.y > point.y) != (right.y > point.y)) and (
-            point.x < (((right.x - left.x) * (point.y - left.y)) / (right.y - left.y + 1e-30)) + left.x
+                point.x < (((right.x - left.x) * (point.y - left.y)) / (right.y - left.y + 1e-30)) + left.x
         )
         if intersects:
             inside = not inside
@@ -768,8 +784,8 @@ def _build_faces_from_loops(loops: Sequence[BoundaryLoop2D]) -> Tuple[Face2D, ..
 
 
 def _extract_degenerate_union_segments(
-    dbm_geometries: Sequence[Union[PolygonGeometry2D, SegmentGeometry2D, PointGeometry2D]],
-    polygons: Sequence[PolygonGeometry2D],
+        dbm_geometries: Sequence[Union[PolygonGeometry2D, SegmentGeometry2D, PointGeometry2D]],
+        polygons: Sequence[PolygonGeometry2D],
 ) -> Tuple[BoundarySegment2D, ...]:
     segments = []  # type: List[BoundarySegment2D]
     for geometry in dbm_geometries:
@@ -782,9 +798,9 @@ def _extract_degenerate_union_segments(
 
 
 def _extract_degenerate_union_points(
-    dbm_geometries: Sequence[Union[PolygonGeometry2D, SegmentGeometry2D, PointGeometry2D]],
-    polygons: Sequence[PolygonGeometry2D],
-    segments: Sequence[BoundarySegment2D],
+        dbm_geometries: Sequence[Union[PolygonGeometry2D, SegmentGeometry2D, PointGeometry2D]],
+        polygons: Sequence[PolygonGeometry2D],
+        segments: Sequence[BoundarySegment2D],
 ) -> Tuple[Point2D, ...]:
     result = []  # type: List[Point2D]
     for geometry in dbm_geometries:
@@ -810,8 +826,8 @@ def _point_on_segment(point: Point2D, segment: BoundarySegment2D) -> bool:
 
 
 def extract_dbm_geometry(
-    dbm: DBM,
-    limits: Optional[Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]]] = None,
+        dbm: DBM,
+        limits: Optional[Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]]] = None,
 ) -> Union[EmptyGeometry, Interval1D, PolygonGeometry2D, SegmentGeometry2D, PointGeometry2D]:
     """
     Extract a pure-Python visualization geometry snapshot from one DBM.
@@ -864,8 +880,8 @@ def extract_dbm_geometry(
 
 
 def extract_federation_geometry(
-    federation: Federation,
-    limits: Optional[Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]]] = None,
+        federation: Federation,
+        limits: Optional[Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]]] = None,
 ) -> Union[EmptyGeometry, MultiInterval1D, FederationGeometry2D]:
     """
     Extract a pure-Python visualization geometry snapshot from one federation.
@@ -894,7 +910,8 @@ def extract_federation_geometry(
         return _merge_intervals(intervals)
 
     if user_dimension == 2:
-        normalized_limits = _normalize_2d_limits(limits, [_dbm_axis_bounds_2d(dbm) for dbm in dbms])  # type: ignore[arg-type]
+        normalized_limits = _normalize_2d_limits(limits,
+                                                 [_dbm_axis_bounds_2d(dbm) for dbm in dbms])  # type: ignore[arg-type]
         dbm_geometries = []  # type: List[Union[PolygonGeometry2D, SegmentGeometry2D, PointGeometry2D]]
         polygons = []  # type: List[PolygonGeometry2D]
         for dbm in dbms:
@@ -973,7 +990,7 @@ def _auto_plot_axis_limits(bounds: Sequence[Tuple[Optional[float], Optional[floa
 
 
 def _auto_plot_limits_for_dbm(
-    dbm: DBM,
+        dbm: DBM,
 ) -> Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]]:
     user_dimension = dbm.dimension - 1
     if user_dimension == 1:
@@ -986,7 +1003,7 @@ def _auto_plot_limits_for_dbm(
 
 
 def _auto_plot_limits_for_federation(
-    federation: Federation,
+        federation: Federation,
 ) -> Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]]:
     user_dimension = len(federation.context.clocks)
     dbms = federation.to_dbm_list()
@@ -1014,7 +1031,8 @@ def _set_axis_clock_labels(ax: Any, clock_names: Sequence[str], dimension: int) 
 
 
 def _resolve_limits_from_geometry(
-    geometry: Union[EmptyGeometry, Interval1D, MultiInterval1D, PolygonGeometry2D, SegmentGeometry2D, PointGeometry2D, FederationGeometry2D]
+        geometry: Union[
+            EmptyGeometry, Interval1D, MultiInterval1D, PolygonGeometry2D, SegmentGeometry2D, PointGeometry2D, FederationGeometry2D]
 ) -> Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]]:
     if isinstance(geometry, EmptyGeometry):
         if geometry.dimension == 1:
@@ -1059,8 +1077,9 @@ def _resolve_limits_from_geometry(
 
 
 def _resolve_strict_epsilon(
-    geometry: Union[EmptyGeometry, Interval1D, MultiInterval1D, PolygonGeometry2D, SegmentGeometry2D, PointGeometry2D, FederationGeometry2D],
-    strict_epsilon: Optional[float],
+        geometry: Union[
+            EmptyGeometry, Interval1D, MultiInterval1D, PolygonGeometry2D, SegmentGeometry2D, PointGeometry2D, FederationGeometry2D],
+        strict_epsilon: Optional[float],
 ) -> float:
     if strict_epsilon is not None:
         value = float(strict_epsilon)
@@ -1077,9 +1096,45 @@ def _resolve_strict_epsilon(
     return max(scale * 1e-4, 1e-7)
 
 
-def _resolve_style(facecolor: Optional[Any], edgecolor: Optional[Any], alpha: Optional[float], linewidth: Optional[float], linestyle: Optional[Any]) -> Tuple[Any, Any, float, float, Any]:
-    resolved_edgecolor = edgecolor if edgecolor is not None else "C0"
-    resolved_facecolor = facecolor if facecolor is not None else resolved_edgecolor
+def _fallback_default_color(ax: Any) -> Any:
+    _, _, _ = _require_matplotlib()
+    color_values = importlib.import_module("matplotlib").rcParams["axes.prop_cycle"].by_key().get("color") or ["C0"]
+    index = int(getattr(ax, "pyudbm_plot_color_index", 0))
+    color = color_values[index % len(color_values)]
+    setattr(ax, "pyudbm_plot_color_index", index + 1)
+    return color
+
+
+def _next_default_color(ax: Any) -> Any:
+    line_helper = getattr(ax, "_get_lines", None)
+    getter = getattr(line_helper, "get_next_color", None)
+    if callable(getter):
+        return getter()
+    return _fallback_default_color(ax)
+
+
+def _take_default_colors(ax: Any, count: int) -> Tuple[Any, ...]:
+    return tuple(_next_default_color(ax) for _ in range(count))
+
+
+def _resolve_style(
+        ax: Any,
+        facecolor: Optional[Any],
+        edgecolor: Optional[Any],
+        alpha: Optional[float],
+        linewidth: Optional[float],
+        linestyle: Optional[Any],
+) -> Tuple[Any, Any, float, float, Any]:
+    if edgecolor is None and facecolor is None:
+        default_color = _next_default_color(ax)
+        resolved_edgecolor = default_color
+        resolved_facecolor = default_color
+    elif edgecolor is None:
+        resolved_facecolor = facecolor
+        resolved_edgecolor = facecolor
+    else:
+        resolved_edgecolor = edgecolor
+        resolved_facecolor = facecolor if facecolor is not None else resolved_edgecolor
     resolved_alpha = 0.25 if alpha is None else float(alpha)
     resolved_linewidth = 1.5 if linewidth is None else float(linewidth)
     resolved_linestyle = "-" if linestyle is None else linestyle
@@ -1094,10 +1149,11 @@ def _make_axes(pyplot: Any, ax: Optional[Any], dimension: int) -> Any:
 
 
 def _set_default_view(
-    ax: Any,
-    geometry: Union[EmptyGeometry, Interval1D, MultiInterval1D, PolygonGeometry2D, SegmentGeometry2D, PointGeometry2D, FederationGeometry2D],
-    baseline: float,
-    view_limits: Optional[Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]]] = None,
+        ax: Any,
+        geometry: Union[
+            EmptyGeometry, Interval1D, MultiInterval1D, PolygonGeometry2D, SegmentGeometry2D, PointGeometry2D, FederationGeometry2D],
+        baseline: float,
+        view_limits: Optional[Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]]] = None,
 ) -> None:
     limits = view_limits if view_limits is not None else _resolve_limits_from_geometry(geometry)
     if isinstance(limits[0], tuple):
@@ -1109,6 +1165,29 @@ def _set_default_view(
         x_limits = limits  # type: ignore[assignment]
         ax.set_xlim(*x_limits)
         ax.set_ylim(baseline - 1.0, baseline + 1.0)
+
+
+def _merged_view_limits(
+        ax: Any,
+        dimension: int,
+        baseline: float,
+        view_limits: Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]],
+) -> Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]]:
+    if not ax.has_data():
+        return view_limits
+
+    if dimension == 1:
+        current_x = ax.get_xlim()
+        new_x = view_limits  # type: ignore[assignment]
+        return min(current_x[0], new_x[0]), max(current_x[1], new_x[1])
+
+    current_x = ax.get_xlim()
+    current_y = ax.get_ylim()
+    new_x, new_y = view_limits  # type: ignore[misc]
+    return (
+        (min(current_x[0], new_x[0]), max(current_x[1], new_x[1])),
+        (min(current_y[0], new_y[0]), max(current_y[1], new_y[1])),
+    )
 
 
 def _line_label(label: Optional[str], index: int) -> Optional[str]:
@@ -1133,7 +1212,8 @@ def _interval_line_range(interval: Interval1D, epsilon: float) -> Tuple[float, f
     return start, end
 
 
-def _plot_interval(ax: Any, interval: Interval1D, baseline: float, epsilon: float, edgecolor: Any, linewidth: float, zorder: Optional[float], label: Optional[str]) -> PlotResult:
+def _plot_interval(ax: Any, interval: Interval1D, baseline: float, epsilon: float, edgecolor: Any, linewidth: float,
+                   zorder: Optional[float], label: Optional[str]) -> PlotResult:
     boundaries = []  # type: List[Any]
     markers = []  # type: List[Any]
     start, end = _interval_line_range(interval, epsilon)
@@ -1149,13 +1229,16 @@ def _plot_interval(ax: Any, interval: Interval1D, baseline: float, epsilon: floa
         )[0]
         boundaries.append(line)
 
-    lower_marker = ax.plot([interval.lower], [baseline], color=edgecolor, zorder=zorder, **_endpoint_marker_style(interval.lower_closed, edgecolor))[0]
-    upper_marker = ax.plot([interval.upper], [baseline], color=edgecolor, zorder=zorder, **_endpoint_marker_style(interval.upper_closed, edgecolor))[0]
+    lower_marker = ax.plot([interval.lower], [baseline], color=edgecolor, zorder=zorder,
+                           **_endpoint_marker_style(interval.lower_closed, edgecolor))[0]
+    upper_marker = ax.plot([interval.upper], [baseline], color=edgecolor, zorder=zorder,
+                           **_endpoint_marker_style(interval.upper_closed, edgecolor))[0]
     markers.extend([lower_marker, upper_marker])
     return PlotResult(ax=ax, boundaries=tuple(boundaries), markers=tuple(markers))
 
 
-def _arrow_for_interval(ax: Any, x_value: float, baseline: float, direction: float, edgecolor: Any, linewidth: float, zorder: Optional[float], patches: Any, extent: float) -> Any:
+def _arrow_for_interval(ax: Any, x_value: float, baseline: float, direction: float, edgecolor: Any, linewidth: float,
+                        zorder: Optional[float], patches: Any, extent: float) -> Any:
     delta = max(extent * 0.08, 0.1)
     return patches.FancyArrowPatch(
         (x_value, baseline),
@@ -1169,45 +1252,50 @@ def _arrow_for_interval(ax: Any, x_value: float, baseline: float, direction: flo
 
 
 def _plot_1d_geometry(
-    geometry: Union[EmptyGeometry, Interval1D, MultiInterval1D],
-    ax: Any,
-    baseline: float,
-    strict_epsilon: float,
-    show_unbounded: bool,
-    annotate: bool,
-    facecolor: Optional[Any],
-    edgecolor: Optional[Any],
-    alpha: Optional[float],
-    linewidth: Optional[float],
-    linestyle: Optional[Any],
-    label: Optional[str],
-    zorder: Optional[float],
+        geometry: Union[EmptyGeometry, Interval1D, MultiInterval1D],
+        ax: Any,
+        baseline: float,
+        strict_epsilon: float,
+        show_unbounded: bool,
+        annotate: bool,
+        facecolor: Optional[Any],
+        edgecolor: Optional[Any],
+        alpha: Optional[float],
+        linewidth: Optional[float],
+        linestyle: Optional[Any],
+        label: Optional[str],
+        zorder: Optional[float],
 ) -> PlotResult:
     del facecolor, alpha, linestyle
-    _, resolved_edgecolor, _, resolved_linewidth, _ = _resolve_style(None, edgecolor, None, linewidth, None)
+    _, resolved_edgecolor, _, resolved_linewidth, _ = _resolve_style(ax, None, edgecolor, None, linewidth, None)
     _, patches, _ = _require_matplotlib()
 
     boundaries = []  # type: List[Any]
     markers = []  # type: List[Any]
     arrows = []  # type: List[Any]
     annotations = []  # type: List[Any]
-    intervals = geometry.intervals if isinstance(geometry, MultiInterval1D) else ((geometry,) if isinstance(geometry, Interval1D) else tuple())
+    intervals = geometry.intervals if isinstance(geometry, MultiInterval1D) else (
+        (geometry,) if isinstance(geometry, Interval1D) else tuple())
 
     for index, interval in enumerate(intervals):
-        result = _plot_interval(ax, interval, baseline, strict_epsilon, resolved_edgecolor, resolved_linewidth, zorder, _line_label(label, index))
+        result = _plot_interval(ax, interval, baseline, strict_epsilon, resolved_edgecolor, resolved_linewidth, zorder,
+                                _line_label(label, index))
         boundaries.extend(result.boundaries)
         markers.extend(result.markers)
         extent = max(interval.upper - interval.lower, 1.0)
         if show_unbounded and interval.lower_clipped:
-            arrow = _arrow_for_interval(ax, interval.lower, baseline, -1.0, resolved_edgecolor, resolved_linewidth, zorder, patches, extent)
+            arrow = _arrow_for_interval(ax, interval.lower, baseline, -1.0, resolved_edgecolor, resolved_linewidth,
+                                        zorder, patches, extent)
             ax.add_patch(arrow)
             arrows.append(arrow)
         if show_unbounded and interval.upper_clipped:
-            arrow = _arrow_for_interval(ax, interval.upper, baseline, 1.0, resolved_edgecolor, resolved_linewidth, zorder, patches, extent)
+            arrow = _arrow_for_interval(ax, interval.upper, baseline, 1.0, resolved_edgecolor, resolved_linewidth,
+                                        zorder, patches, extent)
             ax.add_patch(arrow)
             arrows.append(arrow)
         if annotate:
-            annotation = ax.text((interval.lower + interval.upper) / 2.0, baseline + 0.08, "interval", color=resolved_edgecolor)
+            annotation = ax.text((interval.lower + interval.upper) / 2.0, baseline + 0.08, "interval",
+                                 color=resolved_edgecolor)
             annotations.append(annotation)
 
     return PlotResult(
@@ -1230,7 +1318,8 @@ def _polygon_fill_vertices(geometry: PolygonGeometry2D, epsilon: float) -> Tuple
         )
         for halfspace in geometry.halfspaces
     )
-    candidate_points = [point for point in _pairwise_line_intersections(adjusted) if _point_in_halfspaces(point, adjusted, respect_strict=False)]
+    candidate_points = [point for point in _pairwise_line_intersections(adjusted) if
+                        _point_in_halfspaces(point, adjusted, respect_strict=False)]
     unique_points = _unique_points(candidate_points)
     if len(unique_points) < 3:
         return tuple()
@@ -1243,7 +1332,8 @@ def _edge_linestyle(segment: BoundarySegment2D, default_linestyle: Any) -> Any:
     return default_linestyle
 
 
-def _plot_boundary_segment(ax: Any, segment: BoundarySegment2D, edgecolor: Any, linewidth: float, linestyle: Any, zorder: Optional[float], label: Optional[str]) -> Any:
+def _plot_boundary_segment(ax: Any, segment: BoundarySegment2D, edgecolor: Any, linewidth: float, linestyle: Any,
+                           zorder: Optional[float], label: Optional[str]) -> Any:
     return ax.plot(
         [segment.start.x, segment.end.x],
         [segment.start.y, segment.end.y],
@@ -1255,7 +1345,8 @@ def _plot_boundary_segment(ax: Any, segment: BoundarySegment2D, edgecolor: Any, 
     )[0]
 
 
-def _arrow_for_segment(ax: Any, segment: BoundarySegment2D, edgecolor: Any, linewidth: float, zorder: Optional[float], patches: Any, outward_sign: float) -> Any:
+def _arrow_for_segment(ax: Any, segment: BoundarySegment2D, edgecolor: Any, linewidth: float, zorder: Optional[float],
+                       patches: Any, outward_sign: float) -> Any:
     direction_x = segment.end.x - segment.start.x
     direction_y = segment.end.y - segment.start.y
     length = math.hypot(direction_x, direction_y)
@@ -1274,7 +1365,8 @@ def _arrow_for_segment(ax: Any, segment: BoundarySegment2D, edgecolor: Any, line
     )
 
 
-def _arrows_for_segment(ax: Any, segment: BoundarySegment2D, edgecolor: Any, linewidth: float, zorder: Optional[float], patches: Any, outward_sign: float) -> Tuple[Any, ...]:
+def _arrows_for_segment(ax: Any, segment: BoundarySegment2D, edgecolor: Any, linewidth: float, zorder: Optional[float],
+                        patches: Any, outward_sign: float) -> Tuple[Any, ...]:
     length = segment.length
     if length >= 3.0:
         parameters = [0.3, 0.7]
@@ -1308,23 +1400,23 @@ def _arrows_for_segment(ax: Any, segment: BoundarySegment2D, edgecolor: Any, lin
 
 
 def _plot_dbm_2d_geometry(
-    geometry: Union[EmptyGeometry, PolygonGeometry2D, SegmentGeometry2D, PointGeometry2D],
-    ax: Any,
-    strict_epsilon: float,
-    show_unbounded: bool,
-    annotate: bool,
-    facecolor: Optional[Any],
-    edgecolor: Optional[Any],
-    alpha: Optional[float],
-    linewidth: Optional[float],
-    linestyle: Optional[Any],
-    label: Optional[str],
-    zorder: Optional[float],
+        geometry: Union[EmptyGeometry, PolygonGeometry2D, SegmentGeometry2D, PointGeometry2D],
+        ax: Any,
+        strict_epsilon: float,
+        show_unbounded: bool,
+        annotate: bool,
+        facecolor: Optional[Any],
+        edgecolor: Optional[Any],
+        alpha: Optional[float],
+        linewidth: Optional[float],
+        linestyle: Optional[Any],
+        label: Optional[str],
+        zorder: Optional[float],
 ) -> PlotResult:
     pyplot, patches, _ = _require_matplotlib()
     del pyplot
     resolved_facecolor, resolved_edgecolor, resolved_alpha, resolved_linewidth, resolved_linestyle = _resolve_style(
-        facecolor, edgecolor, alpha, linewidth, linestyle
+        ax, facecolor, edgecolor, alpha, linewidth, linestyle
     )
 
     fills = []  # type: List[Any]
@@ -1349,10 +1441,12 @@ def _plot_dbm_2d_geometry(
             fills.append(patch)
 
         for index, segment in enumerate(geometry.edges):
-            line = _plot_boundary_segment(ax, segment, resolved_edgecolor, resolved_linewidth, resolved_linestyle, zorder, _line_label(label, index if not fills else index + 1))
+            line = _plot_boundary_segment(ax, segment, resolved_edgecolor, resolved_linewidth, resolved_linestyle,
+                                          zorder, _line_label(label, index if not fills else index + 1))
             boundaries.append(line)
             if show_unbounded and segment.is_clipped:
-                for arrow in _arrows_for_segment(ax, segment, resolved_edgecolor, resolved_linewidth, zorder, patches, -1.0):
+                for arrow in _arrows_for_segment(ax, segment, resolved_edgecolor, resolved_linewidth, zorder, patches,
+                                                 -1.0):
                     ax.add_patch(arrow)
                     arrows.append(arrow)
         if annotate:
@@ -1361,15 +1455,22 @@ def _plot_dbm_2d_geometry(
             annotations.append(ax.text(center_x, center_y, "dbm", color=resolved_edgecolor))
 
     elif isinstance(geometry, SegmentGeometry2D):
-        line = _plot_boundary_segment(ax, geometry.segment, resolved_edgecolor, resolved_linewidth, resolved_linestyle, zorder, label)
+        line = _plot_boundary_segment(ax, geometry.segment, resolved_edgecolor, resolved_linewidth, resolved_linestyle,
+                                      zorder, label)
         boundaries.append(line)
-        markers.append(ax.plot([geometry.segment.start.x], [geometry.segment.start.y], color=resolved_edgecolor, zorder=zorder, **_endpoint_marker_style(geometry.segment.is_closed, resolved_edgecolor))[0])
-        markers.append(ax.plot([geometry.segment.end.x], [geometry.segment.end.y], color=resolved_edgecolor, zorder=zorder, **_endpoint_marker_style(geometry.segment.is_closed, resolved_edgecolor))[0])
+        markers.append(
+            ax.plot([geometry.segment.start.x], [geometry.segment.start.y], color=resolved_edgecolor, zorder=zorder,
+                    **_endpoint_marker_style(geometry.segment.is_closed, resolved_edgecolor))[0])
+        markers.append(
+            ax.plot([geometry.segment.end.x], [geometry.segment.end.y], color=resolved_edgecolor, zorder=zorder,
+                    **_endpoint_marker_style(geometry.segment.is_closed, resolved_edgecolor))[0])
         if annotate:
-            annotations.append(ax.text(geometry.segment.midpoint.x, geometry.segment.midpoint.y, "segment", color=resolved_edgecolor))
+            annotations.append(
+                ax.text(geometry.segment.midpoint.x, geometry.segment.midpoint.y, "segment", color=resolved_edgecolor))
 
     elif isinstance(geometry, PointGeometry2D):
-        marker = ax.plot([geometry.point.x], [geometry.point.y], color=resolved_edgecolor, zorder=zorder, label=label, **_endpoint_marker_style(geometry.is_closed, resolved_edgecolor))[0]
+        marker = ax.plot([geometry.point.x], [geometry.point.y], color=resolved_edgecolor, zorder=zorder, label=label,
+                         **_endpoint_marker_style(geometry.is_closed, resolved_edgecolor))[0]
         markers.append(marker)
         if annotate:
             annotations.append(ax.text(geometry.point.x, geometry.point.y, "point", color=resolved_edgecolor))
@@ -1405,26 +1506,26 @@ def _face_path(face: Face2D, path_module: Any) -> Any:
 
 
 def _plot_federation_2d_geometry(
-    geometry: Union[EmptyGeometry, FederationGeometry2D],
-    ax: Any,
-    strict_epsilon: float,
-    show_unbounded: bool,
-    annotate: bool,
-    color_mode: str,
-    facecolor: Optional[Any],
-    edgecolor: Optional[Any],
-    alpha: Optional[float],
-    linewidth: Optional[float],
-    linestyle: Optional[Any],
-    label: Optional[str],
-    zorder: Optional[float],
+        geometry: Union[EmptyGeometry, FederationGeometry2D],
+        ax: Any,
+        strict_epsilon: float,
+        show_unbounded: bool,
+        annotate: bool,
+        color_mode: str,
+        facecolor: Optional[Any],
+        edgecolor: Optional[Any],
+        alpha: Optional[float],
+        linewidth: Optional[float],
+        linestyle: Optional[Any],
+        label: Optional[str],
+        zorder: Optional[float],
 ) -> PlotResult:
     if color_mode not in {"shared", "per_dbm"}:
         raise ValueError("color_mode must be 'shared' or 'per_dbm'.")
 
     _, patches, path_module = _require_matplotlib()
     resolved_facecolor, resolved_edgecolor, resolved_alpha, resolved_linewidth, resolved_linestyle = _resolve_style(
-        facecolor, edgecolor, alpha, linewidth, linestyle
+        ax, facecolor, edgecolor, alpha, linewidth, linestyle
     )
 
     fills = []  # type: List[Any]
@@ -1435,7 +1536,7 @@ def _plot_federation_2d_geometry(
 
     if isinstance(geometry, FederationGeometry2D):
         if color_mode == "per_dbm":
-            color_cycle = ["C0", "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9"]
+            color_cycle = _take_default_colors(ax, len(geometry.dbm_geometries))
             for index, dbm_geometry in enumerate(geometry.dbm_geometries):
                 dbm_result = _plot_dbm_2d_geometry(
                     dbm_geometry,
@@ -1475,20 +1576,24 @@ def _plot_federation_2d_geometry(
                 loop_lookup[key] = outward_sign
 
         for index, segment in enumerate(geometry.boundary_segments):
-            line = _plot_boundary_segment(ax, segment, resolved_edgecolor, resolved_linewidth, resolved_linestyle, zorder, _line_label(label, index if not fills else index + 1))
+            line = _plot_boundary_segment(ax, segment, resolved_edgecolor, resolved_linewidth, resolved_linestyle,
+                                          zorder, _line_label(label, index if not fills else index + 1))
             boundaries.append(line)
             if show_unbounded and segment.is_clipped:
                 sign = loop_lookup.get((_point_key(segment.start), _point_key(segment.end)), -1.0)
-                for arrow in _arrows_for_segment(ax, segment, resolved_edgecolor, resolved_linewidth, zorder, patches, sign):
+                for arrow in _arrows_for_segment(ax, segment, resolved_edgecolor, resolved_linewidth, zorder, patches,
+                                                 sign):
                     ax.add_patch(arrow)
                     arrows.append(arrow)
 
         for segment in geometry.isolated_segments:
-            line = _plot_boundary_segment(ax, segment, resolved_edgecolor, resolved_linewidth, resolved_linestyle, zorder, None)
+            line = _plot_boundary_segment(ax, segment, resolved_edgecolor, resolved_linewidth, resolved_linestyle,
+                                          zorder, None)
             boundaries.append(line)
 
         for point in geometry.isolated_points:
-            markers.append(ax.plot([point.x], [point.y], color=resolved_edgecolor, zorder=zorder, **_endpoint_marker_style(True, resolved_edgecolor))[0])
+            markers.append(ax.plot([point.x], [point.y], color=resolved_edgecolor, zorder=zorder,
+                                   **_endpoint_marker_style(True, resolved_edgecolor))[0])
 
         if annotate:
             for index, face in enumerate(geometry.faces):
@@ -1508,21 +1613,21 @@ def _plot_federation_2d_geometry(
 
 
 def plot_dbm(
-    dbm: DBM,
-    ax: Optional[Any] = None,
-    *,
-    limits: Optional[Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]]] = None,
-    strict_epsilon: Optional[float] = None,
-    show_unbounded: bool = True,
-    annotate: bool = False,
-    baseline: float = 0.0,
-    facecolor: Optional[Any] = None,
-    edgecolor: Optional[Any] = None,
-    alpha: Optional[float] = None,
-    linewidth: Optional[float] = None,
-    linestyle: Optional[Any] = None,
-    label: Optional[str] = None,
-    zorder: Optional[float] = None,
+        dbm: DBM,
+        ax: Optional[Any] = None,
+        *,
+        limits: Optional[Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]]] = None,
+        strict_epsilon: Optional[float] = None,
+        show_unbounded: bool = True,
+        annotate: bool = False,
+        baseline: float = 0.0,
+        facecolor: Optional[Any] = None,
+        edgecolor: Optional[Any] = None,
+        alpha: Optional[float] = None,
+        linewidth: Optional[float] = None,
+        linestyle: Optional[Any] = None,
+        label: Optional[str] = None,
+        zorder: Optional[float] = None,
 ) -> PlotResult:
     """
     Plot one DBM with matplotlib.
@@ -1535,11 +1640,14 @@ def plot_dbm(
     if user_dimension not in {1, 2}:
         raise NotImplementedError("Matplotlib plotting currently supports only 1D and 2D DBMs.")
 
+    resolved_label = str(dbm) if label is None else label
     plot_limits = limits if limits is not None else _auto_plot_limits_for_dbm(dbm)
     pyplot, _, _ = _require_matplotlib()
     geometry = extract_dbm_geometry(dbm, limits=plot_limits)
     ax = _make_axes(pyplot, ax, user_dimension)
     epsilon = _resolve_strict_epsilon(geometry, strict_epsilon)
+    if limits is None:
+        plot_limits = _merged_view_limits(ax, user_dimension, baseline, plot_limits)
     _set_default_view(ax, geometry, baseline, view_limits=plot_limits)
     _set_axis_clock_labels(ax, [clock.get_full_name() for clock in dbm.context.clocks], user_dimension)
     if user_dimension == 1:
@@ -1555,7 +1663,7 @@ def plot_dbm(
             alpha=alpha,
             linewidth=linewidth,
             linestyle=linestyle,
-            label=label,
+            label=resolved_label,
             zorder=zorder,
         )
     return _plot_dbm_2d_geometry(
@@ -1569,28 +1677,28 @@ def plot_dbm(
         alpha=alpha,
         linewidth=linewidth,
         linestyle=linestyle,
-        label=label,
+        label=resolved_label,
         zorder=zorder,
     )
 
 
 def plot_federation(
-    federation: Federation,
-    ax: Optional[Any] = None,
-    *,
-    limits: Optional[Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]]] = None,
-    strict_epsilon: Optional[float] = None,
-    show_unbounded: bool = True,
-    annotate: bool = False,
-    baseline: float = 0.0,
-    color_mode: str = "shared",
-    facecolor: Optional[Any] = None,
-    edgecolor: Optional[Any] = None,
-    alpha: Optional[float] = None,
-    linewidth: Optional[float] = None,
-    linestyle: Optional[Any] = None,
-    label: Optional[str] = None,
-    zorder: Optional[float] = None,
+        federation: Federation,
+        ax: Optional[Any] = None,
+        *,
+        limits: Optional[Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]]] = None,
+        strict_epsilon: Optional[float] = None,
+        show_unbounded: bool = True,
+        annotate: bool = False,
+        baseline: float = 0.0,
+        color_mode: str = "shared",
+        facecolor: Optional[Any] = None,
+        edgecolor: Optional[Any] = None,
+        alpha: Optional[float] = None,
+        linewidth: Optional[float] = None,
+        linestyle: Optional[Any] = None,
+        label: Optional[str] = None,
+        zorder: Optional[float] = None,
 ) -> PlotResult:
     """
     Plot one federation with matplotlib.
@@ -1604,11 +1712,14 @@ def plot_federation(
     if user_dimension not in {1, 2}:
         raise NotImplementedError("Matplotlib plotting currently supports only 1D and 2D federations.")
 
+    resolved_label = str(federation) if label is None else label
     plot_limits = limits if limits is not None else _auto_plot_limits_for_federation(federation)
     pyplot, _, _ = _require_matplotlib()
     geometry = extract_federation_geometry(federation, limits=plot_limits)
     ax = _make_axes(pyplot, ax, user_dimension)
     epsilon = _resolve_strict_epsilon(geometry, strict_epsilon)
+    if limits is None:
+        plot_limits = _merged_view_limits(ax, user_dimension, baseline, plot_limits)
     _set_default_view(ax, geometry, baseline, view_limits=plot_limits)
     _set_axis_clock_labels(ax, [clock.get_full_name() for clock in federation.context.clocks], user_dimension)
     if user_dimension == 1:
@@ -1624,7 +1735,7 @@ def plot_federation(
             alpha=alpha,
             linewidth=linewidth,
             linestyle=linestyle,
-            label=label,
+            label=resolved_label,
             zorder=zorder,
         )
     return _plot_federation_2d_geometry(
@@ -1639,6 +1750,6 @@ def plot_federation(
         alpha=alpha,
         linewidth=linewidth,
         linestyle=linestyle,
-        label=label,
+        label=resolved_label,
         zorder=zorder,
     )

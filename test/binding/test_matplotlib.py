@@ -6,6 +6,7 @@ matplotlib = pytest.importorskip("matplotlib")
 matplotlib.use("Agg")
 
 from matplotlib import pyplot as plt
+from matplotlib.colors import to_hex
 
 from pyudbm import Context
 from pyudbm.binding import PlotResult, plot_dbm, plot_federation
@@ -32,6 +33,29 @@ class TestMatplotlibVisualization:
         assert tuple(round(value, 6) for value in ax.get_xlim()) == (-1.0, 3.0)
         assert ax.get_xlabel() == "x"
         assert ax.get_ylabel() == "visual baseline"
+
+    def test_plot_dbm_default_label_uses_dbm_string_and_same_ax_auto_merges_view(self):
+        context = Context(["x", "y"])
+        left_dbm = ((context.x <= 1) & (context.y <= 1)).to_dbm_list()[0]
+        right_dbm = ((context.x >= 3) & (context.y >= 2)).to_dbm_list()[0]
+        _, ax = plt.subplots()
+
+        left_result = plot_dbm(left_dbm, ax=ax)
+        right_result = plot_dbm(right_dbm, ax=ax)
+
+        assert isinstance(left_result, PlotResult)
+        assert isinstance(right_result, PlotResult)
+        handles, labels = ax.get_legend_handles_labels()
+        del handles
+        assert str(left_dbm) in labels
+        assert str(right_dbm) in labels
+        assert left_result.boundaries[0].get_color() != right_result.boundaries[0].get_color()
+        xlim = ax.get_xlim()
+        ylim = ax.get_ylim()
+        assert xlim[0] <= 0.0
+        assert xlim[1] > 3.0
+        assert ylim[0] <= 0.0
+        assert ylim[1] > 2.0
 
     def test_plot_dbm_1d_unbounded_interval_adds_arrow(self):
         context = Context(["x"])
@@ -185,6 +209,30 @@ class TestMatplotlibVisualization:
         assert isinstance(result, PlotResult)
         assert len(result.fills) >= 5
         assert len(result.boundaries) == 12
+        assert len({to_hex(fill.get_facecolor()) for fill in result.fills}) >= 2
+
+    def test_plot_federation_default_label_uses_federation_string_and_same_ax_auto_merges_view(self):
+        context = Context(["x", "y"])
+        left = (context.x <= 1) & (context.y <= 1)
+        right = (context.x >= 3) & (context.y >= 2)
+        _, ax = plt.subplots()
+
+        left_result = plot_federation(left, ax=ax)
+        right_result = plot_federation(right, ax=ax)
+
+        assert isinstance(left_result, PlotResult)
+        assert isinstance(right_result, PlotResult)
+        handles, labels = ax.get_legend_handles_labels()
+        del handles
+        assert str(left) in labels
+        assert str(right) in labels
+        assert left_result.boundaries[0].get_color() != right_result.boundaries[0].get_color()
+        xlim = ax.get_xlim()
+        ylim = ax.get_ylim()
+        assert xlim[0] <= 0.0
+        assert xlim[1] > 3.0
+        assert ylim[0] <= 0.0
+        assert ylim[1] > 2.0
 
     def test_plot_methods_forward_correctly(self):
         context = Context(["x", "y"])
