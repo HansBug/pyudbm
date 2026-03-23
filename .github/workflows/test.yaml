@@ -70,9 +70,6 @@ jobs:
         run: |
           choco install tree cloc wget curl make
           choco install ninja make mingw
-          echo "C:/ProgramData/mingw64/mingw64/bin" >> "$GITHUB_PATH"
-          echo "CC=/c/ProgramData/mingw64/mingw64/bin/gcc.exe" >> "$GITHUB_ENV"
-          echo "CXX=/c/ProgramData/mingw64/mingw64/bin/g++.exe" >> "$GITHUB_ENV"
       - name: Kill Primitive CMake on MacOS
         if: ${{ env.OS_NAME == 'MacOS' }}
         shell: bash
@@ -90,6 +87,17 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Resolve MinGW toolchain on Windows
+        if: ${{ env.OS_NAME == 'Windows' }}
+        shell: bash
+        run: |
+          MINGW_BIN_WIN="$(python -m tools.windows_mingw --bin-dir)"
+          MINGW_BIN_POSIX="$(cygpath -u "$MINGW_BIN_WIN")"
+          MINGW_BIN_MIXED="$(cygpath -m "$MINGW_BIN_WIN")"
+          echo "$MINGW_BIN_MIXED" >> "$GITHUB_PATH"
+          echo "MINGW_BIN=$MINGW_BIN_POSIX" >> "$GITHUB_ENV"
+          echo "CC=$MINGW_BIN_POSIX/gcc.exe" >> "$GITHUB_ENV"
+          echo "CXX=$MINGW_BIN_POSIX/g++.exe" >> "$GITHUB_ENV"
       - name: Set up build tools
         shell: bash
         run: |
@@ -100,9 +108,6 @@ jobs:
       - name: Build native dependencies
         shell: bash
         run: |
-          if [ "$OS_NAME" = "Windows" ]; then
-            export PATH="/c/ProgramData/mingw64/mingw64/bin:$PATH"
-          fi
           CTEST_CFG=Release make bin
       - name: Prepare Python env
         shell: bash
@@ -121,9 +126,6 @@ jobs:
           LINETRACE: 1
         shell: bash
         run: |
-          if [ "$OS_NAME" = "Windows" ]; then
-            export PATH="/c/ProgramData/mingw64/mingw64/bin:$PATH"
-          fi
           make build
           make clean_x
           make unittest

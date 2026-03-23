@@ -28,15 +28,8 @@ cd "$PROJECT_ROOT"
 
 choco install mingw -y
 
-MINGW_BIN=""
-for d in /c/ProgramData/mingw64/mingw64/bin /c/mingw64/bin; do
-    if [[ -x "$d/gcc.exe" && -x "$d/g++.exe" ]]; then
-        MINGW_BIN="$d"
-        break
-    fi
-done
-
-test -n "$MINGW_BIN"
+MINGW_BIN_WIN="$(python -m tools.windows_mingw --bin-dir)"
+MINGW_BIN="$(to_posix_path "$MINGW_BIN_WIN")"
 
 export MINGW_BIN
 export PATH="$MINGW_BIN:$PATH"

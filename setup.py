@@ -10,6 +10,7 @@ from codecs import open
 from setuptools import Extension
 from setuptools import find_packages, setup
 from setuptools.command.build_ext import build_ext
+from tools.windows_mingw import find_mingw_bin
 
 _package_name = "pyudbm"
 
@@ -43,7 +44,11 @@ def _parse_version_tuple(version: str):
 def _find_gnu_compiler(cxx: bool = False):
     executable = 'g++.exe' if cxx else 'gcc.exe'
     if platform.system() == 'Windows':
-        for bindir in [r'C:\ProgramData\mingw64\mingw64\bin', r'C:\mingw64\bin']:
+        try:
+            bindir = find_mingw_bin()
+        except RuntimeError:
+            bindir = None
+        if bindir:
             compiler = os.path.join(bindir, executable)
             if os.path.exists(compiler):
                 return compiler
