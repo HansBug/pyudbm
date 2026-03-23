@@ -5,9 +5,10 @@
 	bin_clean bin bin_notest docs docs_en docs_zh pdocs rst_auto uversion
 
 PYTHON := $(shell which python)
+UNAME_S := $(shell uname -s 2>/dev/null || echo unknown)
 
-GNU_GCC_CANDIDATES := gcc gcc-14 gcc-13 gcc-12 gcc-11 gcc-10 gcc-9
-GNU_GXX_CANDIDATES := g++ g++-14 g++-13 g++-12 g++-11 g++-10 g++-9
+GNU_GCC_CANDIDATES := gcc-9 gcc-10 gcc-11 gcc-12 gcc-13 gcc-14 gcc
+GNU_GXX_CANDIDATES := g++-9 g++-10 g++-11 g++-12 g++-13 g++-14 g++
 DETECTED_GCC       := $(shell bash -lc 'for cmd in $(GNU_GCC_CANDIDATES); do if command -v $$cmd >/dev/null 2>&1 && $$cmd -v 2>&1 | grep -qi "gcc version"; then echo $$cmd; exit 0; fi; done')
 DETECTED_GXX       := $(shell bash -lc 'for cmd in $(GNU_GXX_CANDIDATES); do if command -v $$cmd >/dev/null 2>&1 && $$cmd -v 2>&1 | grep -qi "gcc version"; then echo $$cmd; exit 0; fi; done')
 
@@ -23,7 +24,16 @@ else ifeq ($(origin CXX), undefined)
 CXX := $(if $(DETECTED_GXX),$(DETECTED_GXX),g++)
 endif
 
+ifeq ($(OS),Windows_NT)
+IS_WINDOWS := 1
+else ifneq ($(filter MINGW% MSYS% CYGWIN%,$(UNAME_S)),)
+IS_WINDOWS := 1
+else
+IS_WINDOWS := 0
+endif
+
 PS     ?= $(shell ${PYTHON} -c "import os; print(os.pathsep)")
+CC_BINDIR := $(shell bash -lc 'p=$$(command -v "$(CC)" 2>/dev/null); if [ -n "$$p" ]; then dirname "$$p"; fi')
 
 PROJ_DIR       := .
 DOC_DIR        := ${PROJ_DIR}/docs
@@ -65,7 +75,15 @@ CMAKE_E  ?= ${CMAKE_EP} ${CMAKE_EL} ${CMAKE_EI}
 
 CTEST_CFG ?= Release
 CMAKE_GENERATOR ?= Ninja
-CMAKE_TOOLCHAIN_ARGS := -G "${CMAKE_GENERATOR}" -DCMAKE_C_COMPILER="${CC}" -DCMAKE_CXX_COMPILER="${CXX}"
+CMAKE_GNU_RUNTIME_ARGS :=
+ifeq ($(IS_WINDOWS),1)
+CMAKE_GNU_RUNTIME_ARGS += -DCMAKE_C_FLAGS="-static-libgcc"
+CMAKE_GNU_RUNTIME_ARGS += -DCMAKE_CXX_FLAGS="-static-libgcc -static-libstdc++"
+CMAKE_GNU_RUNTIME_ARGS += -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++"
+CMAKE_GNU_RUNTIME_ARGS += -DCMAKE_SHARED_LINKER_FLAGS="-static-libgcc -static-libstdc++"
+endif
+CMAKE_TOOLCHAIN_ARGS := -G "${CMAKE_GENERATOR}" -DCMAKE_C_COMPILER="${CC}" -DCMAKE_CXX_COMPILER="${CXX}" ${CMAKE_GNU_RUNTIME_ARGS}
+CTEST_ENV := $(if $(CC_BINDIR),PATH="$(CC_BINDIR)${PS}$$PATH",)
 
 COV_TYPES ?= xml term-missing
 
@@ -137,7 +155,7 @@ help:
 	@echo ""
 
 build:
-	CC="${CC}" CXX="${CXX}" CMAKE_GENERATOR="${CMAKE_GENERATOR}" BINSTALL_DIR="${BINSTALL_DIR}" $(PYTHON) setup.py build_ext --inplace
+	$(if $(CC_BINDIR),PATH="${CC_BINDIR}${PS}$$PATH",) CC="${CC}" CXX="${CXX}" CMAKE_GENERATOR="${CMAKE_GENERATOR}" BINSTALL_DIR="${BINSTALL_DIR}" $(PYTHON) setup.py build_ext --inplace
 uversion:
 	$(PYTHON) -m tools.udbm_version -i "${UDBM_DIR}" -o "${SRC_DIR}/config/meta.py"
 clean:
@@ -166,7 +184,7 @@ uutils_build:
 	cmake -S ${UUTILS_DIR} -B "${UUTILS_BUILD_DIR}" ${CMAKE_TOOLCHAIN_ARGS} $(if ${CTEST_CFG},-DCMAKE_BUILD_TYPE=${CTEST_CFG},)
 	cmake --build "${UUTILS_BUILD_DIR}" $(if ${CTEST_CFG},--config ${CTEST_CFG},)
 uutils_test:
-	ctest --test-dir "${UUTILS_BUILD_DIR}" --output-on-failure $(if ${CTEST_CFG},-C ${CTEST_CFG},)
+	${CTEST_ENV} ctest --test-dir "${UUTILS_BUILD_DIR}" --output-on-failure $(if ${CTEST_CFG},-C ${CTEST_CFG},)
 uutils_install:
 	cmake --install "${UUTILS_BUILD_DIR}" --prefix "${BINSTALL_DIR}" $(if ${CTEST_CFG},--config ${CTEST_CFG},)
 uutils_clean:
@@ -179,7 +197,7 @@ udbm_build:
 		-DUUtils_DIR="$(shell readlink -f ${BINSTALL_DIR}/lib*/cmake/UUtils)"
 	cmake --build "${UDBM_BUILD_DIR}" $(if ${CTEST_CFG},--config ${CTEST_CFG},)
 udbm_test:
-	ctest --test-dir "${UDBM_BUILD_DIR}" --output-on-failure $(if ${CTEST_CFG},-C ${CTEST_CFG},)
+	${CTEST_ENV} ctest --test-dir "${UDBM_BUILD_DIR}" --output-on-failure $(if ${CTEST_CFG},-C ${CTEST_CFG},)
 udbm_install:
 	cmake --install "${UDBM_BUILD_DIR}" --prefix "${BINSTALL_DIR}" $(if ${CTEST_CFG},--config ${CTEST_CFG},)
 udbm_clean:
@@ -195,7 +213,7 @@ ucdd_build:
 		-DFIND_FATAL=OFF
 	cmake --build "${UCDD_BUILD_DIR}" $(if ${CTEST_CFG},--config ${CTEST_CFG},)
 ucdd_test:
-	ctest --test-dir "${UCDD_BUILD_DIR}" --output-on-failure $(if ${CTEST_CFG},-C ${CTEST_CFG},)
+	${CTEST_ENV} ctest --test-dir "${UCDD_BUILD_DIR}" --output-on-failure $(if ${CTEST_CFG},-C ${CTEST_CFG},)
 ucdd_install:
 	cmake --install "${UCDD_BUILD_DIR}" --prefix "${BINSTALL_DIR}" $(if ${CTEST_CFG},--config ${CTEST_CFG},)
 ucdd_clean:
@@ -236,5 +254,7 @@ info:
 	echo "PS: ${PS}"
 	echo "CC: ${CC}"
 	echo "CXX: ${CXX}"
+	echo "CC_BINDIR: ${CC_BINDIR}"
+	echo "IS_WINDOWS: ${IS_WINDOWS}"
 	echo "CMAKE_GENERATOR: ${CMAKE_GENERATOR}"
 	echo "CMAKE_E: ${CMAKE_E}"

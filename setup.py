@@ -41,10 +41,17 @@ def _parse_version_tuple(version: str):
 
 
 def _find_gnu_compiler(cxx: bool = False):
+    executable = 'g++.exe' if cxx else 'gcc.exe'
+    if platform.system() == 'Windows':
+        for bindir in [r'C:\ProgramData\mingw64\mingw64\bin', r'C:\mingw64\bin']:
+            compiler = os.path.join(bindir, executable)
+            if os.path.exists(compiler):
+                return compiler
+
     candidates = (
-        ['g++', 'g++-14', 'g++-13', 'g++-12', 'g++-11', 'g++-10', 'g++-9']
+        ['g++-9', 'g++-10', 'g++-11', 'g++-12', 'g++-13', 'g++-14', 'g++']
         if cxx else
-        ['gcc', 'gcc-14', 'gcc-13', 'gcc-12', 'gcc-11', 'gcc-10', 'gcc-9']
+        ['gcc-9', 'gcc-10', 'gcc-11', 'gcc-12', 'gcc-13', 'gcc-14', 'gcc']
     )
     for candidate in candidates:
         compiler = shutil.which(candidate)
@@ -97,12 +104,22 @@ class CMakeBuild(build_ext):
                       '-DCMAKE_BUILD_TYPE=' + cfg,
                       '-DCMAKE_C_COMPILER=' + cc,
                       '-DCMAKE_CXX_COMPILER=' + cxx]
+        if platform.system() == 'Windows':
+            cmake_args += [
+                '-DCMAKE_C_FLAGS=-static-libgcc',
+                '-DCMAKE_CXX_FLAGS=-static-libgcc -static-libstdc++',
+                '-DCMAKE_EXE_LINKER_FLAGS=-static-libgcc -static-libstdc++',
+                '-DCMAKE_SHARED_LINKER_FLAGS=-static-libgcc -static-libstdc++',
+            ]
 
         build_args = ['--config', cfg, '--', '-j2']
 
         env = os.environ.copy()
         env['CC'] = cc
         env['CXX'] = cxx
+        compiler_dir = os.path.dirname(cc)
+        if compiler_dir:
+            env['PATH'] = compiler_dir + os.pathsep + env.get('PATH', '')
         env['CXXFLAGS'] = '{} -DVERSION_INFO=\\"{}\\"'.format(env.get('CXXFLAGS', ''),
                                                               self.distribution.get_version())
         if not os.path.exists(self.build_temp):

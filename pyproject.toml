@@ -16,8 +16,8 @@ skip = ["pp*", "cp31?t-*"] # Do not build for PyPy or free-threaded CPython
 #archs = ["x86", 'AMD64']
 archs = ['AMD64']
 before-build = [
-    "export PATH=\"/c/mingw64/bin:$PATH\" && export CC=gcc && export CXX=g++ && export CMAKE_GENERATOR=Ninja && echo CC=$CC CXX=$CXX",
     "choco install mingw -y",
+    "export MINGW_BIN=$(for d in /c/ProgramData/mingw64/mingw64/bin /c/mingw64/bin; do if [ -d \"$d\" ]; then echo \"$d\"; break; fi; done) && test -n \"$MINGW_BIN\" && export PATH=\"$MINGW_BIN:$PATH\" && export CC=\"$MINGW_BIN/gcc.exe\" && export CXX=\"$MINGW_BIN/g++.exe\" && export CMAKE_GENERATOR=Ninja && echo MINGW_BIN=$MINGW_BIN && \"$CC\" --version && \"$CXX\" --version",
     "pip install -U ninja",
     "pip install pybind11[global]",
     "pip install -U \"cmake<4\"",
@@ -30,21 +30,19 @@ before-build = [
     # dont drop these () at the both sides, otherwise the CI will fail after concat all commands with &&
     # "(if \"%PYTHON_ARCH%\"==\"32\" (cmake -S UDBM -B build -A Win32 -DCMAKE_BUILD_TYPE=Release) else (cmake -S UDBM -B build -A x64 -DCMAKE_BUILD_TYPE=Release))",
     # Win32 is no longer suported
-    "cmake -G \"$CMAKE_GENERATOR\" -S UUtils -B UUtils_build -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_BUILD_TYPE=Release",
+    "cmake -G \"$CMAKE_GENERATOR\" -S UUtils -B UUtils_build -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_C_FLAGS='-static-libgcc' -DCMAKE_CXX_FLAGS='-static-libgcc -static-libstdc++' -DCMAKE_EXE_LINKER_FLAGS='-static-libgcc -static-libstdc++' -DCMAKE_SHARED_LINKER_FLAGS='-static-libgcc -static-libstdc++' -DCMAKE_BUILD_TYPE=Release",
     "cmake --build UUtils_build --config Release",
     "ctest --test-dir UUtils_build --output-on-failure -C Release",
     "cmake --install UUtils_build --prefix bin_install --config Release",
 
 #    "cmake -S UDBM -B UDBM_build -DCMAKE_BUILD_TYPE=Release -DUUtils_DIR=\"bin_install\\lib\\cmake\\UUtils\"",
 #    "cmake -S UDBM -B UDBM_build -DCMAKE_BUILD_TYPE=Release -DUUtils_DIR=$(readlink -f bin_install/lib*/cmake/UUtils)",
-    "cmake -G \"$CMAKE_GENERATOR\" -S UDBM -B UDBM_build -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_BUILD_TYPE=Release -DUUtils_DIR={package}\\bin_install\\lib\\cmake\\UUtils",
+    "cmake -G \"$CMAKE_GENERATOR\" -S UDBM -B UDBM_build -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_C_FLAGS='-static-libgcc' -DCMAKE_CXX_FLAGS='-static-libgcc -static-libstdc++' -DCMAKE_EXE_LINKER_FLAGS='-static-libgcc -static-libstdc++' -DCMAKE_SHARED_LINKER_FLAGS='-static-libgcc -static-libstdc++' -DCMAKE_BUILD_TYPE=Release -DUUtils_DIR={package}\\bin_install\\lib\\cmake\\UUtils",
     "cmake --build UDBM_build --config Release",
     "ctest --test-dir UDBM_build --output-on-failure -C Release",
     "cmake --install UDBM_build --prefix bin_install --config Release",
 
-    "gcc --version",
-    "g++ --version",
-    "cmake -G \"$CMAKE_GENERATOR\" -S UCDD -B UCDD_build -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH={package}\\bin_install -DUUtils_DIR={package}\\bin_install\\lib\\cmake\\UUtils -DUDBM_DIR={package}\\bin_install\\lib\\cmake\\UDBM -DFIND_FATAL=OFF",
+    "cmake -G \"$CMAKE_GENERATOR\" -S UCDD -B UCDD_build -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_C_FLAGS='-static-libgcc' -DCMAKE_CXX_FLAGS='-static-libgcc -static-libstdc++' -DCMAKE_EXE_LINKER_FLAGS='-static-libgcc -static-libstdc++' -DCMAKE_SHARED_LINKER_FLAGS='-static-libgcc -static-libstdc++' -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH={package}\\bin_install -DUUtils_DIR={package}\\bin_install\\lib\\cmake\\UUtils -DUDBM_DIR={package}\\bin_install\\lib\\cmake\\UDBM -DFIND_FATAL=OFF",
     "cmake --build UCDD_build --config Release",
     "ctest --test-dir UCDD_build --output-on-failure -C Release",
     "cmake --install UCDD_build --prefix bin_install --config Release",
@@ -64,7 +62,8 @@ test-command = [
 [tool.cibuildwheel.macos]
 archs = ["x86_64", "arm64"] # Build for x86_64 and arm64
 before-build = [
-    "export CC=$(for cmd in gcc-14 gcc-13 gcc-12 gcc-11 gcc-10 gcc-9 gcc; do if command -v \"$cmd\" >/dev/null 2>&1 && \"$cmd\" -v 2>&1 | grep -qi \"gcc version\"; then echo \"$cmd\"; break; fi; done) && export CXX=$(for cmd in g++-14 g++-13 g++-12 g++-11 g++-10 g++-9 g++; do if command -v \"$cmd\" >/dev/null 2>&1 && \"$cmd\" -v 2>&1 | grep -qi \"gcc version\"; then echo \"$cmd\"; break; fi; done) && export CMAKE_GENERATOR=Ninja && echo CC=$CC CXX=$CXX",
+    "brew list gcc@11 >/dev/null 2>&1 || brew install gcc@11 || brew install gcc@12 || brew install gcc",
+    "export CC=$(for cmd in gcc-9 gcc-10 gcc-11 gcc-12 gcc-13 gcc-14 gcc; do if command -v \"$cmd\" >/dev/null 2>&1 && \"$cmd\" -v 2>&1 | grep -qi \"gcc version\"; then echo \"$cmd\"; break; fi; done) && export CXX=$(for cmd in g++-9 g++-10 g++-11 g++-12 g++-13 g++-14 g++; do if command -v \"$cmd\" >/dev/null 2>&1 && \"$cmd\" -v 2>&1 | grep -qi \"gcc version\"; then echo \"$cmd\"; break; fi; done) && export CMAKE_GENERATOR=Ninja && echo CC=$CC CXX=$CXX",
     "./macos_kill_cmake.sh",
     "pip install -U ninja",
     "pip install pybind11[global]",
@@ -72,7 +71,6 @@ before-build = [
     "uname -m",
     "echo $CIBW_ARCHS",
     "if [ \"$CIBW_ARCHS\" = \"arm64\" ]; then echo detected arm64; else echo detected x86_64; fi",
-    "echo xxx",
     # something wrong with this line, xxhash compile arch is still x86_64 when CIBW_ARCHS is surly 'arm64'
     "if [ \"$CIBW_ARCHS\" = \"arm64\" ]; then cmake -G \"$CMAKE_GENERATOR\" -S UUtils -B UUtils_build -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_OSX_ARCHITECTURES=\"arm64\" -DCMAKE_SYSTEM_PROCESSOR=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TRY_COMPILE_OSX_ARCHITECTURES=arm64; else cmake -G \"$CMAKE_GENERATOR\" -S UUtils -B UUtils_build -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_OSX_ARCHITECTURES=\"x86_64\" -DCMAKE_SYSTEM_PROCESSOR=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TRY_COMPILE_OSX_ARCHITECTURES=x86_64; fi",
 #    "cmake -S UUtils -B UUtils_build -DCMAKE_BUILD_TYPE=Release",

@@ -70,7 +70,9 @@ jobs:
         run: |
           choco install tree cloc wget curl make
           choco install ninja make mingw
-          echo "C:/mingw64/bin" >> "$GITHUB_PATH"
+          echo "C:/ProgramData/mingw64/mingw64/bin" >> "$GITHUB_PATH"
+          echo "CC=/c/ProgramData/mingw64/mingw64/bin/gcc.exe" >> "$GITHUB_ENV"
+          echo "CXX=/c/ProgramData/mingw64/mingw64/bin/g++.exe" >> "$GITHUB_ENV"
       - name: Kill Primitive CMake on MacOS
         if: ${{ env.OS_NAME == 'MacOS' }}
         shell: bash
@@ -81,7 +83,7 @@ jobs:
         shell: bash
         run: |
           brew install tree cloc wget curl make
-          brew install git ninja make gcc
+          brew install git ninja make gcc@11 || brew install git ninja make gcc@12 || brew install git ninja make gcc
       - name: Set up python ${{ matrix.python-version }}
         uses: actions/setup-python@v6
         with:
@@ -96,13 +98,20 @@ jobs:
       - name: Build native dependencies
         shell: bash
         run: |
+          if [ "$OS_NAME" = "Windows" ]; then
+            export PATH="/c/ProgramData/mingw64/mingw64/bin:$PATH"
+          fi
           CTEST_CFG=Release make bin
       - name: Prepare Python env
         shell: bash
         run: |
           pip install -r requirements.txt
           pip install -r requirements-test.txt
-          pip install -r requirements-plot.txt
+          if [ "$OS_NAME" = "MacOS" ] && { [ "${{ matrix.python-version }}" = "3.8" ] || [ "${{ matrix.python-version }}" = "3.9" ]; }; then
+            echo "Skip requirements-plot on macOS ${{ matrix.python-version }} due upstream matplotlib/font bus errors on the public arm64 runner."
+          else
+            pip install -r requirements-plot.txt
+          fi
           pip install -r requirements-build.txt
       - name: Build and run unittest
         env:
@@ -110,6 +119,9 @@ jobs:
           LINETRACE: 1
         shell: bash
         run: |
+          if [ "$OS_NAME" = "Windows" ]; then
+            export PATH="/c/ProgramData/mingw64/mingw64/bin:$PATH"
+          fi
           make build
           make clean_x
           make unittest
