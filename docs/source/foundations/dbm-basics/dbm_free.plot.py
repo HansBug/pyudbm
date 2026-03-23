@@ -2,7 +2,7 @@
 Render the before/after free comparison figure.
 """
 
-from operation_plot_common import render_operation
+from dbm_basics_operation_plot_common import render_operation
 
 
 if __name__ == "__main__":
