@@ -6,11 +6,14 @@ import argparse
 
 from matplotlib import pyplot as plt
 
-from dbm_basics_plot_common import DOC_CONTEXT, plot_region, save_figure, style_axes
+from pyudbm import Context
+
+from dbm_plot import plot_region, save_figure, style_axes
 
 
-x = DOC_CONTEXT.x
-y = DOC_CONTEXT.y
+context = Context(["x", "y"])
+x = context.x
+y = context.y
 
 RUNNING_ZONE = (x >= 0) & (x <= 5) & (y >= 0) & (y <= 3) & (x - y <= 2)
 

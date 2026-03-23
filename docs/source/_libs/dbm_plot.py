@@ -11,12 +11,7 @@ matplotlib.use("Agg")
 
 from matplotlib import pyplot as plt
 
-from pyudbm import Context
-
-
 VIEWPORT2D = Tuple[float, float, float, float]
-
-DOC_CONTEXT = Context(["x", "y"])
 
 
 def style_axes(ax, viewport: VIEWPORT2D) -> None:
