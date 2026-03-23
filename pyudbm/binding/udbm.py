@@ -43,9 +43,10 @@ from __future__ import annotations
 import logging
 from typing import Any, Iterable, List, Mapping, Optional, Union
 
-from ._binding import _NativeConstraint, _NativeFederation
+from ._binding import _NativeConstraint, _NativeDBM, _NativeFederation
 
 __all__ = [
+    "DBM",
     "Clock",
     "Constraint",
     "Context",
@@ -57,6 +58,7 @@ __all__ = [
 ]
 
 LOGGER = logging.getLogger("pyudbm")
+_DBM_INFINITY_RAW = ((2 ** 31 - 1) >> 1) << 1
 
 
 def _is_exact_int(value: Any) -> bool:
@@ -70,6 +72,171 @@ def _is_exact_int_or_float(value: Any) -> bool:
 
     value_type = type(value)
     return value_type is int or value_type is float
+
+
+def _format_dbm_raw(raw_value: int) -> str:
+    """Return one human-readable DBM cell."""
+
+    if raw_value == _DBM_INFINITY_RAW:
+        return "<inf"
+    return "{0}{1}".format("<" if (raw_value & 1) == 0 else "<=", raw_value >> 1)
+
+
+class DBM:
+    """
+    Immutable read-only DBM snapshot.
+
+    A :class:`DBM` represents one convex zone extracted from a federation. It
+    provides DBM-level rendering, matrix export, and minimal-graph export while
+    staying detached from future mutations of the source federation.
+
+    :param context: Context whose clock names apply to this DBM.
+    :type context: Context
+    :param native: Native DBM snapshot.
+    :type native: _NativeDBM
+    """
+
+    def __init__(self, context: "Context", native: _NativeDBM):
+        self.context = context
+        self._dbm = native
+
+    def _clock_names(self) -> List[str]:
+        return ["0"] + [clock.get_full_name() for clock in self.context.clocks]
+
+    def _raw_matrix(self) -> tuple:
+        return tuple(int(value) for value in self._dbm.raw_matrix())
+
+    def _normalize_indices(self, i: int, j: int) -> tuple:
+        if not isinstance(i, int) or not isinstance(j, int):
+            raise TypeError("DBM indices must be integers.")
+        if i < 0 or j < 0 or i >= self.dimension or j >= self.dimension:
+            raise IndexError("DBM indices are out of range.")
+        return i, j
+
+    @property
+    def dimension(self) -> int:
+        """Return the DBM dimension including the reference clock."""
+
+        return self._dbm.get_dimension()
+
+    @property
+    def shape(self) -> tuple:
+        """Return ``(dimension, dimension)`` for the DBM matrix."""
+
+        return self.dimension, self.dimension
+
+    @property
+    def clock_names(self) -> tuple:
+        """Return the matrix headers including the reference clock ``0``."""
+
+        return tuple(self._clock_names())
+
+    def to_string(self, full: bool = False) -> str:
+        """
+        Return a textual representation of the DBM.
+
+        :param full: Whether to print all finite non-diagonal constraints
+            instead of the minimal constraint set.
+        :type full: bool
+        :return: Human-readable DBM expression.
+        :rtype: str
+        """
+
+        return self._dbm.to_string(self._clock_names(), full).replace(" && ", " & ")
+
+    def raw(self, i: int, j: int) -> int:
+        """
+        Return the raw UDBM matrix cell at ``(i, j)``.
+
+        :param i: Row index.
+        :type i: int
+        :param j: Column index.
+        :type j: int
+        :return: Raw encoded DBM value.
+        :rtype: int
+        """
+
+        i, j = self._normalize_indices(i, j)
+        values = self._raw_matrix()
+        return values[i * self.dimension + j]
+
+    def bound(self, i: int, j: int) -> int:
+        """Return the decoded integer bound at ``(i, j)``."""
+
+        return self.raw(i, j) >> 1
+
+    def is_strict(self, i: int, j: int) -> bool:
+        """Return whether the DBM cell at ``(i, j)`` is strict."""
+
+        return (self.raw(i, j) & 1) == 0
+
+    def is_infinity(self, i: int, j: int) -> bool:
+        """Return whether the DBM cell at ``(i, j)`` equals ``< inf``."""
+
+        return self.raw(i, j) == _DBM_INFINITY_RAW
+
+    def to_matrix(self, raw: bool = True) -> List[List[Union[int, str]]]:
+        """
+        Export the DBM matrix as a nested Python list.
+
+        :param raw: Whether to return raw encoded integers instead of
+            formatted constraint strings.
+        :type raw: bool
+        :return: Nested row-major matrix.
+        :rtype: List[List[Union[int, str]]]
+        """
+
+        rows = []  # type: List[List[Union[int, str]]]
+        for i in range(self.dimension):
+            row = []
+            for j in range(self.dimension):
+                raw_value = self.raw(i, j)
+                row.append(raw_value if raw else _format_dbm_raw(raw_value))
+            rows.append(row)
+        return rows
+
+    def format_matrix(self) -> str:
+        """
+        Return a human-readable table view of the DBM matrix.
+
+        :return: Pretty-printed matrix with row and column headers.
+        :rtype: str
+        """
+
+        headers = [""] + list(self.clock_names)
+        rows = []
+        for i, row_name in enumerate(self.clock_names):
+            rows.append([row_name] + [_format_dbm_raw(self.raw(i, j)) for j in range(self.dimension)])
+
+        widths = [len(str(cell)) for cell in headers]
+        for row in rows:
+            for index, cell in enumerate(row):
+                widths[index] = max(widths[index], len(str(cell)))
+
+        rendered = ["  ".join(str(cell).rjust(widths[index]) for index, cell in enumerate(headers))]
+        rendered.extend("  ".join(str(cell).rjust(widths[index]) for index, cell in enumerate(row)) for row in rows)
+        return "\n".join(rendered)
+
+    def to_min_dbm(self, minimize_graph: bool = True, try_constraints_16: bool = True) -> tuple:
+        """
+        Export the DBM as packed UDBM minimal-DBM words.
+
+        :param minimize_graph: Whether to request graph minimization.
+        :type minimize_graph: bool
+        :param try_constraints_16: Whether UDBM may compress finite
+            constraints to 16-bit storage when possible.
+        :type try_constraints_16: bool
+        :return: Packed minimal-DBM words.
+        :rtype: tuple
+        """
+
+        return tuple(self._dbm.to_min_dbm(minimize_graph, try_constraints_16))
+
+    def __str__(self) -> str:
+        return self.to_string()
+
+    def __repr__(self) -> str:
+        return "DBM(clock_names={0})".format(self.clock_names)
 
 
 class Clock:
@@ -990,6 +1157,20 @@ class Federation:
         """
 
         return Federation._from_native(self.context, self._fed.copy())
+
+    def to_dbm_list(self) -> List[DBM]:
+        """
+        Export the federation as a list of read-only DBM snapshots.
+
+        Each returned :class:`DBM` is a detached snapshot of one native DBM in
+        the federation. This is important because federations are mutable while
+        DBM snapshots returned here are intentionally read-only.
+
+        :return: List of DBMs in native federation order.
+        :rtype: List[DBM]
+        """
+
+        return [DBM(self.context, native) for native in self._fed.to_dbm_list()]
 
     def __and__(self, other: "Federation") -> "Federation":
         """

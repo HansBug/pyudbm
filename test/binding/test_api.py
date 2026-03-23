@@ -2,7 +2,7 @@ import pytest
 
 import pyudbm
 import pyudbm.binding
-from pyudbm.binding import Constraint, Context, Federation, FloatValuation, IntValuation, Valuation, VariableDifference
+from pyudbm.binding import DBM, Constraint, Context, Federation, FloatValuation, IntValuation, Valuation, VariableDifference
 
 
 @pytest.mark.unittest
@@ -11,10 +11,12 @@ class TestBindingApi:
         self.c = Context(["x", "y", "z"], name="c")
 
     def test_binding_exports(self):
+        assert DBM is pyudbm.binding.DBM
         assert Context is pyudbm.binding.Context
         assert Federation is pyudbm.binding.Federation
         assert IntValuation is pyudbm.binding.IntValuation
         assert FloatValuation is pyudbm.binding.FloatValuation
+        assert pyudbm.binding.DBM is not None
         assert pyudbm.binding.Clock is not None
         assert pyudbm.binding.Context is not None
         assert pyudbm.binding.Federation is not None
@@ -22,6 +24,7 @@ class TestBindingApi:
         assert pyudbm.binding.FloatValuation is not None
 
     def test_root_exports(self):
+        assert pyudbm.DBM is pyudbm.binding.DBM
         assert pyudbm.Clock is pyudbm.binding.Clock
         assert pyudbm.Context is pyudbm.binding.Context
         assert pyudbm.Federation is pyudbm.binding.Federation
@@ -449,3 +452,70 @@ class TestBindingApi:
         assert not hasattr(federation, "extrapolateMaxBounds")
         assert not hasattr(federation, "isZero")
         assert not hasattr(federation, "isEmpty")
+
+    def test_dbm_list_snapshots(self):
+        context = Context(["x"])
+        federation = context.x == 0
+
+        dbms = federation.to_dbm_list()
+
+        assert len(dbms) == 1
+        assert isinstance(dbms[0], DBM)
+        assert str(dbms[0]) == "(x==0)"
+
+        federation |= (context.x == 1)
+
+        assert str(dbms[0]) == "(x==0)"
+        assert federation.get_size() == 2
+
+    def test_dbm_matrix_and_min_dbm_exports(self, text_aligner):
+        context = Context(["x", "y"], name="c")
+        federation = (context.x <= 10) & (context.y <= 7) & (context.x - context.y < 3)
+
+        dbm = federation.to_dbm_list()[0]
+
+        assert dbm.shape == (3, 3)
+        assert dbm.clock_names == ("0", "c.x", "c.y")
+        text_aligner.assert_equal(str(federation), str(dbm))
+        text_aligner.assert_equal(
+            "DBM(clock_names=('0', 'c.x', 'c.y'))",
+            repr(dbm),
+        )
+        text_aligner.assert_equal(
+            "(0<=c.x & 0<=c.y & c.x<10 & c.x-c.y<3 & c.y<=7 & c.y-c.x<=7)",
+            dbm.to_string(full=True),
+        )
+
+        assert dbm.raw(0, 0) == 1
+        assert dbm.bound(1, 2) == 3
+        assert dbm.is_strict(1, 2)
+        assert dbm.bound(2, 0) == 7
+        assert not dbm.is_strict(2, 0)
+        assert dbm.bound(2, 1) == 7
+        assert not dbm.is_strict(2, 1)
+        assert not dbm.is_infinity(2, 1)
+        assert dbm.to_matrix(raw=False)[1][2] == "<3"
+        text_aligner.multiple_lines().assert_equal(
+            """
+                   0  c.x  c.y
+              0  <=0  <=0  <=0
+            c.x  <10  <=0   <3
+            c.y  <=7  <=7  <=0
+            """,
+            dbm.format_matrix(),
+        )
+
+        min_dbm = dbm.to_min_dbm()
+        assert isinstance(min_dbm, tuple)
+        assert len(min_dbm) > 0
+        assert min_dbm == tuple(min_dbm)
+
+    def test_union_to_dbm_list_returns_all_dbms(self):
+        context = Context(["x"])
+        federation = (context.x == 0) | (context.x == 1)
+
+        dbms = federation.to_dbm_list()
+
+        assert len(dbms) == 2
+        assert all(isinstance(dbm, DBM) for dbm in dbms)
+        assert sorted(str(dbm) for dbm in dbms) == ["(x==0)", "(x==1)"]

@@ -1,6 +1,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include <base/c_allocator.h>
 #include <dbm/ClockAccessor.h>
 #include <dbm/constraints.h>
 #include <dbm/fed.h>
@@ -50,6 +51,60 @@ namespace
         constraint_t constraint_;
     };
 
+    class NativeDBM
+    {
+    public:
+        explicit NativeDBM(const dbm::dbm_t& dbm): dbm_(dbm) {}
+
+        NativeDBM copy() const { return NativeDBM(dbm_); }
+
+        cindex_t get_dimension() const { return dbm_.getDimension(); }
+
+        std::string to_string(const std::vector<std::string>& names, bool full = false) const
+        {
+            ensure_name_count(names.size());
+            return dbm_.str(IndexedClockAccessor(names), full);
+        }
+
+        std::vector<int32_t> raw_matrix() const
+        {
+            const auto dim = static_cast<std::size_t>(dbm_.getDimension());
+            if (dbm_.isEmpty()) {
+                return {};
+            }
+
+            const raw_t* matrix = dbm_();
+            return std::vector<int32_t>(matrix, matrix + (dim * dim));
+        }
+
+        std::vector<int32_t> to_min_dbm(bool minimize_graph = true, bool try_constraints_16 = true) const
+        {
+            if (dbm_.isEmpty()) {
+                return {};
+            }
+
+            int32_t* memory = dbm_.writeToMinDBMWithOffset(minimize_graph, try_constraints_16, base_mallocator, 0);
+            if (memory == nullptr) {
+                return {};
+            }
+
+            const auto size = dbm_getSizeOfMinDBM(memory);
+            auto result = std::vector<int32_t>(memory, memory + size);
+            base_mallocator.deallocFunction(memory, size, base_mallocator.allocData);
+            return result;
+        }
+
+    private:
+        void ensure_name_count(std::size_t count) const
+        {
+            if (count != static_cast<std::size_t>(dbm_.getDimension())) {
+                throw std::invalid_argument("Clock name count does not match DBM dimension.");
+            }
+        }
+
+        dbm::dbm_t dbm_;
+    };
+
     class NativeFederation
     {
     public:
@@ -72,10 +127,20 @@ namespace
         bool has_zero() const { return fed_.hasZero(); }
         std::uint32_t hash() const { return fed_.hash(); }
 
-        std::string to_string(const std::vector<std::string>& names) const
+        std::string to_string(const std::vector<std::string>& names, bool full = false) const
         {
             ensure_name_count(names.size());
-            return fed_.str(IndexedClockAccessor(names));
+            return fed_.str(IndexedClockAccessor(names), full);
+        }
+
+        std::vector<NativeDBM> to_dbm_list() const
+        {
+            auto result = std::vector<NativeDBM>{};
+            result.reserve(fed_.size());
+            for (const auto& dbm : fed_) {
+                result.emplace_back(dbm);
+            }
+            return result;
         }
 
         NativeFederation and_op(const NativeFederation& other) const
@@ -240,6 +305,14 @@ PYBIND11_MODULE(_binding, m)
                    " value=" + std::to_string(constraint.value()) + ">";
         });
 
+    py::class_<NativeDBM>(m, "_NativeDBM")
+        .def("copy", &NativeDBM::copy)
+        .def("get_dimension", &NativeDBM::get_dimension)
+        .def("to_string", &NativeDBM::to_string, py::arg("names"), py::arg("full") = false)
+        .def("raw_matrix", &NativeDBM::raw_matrix)
+        .def("to_min_dbm", &NativeDBM::to_min_dbm, py::arg("minimize_graph") = true,
+             py::arg("try_constraints_16") = true);
+
     py::class_<NativeFederation>(m, "_NativeFederation")
         .def(py::init<cindex_t>(), py::arg("dim"))
         .def(py::init<cindex_t, const NativeConstraint&>(), py::arg("dim"), py::arg("constraint"))
@@ -249,7 +322,8 @@ PYBIND11_MODULE(_binding, m)
         .def("is_empty", &NativeFederation::is_empty)
         .def("has_zero", &NativeFederation::has_zero)
         .def("hash", &NativeFederation::hash)
-        .def("to_string", &NativeFederation::to_string, py::arg("names"))
+        .def("to_string", &NativeFederation::to_string, py::arg("names"), py::arg("full") = false)
+        .def("to_dbm_list", &NativeFederation::to_dbm_list)
         .def("and_op", &NativeFederation::and_op, py::arg("other"))
         .def("or_op", &NativeFederation::or_op, py::arg("other"))
         .def("add_op", &NativeFederation::add_op, py::arg("other"))

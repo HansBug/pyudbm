@@ -833,6 +833,25 @@ This section is adapted from the Python style guidance in `~/oo-projects/pyfcstm
 - New behavior should come with tests.
 - Python-side semantics should stay aligned with upstream UDBM and the historical binding.
 
+### Python Naming Rules
+
+- Follow normal Python naming conventions for all Python code.
+- Use `UPPER_SNAKE_CASE` for constants.
+- Use `CapWords` / PascalCase for class names.
+- Use `snake_case` for module-level functions, methods, properties, attributes, variables, and parameters.
+- Do not introduce Java-style or mixed naming such as `camelCase` in new Python APIs unless there is a strong compatibility reason.
+- When extending existing compatibility surfaces that already expose historical camelCase names, preserve backward compatibility deliberately, but prefer adding any new Python-facing APIs in `snake_case`.
+
+Examples:
+
+```python
+MAX_CLOCKS = 16
+
+class ClockMatrix:
+    def to_min_dbm(self) -> bytes:
+        ...
+```
+
 ### Python 3.7 Compatibility Rules
 
 Because support starts at Python `3.7`, do not default to newer-only syntax or stdlib features such as:
