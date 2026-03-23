@@ -589,7 +589,8 @@ DBM 真正有价值的地方，不只是“它能存一个 zone”，而是：
 
 下面这些区分在实践里非常重要：
 
-* **一个 DBM 只表示一个凸 zone。** 如果集合是非凸的，单个 DBM 就不够了。
+* **一个 DBM 只表示一个凸 zone。** 如果集合是非凸的，就应该转到
+  :doc:`../federations/index_zh` 去讨论多个 DBM 的精确并。
 * **严格 / 非严格边界是数据本身的一部分。** :math:`x < 5` 和 :math:`x \leq 5` 在 DBM 里不是同一个条目。
 * **规范闭包不是文书整理。** 它决定了矩阵能否被当成语义可靠的规范对象。
 * **规范形式不等于最省空间。** 压缩存储是后续独立主题。
@@ -601,7 +602,8 @@ DBM 真正有价值的地方，不只是“它能存一个 zone”，而是：
 这正是 UDBM 最自然的层级位置。
 
 UDBM 上游项目自己就把 DBM 描述成 clock constraints 的核心数据结构，并明确列出 ``up``、``down``、update、
-extrapolation、DBM / federation 关系检查等操作 [UDBM_REPO_ZH]_。
+extrapolation 以及关系检查这类操作 [UDBM_REPO_ZH]_。至于多个 DBM 的并如何形成更高一层的精确表示，
+这一页不展开，直接留给 :doc:`../federations/index_zh`。
 
 因此，这个仓库当前的分层其实非常顺：
 
@@ -619,13 +621,13 @@ extrapolation、DBM / federation 关系检查等操作 [UDBM_REPO_ZH]_。
 * 零时钟让普通上下界和时钟差约束统一到同一种表示
 * 规范闭包表示每个条目都已经被收紧到最紧推出上界
 * DBM 的价值在于它支撑了核心符号操作，而不只是“存了一个 zone”
-* 单个 DBM 仍然只表示一个凸 zone，因此下一页自然会走到 federation
+* 单个 DBM 仍然只表示一个凸 zone；一旦结果非凸，就该进入 :doc:`../federations/index_zh`
 
 下一步
 ~~~~~~
 
-下一篇最自然的内容是后续规划中的 ``federations/``：既然单个凸区域已经能被精确表示，那么下一步就是，
-当减法或分支产生非凸符号集合时该怎么办。
+下一步就是 :doc:`../federations/index_zh`：既然单个凸区域已经能被精确表示，那么当减法或分支产生非凸符号集合时，
+就需要看多个 DBM 如何组成联邦，并继续保持精确语义。
 
 .. [UPP_VER_DBM_ZH] UPPAAL 官方图形界面文档，``Verifier``。
    公开链接：`<https://docs.uppaal.org/gui-reference/verifier/>`_。

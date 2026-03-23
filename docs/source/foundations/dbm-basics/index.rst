@@ -642,7 +642,9 @@ Important Properties To Keep Straight
 
 Several distinctions matter a lot in practice:
 
-* **One DBM represents one convex zone.** If the symbolic set is non-convex, one DBM is no longer enough.
+* **One DBM represents one convex zone.** If the symbolic set is non-convex,
+  the discussion should move to :doc:`../federations/index`, where exact unions
+  of multiple DBMs are the actual topic.
 * **Strictness is part of the data.** :math:`x < 5` and :math:`x \leq 5` are different DBM entries.
 * **Canonical closure is not optional bookkeeping.** It is what makes the matrix semantically trustworthy.
 * **Canonical does not mean storage-optimal.** Compact storage is a separate later topic.
@@ -655,7 +657,9 @@ This is exactly the level where UDBM lives most naturally.
 
 The upstream UDBM project describes DBMs as the core data structure for clock
 constraints and explicitly lists operations such as ``up``, ``down``, updates,
-extrapolation, and relations on DBMs and federations [UDBM_REPO]_.
+extrapolation, and relation checks [UDBM_REPO]_. How exact unions of multiple
+DBMs form the next layer of representation is left to
+:doc:`../federations/index`.
 
 That is why the layering in this repository makes sense:
 
@@ -673,14 +677,15 @@ If you keep five ideas from this page, keep these:
 * the zero clock lets ordinary lower and upper bounds fit into the same scheme
 * canonical closure means every entry is already the tightest implied bound
 * DBMs are useful because they support the core symbolic operations, not only because they store zones
-* one DBM still represents only one convex zone, which is why the next page needs federations
+* one DBM still represents only one convex zone; once the result is non-convex,
+  continue with :doc:`../federations/index`
 
 Next
 ~~~~
 
-The next natural page is the planned ``federations/`` topic: once one convex
-zone can be stored exactly, the next question is what to do when subtraction or
-branching produces a non-convex symbolic set.
+The next page is :doc:`../federations/index`: once one convex zone can be
+stored exactly, the next question is how multiple DBMs can represent a
+non-convex symbolic set without losing exactness.
 
 .. [UPP_VER_DBM] UPPAAL official GUI documentation, ``Verifier``.
    Public link: `<https://docs.uppaal.org/gui-reference/verifier/>`_.

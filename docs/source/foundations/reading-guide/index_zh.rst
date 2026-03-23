@@ -38,8 +38,8 @@
     :doc:`../symbolic-states/index_zh`，再接 :doc:`../dbm-basics/index_zh`。
 
 如果你已经知道区域(zone) 和差分约束矩阵(DBM)，但还不理解为什么会出现非凸符号集合：
-    可以先快速读一遍 :doc:`../what-is-uppaal/index_zh`，再去看后续会补上的
-    ``federations/`` 和 ``cdd/`` 页面。
+    可以先快速读一遍 :doc:`../what-is-uppaal/index_zh`，再继续读
+    :doc:`../federations/index_zh` 和后续规划中的 ``cdd/`` 页面。
 
 如果你最关心的是这个仓库未来的 Python 接口会怎样映射这些概念：
     也建议\ **先读**\ :doc:`../what-is-uppaal/index_zh`，因为它解释了被恢复的
@@ -53,6 +53,7 @@
 * :doc:`../queries-and-properties/index_zh`
 * :doc:`../symbolic-states/index_zh`
 * :doc:`../dbm-basics/index_zh`
+* :doc:`../federations/index_zh`
 
 规划中的主题顺序
 ----------------

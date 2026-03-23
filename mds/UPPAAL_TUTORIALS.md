@@ -353,6 +353,73 @@
 
 - 低到中等，图比式子更重要
 
+### 6.1 当前 `dbm-basics/` 与 binding 操作覆盖盘点
+
+为了避免 `dbm-basics/` 页面只讲几张图，却没有和当前 `pyudbm` API 对齐，最好在教程规划里先把“目前 UDBM 支持什么、binding 已经暴露了什么、`dbm-basics/` 这页已经讲到哪里”盘一遍。这样后续写 `federations/` 页面时，也能明确哪些内容不该继续塞进 `dbm-basics/`。
+
+这里的盘点以当前仓库中的这几部分为准：
+
+- `pyudbm/binding/udbm.py`
+- `srcpy2/udbm.py`
+- `docs/source/foundations/dbm-basics/index.rst`
+- `docs/source/foundations/dbm-basics/index_zh.rst`
+
+先看 federation 级的语义操作与性质：
+
+| 操作 / 性质 | UDBM 是否支持 | 当前 binding 是否已包含 | `dbm-basics/` 是否已讲解 | 当前 binding 入口 / 备注 |
+| --- | --- | --- | --- | --- |
+| 约束收紧 `constrain` | 是 | 部分 | 是 | 当前没有单独 `constrain()`；实际写法是 `zone & (constraint)` |
+| 交 `and` | 是 | 是 | 间接 | `Federation.__and__` / `__iand__` |
+| 并 `or` | 是 | 是 | 否 | `Federation.__or__` / `__ior__` |
+| 凸并 `add` | 是 | 是 | 否 | `Federation.__add__` / `__iadd__`，是 UDBM 的 convex union 语义 |
+| 差 `minus` | 是 | 是 | 否 | `Federation.__sub__` / `__isub__` |
+| `up` | 是 | 是 | 是 | `Federation.up()` |
+| `down` | 是 | 是 | 是 | `Federation.down()` |
+| `reduce` | 是 | 是 | 否 | `Federation.reduce(level=0)` |
+| `freeClock` | 是 | 是 | 是 | `Federation.free_clock(clock)` |
+| `setZero` | 是 | 是 | 否 | `Federation.set_zero()` |
+| `hasZero` | 是 | 是 | 否 | `Federation.has_zero()` |
+| `setInit` | 是 | 是 | 否 | `Federation.set_init()` |
+| `convexHull` | 是 | 是 | 否 | `Federation.convex_hull()` |
+| `predt` | 是 | 是 | 否 | `Federation.predt(other)` |
+| `updateValue` | 是 | 是 | 是 | `Federation.update_value(clock, value)`；当前教程里的 `reset(Z, x=2)` 实际更贴近这个 |
+| `resetValue` | 是 | 是 | 否 | `Federation.reset_value(clock)`；是 reset-to-0 的便捷包装 |
+| `extrapolateMaxBounds` | 是 | 是 | 提及但未展开 | `Federation.extrapolate_max_bounds(bounds)` |
+| intern / canonical sharing | 是 | 是 | 只讲概念未落到 API | `Federation.intern()` |
+| valuation 包含判定 | 是 | 是 | 是 | `Federation.contains(valuation)` |
+| 是否为零区 | 是 | 是 | 否 | `Federation.is_zero()` |
+| 是否为空 | 是 | 是 | 是 | `Federation.is_empty()` |
+| federation 大小 | 是 | 是 | 否 | `Federation.get_size()` |
+| 相等 / 不等 | 是 | 是 | 间接 | `==` / `!=` |
+| 包含 / 被包含 | 是 | 是 | 是 | `<=` / `>=` / `<` / `>` |
+| 导出为 DBM 列表 | 是 | 是 | 否 | `Federation.to_dbm_list()` |
+
+再看单个 DBM 的只读检查与表示操作：
+
+| 操作 / 性质 | UDBM 是否支持 | 当前 binding 是否已包含 | `dbm-basics/` 是否已讲解 | 当前 binding 入口 / 备注 |
+| --- | --- | --- | --- | --- |
+| 维度 | 是 | 是 | 间接 | `DBM.dimension` |
+| 形状 | 是 | 是 | 间接 | `DBM.shape` |
+| 时钟名顺序 | 是 | 是 | 间接 | `DBM.clock_names` |
+| 原始 cell 编码 | 是 | 是 | 是 | `DBM.raw(i, j)` |
+| cell 的 bound | 是 | 是 | 是 | `DBM.bound(i, j)` |
+| cell 是否 strict | 是 | 是 | 是 | `DBM.is_strict(i, j)` |
+| cell 是否 infinity | 是 | 是 | 是 | `DBM.is_infinity(i, j)` |
+| 导出整个矩阵 | 是 | 是 | 是 | `DBM.to_matrix(mode=...)` |
+| 格式化矩阵 | binding 侧便利接口 | 是 | 否 | `DBM.format_matrix()` |
+| 导出 minimal DBM / min graph | 是 | 是 | 是 | `DBM.to_min_dbm(...)` |
+| 文本表达 | 是 | 是 | 间接 | `DBM.to_string()` / `DBM.__str__()` |
+
+基于这张表，后续 foundations 页面分工最好明确成下面这样：
+
+- `dbm-basics/` 继续聚焦单个凸 zone、矩阵编码、`up/down/free/update/reset/contains/is_empty` 这类“一个 DBM 就能说清”的内容。
+- `federations/` 单独接手 `or/sub/add/reduce/convex_hull/predt/get_size/to_dbm_list` 等“多个 DBM 才有意义”的语义与 API。
+- `constrain` 在教程里可以继续沿用概念名，但要明确告诉读者：当前 Python binding 里对应的是 `zone & (constraint)`，而不是单独的 `constrain()` 方法。
+- `reset` 这一节最好区分两层语义：
+  - `update_value(clock, c)` 是“重置到常数 `c`”
+  - `reset_value(clock)` 是“重置到 `0`”的特化写法
+- `extrapolate_max_bounds`、`intern`、`set_zero`、`set_init` 这些内容不宜继续硬塞进 `dbm-basics/` 主线，更适合作为后续页或 API 侧补充。
+
 ### 7. 为什么还会有 CDD：非凸符号集合的另一种表示方式
 
 建议重点：
@@ -860,22 +927,22 @@ docs/source/foundations/
 
 - 第 1 篇到第 6 篇
 
-* [ ] `what-is-uppaal/` 页面完成中英双语骨架
-* [ ] `timed-automata/` 页面完成中英双语骨架
-* [ ] `queries-and-properties/` 页面完成中英双语骨架
-* [ ] `symbolic-states/` 页面完成中英双语骨架
-* [ ] `dbm-basics/` 页面完成中英双语骨架
-* [ ] `federations/` 页面完成中英双语骨架
-* [ ] 每个主题页都至少有 1 个贯穿页面的主例子
-* [ ] 每个主题页都至少有 1 张真正承担解释任务的主图
-* [ ] 每个主题页都至少有 1 处用 `:math:` 的行内公式
-* [ ] 每个需要展示公式的主题页都使用 `.. math::` 编写块级公式
-* [ ] 每个主题页结尾都补上“这和 UPPAAL / Python 重建方向有什么关系”
-* [ ] 每个主题页都补上延伸阅读到 `papers/`
-* [ ] 每个主题页都在正文里使用统一的论文式引用
-* [ ] 每个主题页末尾都补上公开文献链接和仓库内对应语言阅读指南链接
-* [ ] 每个主题页都在正文里使用统一的论文式引用
-* [ ] 每个主题页末尾都补上公开文献链接和仓库内对应语言阅读指南链接
+* [x] `what-is-uppaal/` 页面完成中英双语骨架
+* [x] `timed-automata/` 页面完成中英双语骨架
+* [x] `queries-and-properties/` 页面完成中英双语骨架
+* [x] `symbolic-states/` 页面完成中英双语骨架
+* [x] `dbm-basics/` 页面完成中英双语骨架
+* [x] `federations/` 页面完成中英双语骨架
+* [x] 每个主题页都至少有 1 个贯穿页面的主例子
+* [x] 每个主题页都至少有 1 张真正承担解释任务的主图
+* [x] 每个主题页都至少有 1 处用 `:math:` 的行内公式
+* [x] 每个需要展示公式的主题页都使用 `.. math::` 编写块级公式
+* [x] 每个主题页结尾都补上“这和 UPPAAL / Python 重建方向有什么关系”
+* [x] 每个主题页都补上延伸阅读到 `papers/`
+* [x] 每个主题页都在正文里使用统一的论文式引用
+* [x] 每个主题页末尾都补上公开文献链接和仓库内对应语言阅读指南链接
+* [x] 每个主题页都在正文里使用统一的论文式引用
+* [x] 每个主题页末尾都补上公开文献链接和仓库内对应语言阅读指南链接
 
 ### Phase 3：引擎与表示进阶主题第二批
 
