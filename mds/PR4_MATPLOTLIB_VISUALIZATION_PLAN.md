@@ -943,6 +943,18 @@ matplotlib 坐标轴是有限的，但 zone 可以是无界的。
 
 建议整体按四个 phase 推进，每个 phase 都应独立可提交、可测试、可 review。
 
+### 当前状态快照
+
+基于当前仓库代码、测试与文档状态，可以先给出一个同步结论：
+
+- `Phase 0` 已基本完成，唯一仍与原计划不一致的是 plotting 测试还放在 `test/binding/`，尚未迁到 `test/plotting/`
+- `Phase 1` 已完成 `1D / 2D` 几何提取、`1D federation` 精确区间并集、`2D federation` 精确边界提取，以及对应单元测试
+- `Phase 2` 已完成 `1D / 2D` matplotlib 渲染、`plot_dbm(...)` / `plot_federation(...)`、`DBM.plot(...)` / `Federation.plot(...)`、`plot` extra 以及对应测试
+- `Phase 3` 仍未开始，当前对 `3D` 仍显式保留为 `NotImplementedError`
+- `Phase 4` 已完成一部分收尾工作，包括对象方法 docstring、模块级 docstring、`binding.__init__` 导出、默认颜色/图例行为和 API 文档页；但包根导出、示例整理、测试目录整理与 `3D` 文档仍未完成
+
+下面的 checklist 已按上述现状同步。
+
 ### Phase 0：准备与接口冻结
 
 目标：
@@ -964,16 +976,16 @@ matplotlib 坐标轴是有限的，但 zone 可以是无界的。
 
 Checklist：
 
-- [ ] 确认实现文件落在 `pyudbm/binding/visual.py`
-- [ ] 确认第一版主入口为 `plot_dbm(...)` 与 `plot_federation(...)`
-- [ ] 确认第一版对象便捷方法至少覆盖 `DBM.plot(...)` 与 `Federation.plot(...)`
-- [ ] 确认对象方法采用方法体内懒导入，不在 `udbm.py` 顶层导入 `visual.py`
-- [ ] 确认 matplotlib 通过 `requirements-plot.txt` 作为可选依赖接入
-- [ ] 确认第一版仅支持用户时钟维度 `1..3`
-- [ ] 确认第一版不做高维投影
+- [x] 确认实现文件落在 `pyudbm/binding/visual.py`
+- [x] 确认第一版主入口为 `plot_dbm(...)` 与 `plot_federation(...)`
+- [x] 确认第一版对象便捷方法至少覆盖 `DBM.plot(...)` 与 `Federation.plot(...)`
+- [x] 确认对象方法采用方法体内懒导入，不在 `udbm.py` 顶层导入 `visual.py`
+- [x] 确认 matplotlib 通过 `requirements-plot.txt` 作为可选依赖接入
+- [x] 确认第一版仅支持用户时钟维度 `1..3`
+- [x] 确认第一版不做高维投影
 - [ ] 确认第一版不对 federation 做布尔并集几何化简
-- [ ] 确认 `limits`、`strict_epsilon`、`show_unbounded`、`color_mode` 作为保留参数进入第一版设计
-- [ ] 确认 `PlotResult` 作为统一返回容器
+- [x] 确认 `limits`、`strict_epsilon`、`show_unbounded`、`color_mode` 作为保留参数进入第一版设计
+- [x] 确认 `PlotResult` 作为统一返回容器
 - [ ] 确认错误模型至少覆盖 `ImportError`、`TypeError`、`ValueError`、`RuntimeError`
 - [ ] 确认测试目录使用 `test/plotting/`
 
@@ -1014,54 +1026,54 @@ Checklist：
 
 Checklist：
 
-- [ ] 在 `visual.py` 中定义内部几何对象或等价内部表示
-- [ ] 为内部对象补充足够的元信息字段：坐标、开闭边界、clip 来源、退化类型
-- [ ] 实现从 `DBM` 读取有限非对角约束并转换成半空间
-- [ ] 明确 reference clock `0` 到可视坐标的映射规则
-- [ ] 实现用户时钟维度检查，并对 `0` 维和 `>3` 维直接报错
-- [ ] 实现 `limits` 的归一化与结构校验
-- [ ] 实现默认 render box 推断规则
-- [ ] 实现 1D 上下界恢复逻辑
-- [ ] 支持 1D 下的区间、射线、点、空集分类
-- [ ] 实现 1D federation 的精确区间并集
-- [ ] 实现 2D 半平面裁剪
-- [ ] 支持 2D 下的多边形、线段、点、空集分类
-- [ ] 设计 2D federation 并集的内部表示，而不是只保留“多个 DBM 列表”
-- [ ] 实现 2D federation 的精确布尔并集
-- [ ] 实现 2D federation 的精确边界提取
-- [ ] 明确 2D federation 边界中的外边界与内部共享边处理规则
+- [x] 在 `visual.py` 中定义内部几何对象或等价内部表示
+- [x] 为内部对象补充足够的元信息字段：坐标、开闭边界、clip 来源、退化类型
+- [x] 实现从 `DBM` 读取有限非对角约束并转换成半空间
+- [x] 明确 reference clock `0` 到可视坐标的映射规则
+- [x] 实现用户时钟维度检查，并对 `0` 维和 `>3` 维直接报错
+- [x] 实现 `limits` 的归一化与结构校验
+- [x] 实现默认 render box 推断规则
+- [x] 实现 1D 上下界恢复逻辑
+- [x] 支持 1D 下的区间、射线、点、空集分类
+- [x] 实现 1D federation 的精确区间并集
+- [x] 实现 2D 半平面裁剪
+- [x] 支持 2D 下的多边形、线段、点、空集分类
+- [x] 设计 2D federation 并集的内部表示，而不是只保留“多个 DBM 列表”
+- [x] 实现 2D federation 的精确布尔并集
+- [x] 实现 2D federation 的精确边界提取
+- [x] 明确 2D federation 边界中的外边界与内部共享边处理规则
 - [ ] 明确 2D federation 边界在开 / 闭边界相邻时的归并规则
-- [ ] 明确 2D federation 边界在多个 DBM 重合边情况下的去重规则
-- [ ] 对严格不等式保留开边界元信息，而不是在几何阶段直接丢失
-- [ ] 记录哪些边界来自真实 zone，哪些边界仅来自 clip box
-- [ ] 为后续渲染准备统一的数据导出接口
+- [x] 明确 2D federation 边界在多个 DBM 重合边情况下的去重规则
+- [x] 对严格不等式保留开边界元信息，而不是在几何阶段直接丢失
+- [x] 记录哪些边界来自真实 zone，哪些边界仅来自 clip box
+- [x] 为后续渲染准备统一的数据导出接口
 
 Phase 1 测试 Checklist：
 
 - [ ] 新建 `test/plotting/test_geometry.py`
-- [ ] 覆盖 1D：`x == 0`
-- [ ] 覆盖 1D：`x < 5`
-- [ ] 覆盖 1D：`x <= 5`
-- [ ] 覆盖 1D：`x > 2`
-- [ ] 覆盖 1D：`x >= 0`
-- [ ] 覆盖 1D 空集
-- [ ] 覆盖 1D federation 的不相交区间并集
-- [ ] 覆盖 1D federation 的相邻区间归并
-- [ ] 覆盖 2D 有界矩形状 zone
-- [ ] 覆盖 2D 对角约束 zone
-- [ ] 覆盖 2D 无界楔形区域
-- [ ] 覆盖 2D 线段退化
-- [ ] 覆盖 2D 点退化
-- [ ] 覆盖 2D 空集
-- [ ] 覆盖 2D federation 的不相交并集
-- [ ] 覆盖 2D federation 的相交并集
-- [ ] 覆盖 2D federation 的共享边消解
-- [ ] 覆盖 2D federation 的孔洞不存在或被正确表达的约束情形
+- [x] 覆盖 1D：`x == 0`
+- [x] 覆盖 1D：`x < 5`
+- [x] 覆盖 1D：`x <= 5`
+- [x] 覆盖 1D：`x > 2`
+- [x] 覆盖 1D：`x >= 0`
+- [x] 覆盖 1D 空集
+- [x] 覆盖 1D federation 的不相交区间并集
+- [x] 覆盖 1D federation 的相邻区间归并
+- [x] 覆盖 2D 有界矩形状 zone
+- [x] 覆盖 2D 对角约束 zone
+- [x] 覆盖 2D 无界楔形区域
+- [x] 覆盖 2D 线段退化
+- [x] 覆盖 2D 点退化
+- [x] 覆盖 2D 空集
+- [x] 覆盖 2D federation 的不相交并集
+- [x] 覆盖 2D federation 的相交并集
+- [x] 覆盖 2D federation 的共享边消解
+- [x] 覆盖 2D federation 的孔洞不存在或被正确表达的约束情形
 - [ ] 覆盖 2D federation 中开边界与闭边界混合的边界提取
-- [ ] 断言 2D federation 边界结果不是简单的 DBM 边界拼接
-- [ ] 断言几何对象中的开闭边界标记
-- [ ] 断言哪些边界来自 clip box
-- [ ] 断言非法 `limits` 会抛出明确异常
+- [x] 断言 2D federation 边界结果不是简单的 DBM 边界拼接
+- [x] 断言几何对象中的开闭边界标记
+- [x] 断言哪些边界来自 clip box
+- [x] 断言非法 `limits` 会抛出明确异常
 
 完成判定：
 
@@ -1101,43 +1113,43 @@ Phase 1 测试 Checklist：
 
 Checklist：
 
-- [ ] 在 `visual.py` 中加入 matplotlib 懒导入入口
-- [ ] 当 matplotlib 不存在时抛出清晰的 `ImportError`
-- [ ] 实现 `PlotResult`
-- [ ] 实现 `plot_dbm(...)`
-- [ ] 实现 `plot_federation(...)`
-- [ ] 1D 渲染支持区间、射线、点、空集
-- [ ] 2D 渲染支持多边形、线段、点、空集
-- [ ] 闭边界使用闭边界样式
-- [ ] 开边界使用开边界样式
-- [ ] 严格不等式对应的 fill 使用渲染内缩策略
+- [x] 在 `visual.py` 中加入 matplotlib 懒导入入口
+- [x] 当 matplotlib 不存在时抛出清晰的 `ImportError`
+- [x] 实现 `PlotResult`
+- [x] 实现 `plot_dbm(...)`
+- [x] 实现 `plot_federation(...)`
+- [x] 1D 渲染支持区间、射线、点、空集
+- [x] 2D 渲染支持多边形、线段、点、空集
+- [x] 闭边界使用闭边界样式
+- [x] 开边界使用开边界样式
+- [x] 严格不等式对应的 fill 使用渲染内缩策略
 - [ ] clip box 引入的边界与真实边界区分显示
-- [ ] 无界区域添加视觉提示
-- [ ] `Federation` 在 1D / 2D 下优先使用精确并集几何结果进行渲染
-- [ ] `Federation` 在 2D 下优先使用精确边界结果渲染边界线
-- [ ] 支持 `ax` 透传
-- [ ] 支持 `facecolor`、`edgecolor`、`alpha`、`linewidth`、`linestyle`、`label`、`zorder`
-- [ ] 支持 `limits`、`strict_epsilon`、`show_unbounded`、`color_mode`
-- [ ] 在 `DBM` 上增加 `plot(...)`
-- [ ] 在 `Federation` 上增加 `plot(...)`
-- [ ] 两个对象方法都只在方法体内部导入 `visual.py`
-- [ ] 不在 `pyudbm/binding/udbm.py` 顶层导入 `visual.py`
-- [ ] 增加 `requirements-plot.txt`
-- [ ] 确认 `setup.py` 能把 `plot` extra 暴露出来
+- [x] 无界区域添加视觉提示
+- [x] `Federation` 在 1D / 2D 下优先使用精确并集几何结果进行渲染
+- [x] `Federation` 在 2D 下优先使用精确边界结果渲染边界线
+- [x] 支持 `ax` 透传
+- [x] 支持 `facecolor`、`edgecolor`、`alpha`、`linewidth`、`linestyle`、`label`、`zorder`
+- [x] 支持 `limits`、`strict_epsilon`、`show_unbounded`、`color_mode`
+- [x] 在 `DBM` 上增加 `plot(...)`
+- [x] 在 `Federation` 上增加 `plot(...)`
+- [x] 两个对象方法都只在方法体内部导入 `visual.py`
+- [x] 不在 `pyudbm/binding/udbm.py` 顶层导入 `visual.py`
+- [x] 增加 `requirements-plot.txt`
+- [x] 确认 `setup.py` 能把 `plot` extra 暴露出来
 
 Phase 2 测试 Checklist：
 
 - [ ] 新建 `test/plotting/test_matplotlib.py`
-- [ ] 断言 `plot_dbm(...)` 在给定 `ax` 时不新建错误类型的 axes
-- [ ] 断言 `plot_federation(...)` 可以处理多 DBM federation
-- [ ] 断言返回值是 `PlotResult`
-- [ ] 断言开边界与闭边界对应不同 linestyle 或 marker 语义
-- [ ] 断言无界区域存在提示元素
-- [ ] 断言 1D 与 2D 的退化对象都能渲染而不报错
-- [ ] 断言 2D federation 渲染使用的是精确边界结果，而不是简单按 DBM 叠画
-- [ ] 断言 `DBM.plot(...)` 能正常转发
-- [ ] 断言 `Federation.plot(...)` 能正常转发
-- [ ] 断言缺失 matplotlib 时异常消息可理解
+- [x] 断言 `plot_dbm(...)` 在给定 `ax` 时不新建错误类型的 axes
+- [x] 断言 `plot_federation(...)` 可以处理多 DBM federation
+- [x] 断言返回值是 `PlotResult`
+- [x] 断言开边界与闭边界对应不同 linestyle 或 marker 语义
+- [x] 断言无界区域存在提示元素
+- [x] 断言 1D 与 2D 的退化对象都能渲染而不报错
+- [x] 断言 2D federation 渲染使用的是精确边界结果，而不是简单按 DBM 叠画
+- [x] 断言 `DBM.plot(...)` 能正常转发
+- [x] 断言 `Federation.plot(...)` 能正常转发
+- [x] 断言缺失 matplotlib 时异常消息可理解
 
 完成判定：
 
@@ -1220,28 +1232,28 @@ Phase 3 测试 Checklist：
 
 Checklist：
 
-- [ ] 为 `DBM.plot(...)` 补 docstring
-- [ ] 为 `Federation.plot(...)` 补 docstring
-- [ ] 为 `plot_dbm(...)` 和 `plot_federation(...)` 补 docstring
+- [x] 为 `DBM.plot(...)` 补 docstring
+- [x] 为 `Federation.plot(...)` 补 docstring
+- [x] 为 `plot_dbm(...)` 和 `plot_federation(...)` 补 docstring
 - [ ] 文档中明确说明 matplotlib 是可选依赖
 - [ ] 文档中明确说明仅支持 `1..3` 维
 - [ ] 文档中明确说明无界区域依赖有限裁剪加指示符表达
-- [ ] 评估是否要在 `binding/__init__.py` 导出模块级绘图函数
+- [x] 评估是否要在 `binding/__init__.py` 导出模块级绘图函数
 - [ ] 评估是否要在包根继续转发绘图函数
 - [ ] 评估是否需要给 `Context` 增加额外便捷入口
-- [ ] 优化默认颜色与图例行为
+- [x] 优化默认颜色与图例行为
 - [ ] 补充至少一组 1D 示例
-- [ ] 补充至少一组 2D 示例
+- [x] 补充至少一组 2D 示例
 - [ ] 如 3D 已实现，补充至少一组 3D 示例
-- [ ] 回看异常消息是否一致、可理解
-- [ ] 回看公开参数命名是否符合现有项目风格
+- [x] 回看异常消息是否一致、可理解
+- [x] 回看公开参数命名是否符合现有项目风格
 
 Phase 4 测试 Checklist：
 
 - [ ] 补充针对公开导出面的测试
 - [ ] 补充针对对象方法 docstring / 可见性的必要回归测试
-- [ ] 回归运行 plotting 测试全集
-- [ ] 回归运行现有 binding 测试，确认没有破坏原 API
+- [x] 回归运行 plotting 测试全集
+- [x] 回归运行现有 binding 测试，确认没有破坏原 API
 
 完成判定：
 
@@ -1370,18 +1382,16 @@ Phase 4 测试 Checklist：
 
 ## 建议的直接下一步
 
-如果要开始实现，建议先只做第一阶段和第二阶段：
+当前分支已经基本把原方案中的 `Phase 1` 和 `Phase 2` 做完，因此后续开发建议直接转到下面几项：
 
-- 几何提取
-- 1D 绘图
-- 2D 绘图
-- 可选依赖接入
-- 对应测试
+- 先整理测试布局，把 plotting 相关测试从 `test/binding/` 迁到原计划的 `test/plotting/`
+- 补齐 `Phase 4` 里还没完成的公开导出面与示例策略，尤其是“包根是否继续转发绘图函数”与 `1D` 示例
+- 明确 `clip box` 边界与真实边界的可视区分策略，并补一组对应渲染测试
+- 在这些收尾项稳定后，再单开里程碑推进 `Phase 3` 的 `3D` 几何与渲染
 
-这条路径价值最高、复杂度最低，而且能尽早验证几个最关键的语义决策：
+如果要继续拆 PR，最稳的顺序是：
 
-- 开边界与闭边界怎么表示
-- infinity 截断后如何不误导用户
-- DBM 与 federation 的分层渲染语义
-
-3D 应当从一开始就在 API 设计上预留，但实现上作为后续独立里程碑推进。
+1. 测试目录整理与文档同步
+2. 导出面 / 示例 / 文档收尾
+3. `clip box` 边界样式补完
+4. `3D` 几何与渲染
