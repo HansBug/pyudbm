@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import importlib
 import math
+import warnings
 from dataclasses import dataclass
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union
 
@@ -1196,6 +1197,24 @@ def _line_label(label: Optional[str], index: int) -> Optional[str]:
     return label if index == 0 else "_nolegend_"
 
 
+def _resolve_annotation_text(
+    annotate: bool,
+    annotate_text: Optional[str],
+    default_text: str,
+) -> Tuple[bool, Optional[str]]:
+    if annotate_text is not None:
+        if not annotate:
+            warnings.warn(
+                "annotate_text was explicitly provided while annotate is not True, so annotate is forced to True.",
+                UserWarning,
+                stacklevel=3,
+            )
+        return True, annotate_text
+    if annotate:
+        return True, default_text
+    return False, None
+
+
 def _endpoint_marker_style(is_closed: bool, edgecolor: Any) -> Dict[str, Any]:
     return {
         "marker": "o",
@@ -1258,6 +1277,7 @@ def _plot_1d_geometry(
         strict_epsilon: float,
         show_unbounded: bool,
         annotate: bool,
+        annotation_text: Optional[str],
         facecolor: Optional[Any],
         edgecolor: Optional[Any],
         alpha: Optional[float],
@@ -1293,8 +1313,8 @@ def _plot_1d_geometry(
                                         zorder, patches, extent)
             ax.add_patch(arrow)
             arrows.append(arrow)
-        if annotate:
-            annotation = ax.text((interval.lower + interval.upper) / 2.0, baseline + 0.08, "interval",
+        if annotate and annotation_text is not None:
+            annotation = ax.text((interval.lower + interval.upper) / 2.0, baseline + 0.08, annotation_text,
                                  color=resolved_edgecolor)
             annotations.append(annotation)
 
@@ -1405,6 +1425,7 @@ def _plot_dbm_2d_geometry(
         strict_epsilon: float,
         show_unbounded: bool,
         annotate: bool,
+        annotation_text: Optional[str],
         facecolor: Optional[Any],
         edgecolor: Optional[Any],
         alpha: Optional[float],
@@ -1449,10 +1470,10 @@ def _plot_dbm_2d_geometry(
                                                  -1.0):
                     ax.add_patch(arrow)
                     arrows.append(arrow)
-        if annotate:
+        if annotate and annotation_text is not None:
             center_x = sum(point.x for point in geometry.vertices) / float(len(geometry.vertices))
             center_y = sum(point.y for point in geometry.vertices) / float(len(geometry.vertices))
-            annotations.append(ax.text(center_x, center_y, "dbm", color=resolved_edgecolor))
+            annotations.append(ax.text(center_x, center_y, annotation_text, color=resolved_edgecolor))
 
     elif isinstance(geometry, SegmentGeometry2D):
         line = _plot_boundary_segment(ax, geometry.segment, resolved_edgecolor, resolved_linewidth, resolved_linestyle,
@@ -1464,16 +1485,16 @@ def _plot_dbm_2d_geometry(
         markers.append(
             ax.plot([geometry.segment.end.x], [geometry.segment.end.y], color=resolved_edgecolor, zorder=zorder,
                     **_endpoint_marker_style(geometry.segment.is_closed, resolved_edgecolor))[0])
-        if annotate:
+        if annotate and annotation_text is not None:
             annotations.append(
-                ax.text(geometry.segment.midpoint.x, geometry.segment.midpoint.y, "segment", color=resolved_edgecolor))
+                ax.text(geometry.segment.midpoint.x, geometry.segment.midpoint.y, annotation_text, color=resolved_edgecolor))
 
     elif isinstance(geometry, PointGeometry2D):
         marker = ax.plot([geometry.point.x], [geometry.point.y], color=resolved_edgecolor, zorder=zorder, label=label,
                          **_endpoint_marker_style(geometry.is_closed, resolved_edgecolor))[0]
         markers.append(marker)
-        if annotate:
-            annotations.append(ax.text(geometry.point.x, geometry.point.y, "point", color=resolved_edgecolor))
+        if annotate and annotation_text is not None:
+            annotations.append(ax.text(geometry.point.x, geometry.point.y, annotation_text, color=resolved_edgecolor))
 
     return PlotResult(
         ax=ax,
@@ -1511,6 +1532,7 @@ def _plot_federation_2d_geometry(
         strict_epsilon: float,
         show_unbounded: bool,
         annotate: bool,
+        annotation_text: Optional[str],
         color_mode: str,
         facecolor: Optional[Any],
         edgecolor: Optional[Any],
@@ -1544,6 +1566,7 @@ def _plot_federation_2d_geometry(
                     strict_epsilon=strict_epsilon,
                     show_unbounded=False,
                     annotate=False,
+                    annotation_text=None,
                     facecolor=color_cycle[index % len(color_cycle)],
                     edgecolor=color_cycle[index % len(color_cycle)],
                     alpha=min(resolved_alpha, 0.2),
@@ -1595,12 +1618,12 @@ def _plot_federation_2d_geometry(
             markers.append(ax.plot([point.x], [point.y], color=resolved_edgecolor, zorder=zorder,
                                    **_endpoint_marker_style(True, resolved_edgecolor))[0])
 
-        if annotate:
-            for index, face in enumerate(geometry.faces):
+        if annotate and annotation_text is not None:
+            for face in geometry.faces:
                 vertices = face.outer.vertices
                 center_x = sum(point.x for point in vertices) / float(len(vertices))
                 center_y = sum(point.y for point in vertices) / float(len(vertices))
-                annotations.append(ax.text(center_x, center_y, "face{0}".format(index), color=resolved_edgecolor))
+                annotations.append(ax.text(center_x, center_y, annotation_text, color=resolved_edgecolor))
 
     return PlotResult(
         ax=ax,
@@ -1620,6 +1643,7 @@ def plot_dbm(
         strict_epsilon: Optional[float] = None,
         show_unbounded: bool = True,
         annotate: bool = False,
+        annotate_text: Optional[str] = None,
         baseline: float = 0.0,
         facecolor: Optional[Any] = None,
         edgecolor: Optional[Any] = None,
@@ -1641,6 +1665,7 @@ def plot_dbm(
         raise NotImplementedError("Matplotlib plotting currently supports only 1D and 2D DBMs.")
 
     resolved_label = str(dbm) if label is None else label
+    resolved_annotate, resolved_annotation_text = _resolve_annotation_text(annotate, annotate_text, resolved_label)
     plot_limits = limits if limits is not None else _auto_plot_limits_for_dbm(dbm)
     pyplot, _, _ = _require_matplotlib()
     geometry = extract_dbm_geometry(dbm, limits=plot_limits)
@@ -1657,7 +1682,8 @@ def plot_dbm(
             baseline=float(baseline),
             strict_epsilon=epsilon,
             show_unbounded=show_unbounded,
-            annotate=annotate,
+            annotate=resolved_annotate,
+            annotation_text=resolved_annotation_text,
             facecolor=facecolor,
             edgecolor=edgecolor,
             alpha=alpha,
@@ -1671,7 +1697,8 @@ def plot_dbm(
         ax=ax,
         strict_epsilon=epsilon,
         show_unbounded=show_unbounded,
-        annotate=annotate,
+        annotate=resolved_annotate,
+        annotation_text=resolved_annotation_text,
         facecolor=facecolor,
         edgecolor=edgecolor,
         alpha=alpha,
@@ -1690,6 +1717,7 @@ def plot_federation(
         strict_epsilon: Optional[float] = None,
         show_unbounded: bool = True,
         annotate: bool = False,
+        annotate_text: Optional[str] = None,
         baseline: float = 0.0,
         color_mode: str = "shared",
         facecolor: Optional[Any] = None,
@@ -1713,6 +1741,7 @@ def plot_federation(
         raise NotImplementedError("Matplotlib plotting currently supports only 1D and 2D federations.")
 
     resolved_label = str(federation) if label is None else label
+    resolved_annotate, resolved_annotation_text = _resolve_annotation_text(annotate, annotate_text, resolved_label)
     plot_limits = limits if limits is not None else _auto_plot_limits_for_federation(federation)
     pyplot, _, _ = _require_matplotlib()
     geometry = extract_federation_geometry(federation, limits=plot_limits)
@@ -1729,7 +1758,8 @@ def plot_federation(
             baseline=float(baseline),
             strict_epsilon=epsilon,
             show_unbounded=show_unbounded,
-            annotate=annotate,
+            annotate=resolved_annotate,
+            annotation_text=resolved_annotation_text,
             facecolor=facecolor,
             edgecolor=edgecolor,
             alpha=alpha,
@@ -1743,7 +1773,8 @@ def plot_federation(
         ax=ax,
         strict_epsilon=epsilon,
         show_unbounded=show_unbounded,
-        annotate=annotate,
+        annotate=resolved_annotate,
+        annotation_text=resolved_annotation_text,
         color_mode=color_mode,
         facecolor=facecolor,
         edgecolor=edgecolor,

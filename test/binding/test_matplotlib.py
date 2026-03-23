@@ -131,6 +131,30 @@ class TestMatplotlibVisualization:
         assert len(thin_result.fills) == 0
         assert isinstance(custom_epsilon_result, PlotResult)
 
+    def test_plot_dbm_annotation_text_defaults_to_minimal_expression(self):
+        context = Context(["x", "y"])
+        dbm = ((context.x <= 1) & (context.y <= 1)).to_dbm_list()[0]
+
+        result = plot_dbm(dbm, annotate=True)
+
+        assert isinstance(result, PlotResult)
+        assert len(result.annotations) == 1
+        assert result.annotations[0].get_text() == str(dbm)
+
+    def test_plot_dbm_explicit_annotate_text_forces_annotation_only_when_needed(self):
+        context = Context(["x", "y"])
+        dbm = ((context.x <= 1) & (context.y <= 1)).to_dbm_list()[0]
+
+        with pytest.warns(UserWarning, match="annotate_text"):
+            forced_result = plot_dbm(dbm, annotate=False, annotate_text="dbm zone")
+
+        explicit_result = plot_dbm(dbm, annotate=True, annotate_text="dbm zone")
+
+        assert len(forced_result.annotations) == 1
+        assert forced_result.annotations[0].get_text() == "dbm zone"
+        assert len(explicit_result.annotations) == 1
+        assert explicit_result.annotations[0].get_text() == "dbm zone"
+
     def test_plot_dbm_default_limits_include_negative_space_and_bounded_end_padding(self):
         context = Context(["x", "y"])
         dbm = ((context.x >= 1) & (context.y >= 2)).to_dbm_list()[0]
@@ -175,6 +199,30 @@ class TestMatplotlibVisualization:
         assert isinstance(hole_result, PlotResult)
         assert len(hole_result.annotations) == 1
         assert len(unbounded_result.arrows) >= 1
+
+    def test_plot_federation_annotation_text_defaults_to_minimal_expression(self):
+        context = Context(["x", "y"])
+        federation = (context.x <= 1) & (context.y <= 1)
+
+        result = plot_federation(federation, annotate=True)
+
+        assert isinstance(result, PlotResult)
+        assert len(result.annotations) == 1
+        assert result.annotations[0].get_text() == str(federation)
+
+    def test_plot_federation_explicit_annotate_text_forces_annotation_only_when_needed(self):
+        context = Context(["x", "y"])
+        federation = (context.x <= 1) & (context.y <= 1)
+
+        with pytest.warns(UserWarning, match="annotate_text"):
+            forced_result = plot_federation(federation, annotate=False, annotate_text="fed zone")
+
+        explicit_result = plot_federation(federation, annotate=True, annotate_text="fed zone")
+
+        assert len(forced_result.annotations) == 1
+        assert forced_result.annotations[0].get_text() == "fed zone"
+        assert len(explicit_result.annotations) == 1
+        assert explicit_result.annotations[0].get_text() == "fed zone"
 
     def test_plot_federation_default_limits_and_axis_labels(self):
         context = Context(["x", "y"])
