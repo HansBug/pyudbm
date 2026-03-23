@@ -835,6 +835,7 @@ def _trace_boundary_loops(boundary_segments: Sequence[BoundarySegment2D]) -> Tup
 def _segments_are_mergeable(left: BoundarySegment2D, right: Optional[BoundarySegment2D]) -> bool:
     if right is None:
         return False
+    # Preserve semantic transition points on the traced boundary.
     if left.is_closed != right.is_closed or left.is_clipped != right.is_clipped:
         return False
 
@@ -1370,9 +1371,9 @@ def _resolve_annotation_text(
     return False, None
 
 
-def _endpoint_marker_style(is_closed: bool, edgecolor: Any) -> Dict[str, Any]:
+def _endpoint_marker_style(is_closed: bool, edgecolor: Any, is_clipped: bool = False) -> Dict[str, Any]:
     return {
-        "marker": "o",
+        "marker": "s" if is_clipped else "o",
         "markersize": 6.0,
         "markeredgecolor": edgecolor,
         "markerfacecolor": edgecolor if is_closed else "none",
@@ -1404,9 +1405,9 @@ def _plot_interval(ax: Any, interval: Interval1D, baseline: float, epsilon: floa
         boundaries.append(line)
 
     lower_marker = ax.plot([interval.lower], [baseline], color=edgecolor, zorder=zorder,
-                           **_endpoint_marker_style(interval.lower_closed, edgecolor))[0]
+                           **_endpoint_marker_style(interval.lower_closed, edgecolor, interval.lower_clipped))[0]
     upper_marker = ax.plot([interval.upper], [baseline], color=edgecolor, zorder=zorder,
-                           **_endpoint_marker_style(interval.upper_closed, edgecolor))[0]
+                           **_endpoint_marker_style(interval.upper_closed, edgecolor, interval.upper_clipped))[0]
     markers.extend([lower_marker, upper_marker])
     return PlotResult(ax=ax, boundaries=tuple(boundaries), markers=tuple(markers))
 
@@ -1502,6 +1503,8 @@ def _polygon_fill_vertices(geometry: PolygonGeometry2D, epsilon: float) -> Tuple
 
 
 def _edge_linestyle(segment: BoundarySegment2D, default_linestyle: Any) -> Any:
+    if segment.is_clipped:
+        return ":" if not segment.is_closed else "-."
     if not segment.is_closed:
         return "--"
     return default_linestyle
@@ -1616,17 +1619,17 @@ def _plot_dbm_2d_geometry(
         boundaries.append(line)
         markers.append(
             ax.plot([geometry.segment.start.x], [geometry.segment.start.y], color=resolved_edgecolor, zorder=zorder,
-                    **_endpoint_marker_style(geometry.segment.is_closed, resolved_edgecolor))[0])
+                    **_endpoint_marker_style(geometry.segment.is_closed, resolved_edgecolor, geometry.segment.is_clipped))[0])
         markers.append(
             ax.plot([geometry.segment.end.x], [geometry.segment.end.y], color=resolved_edgecolor, zorder=zorder,
-                    **_endpoint_marker_style(geometry.segment.is_closed, resolved_edgecolor))[0])
+                    **_endpoint_marker_style(geometry.segment.is_closed, resolved_edgecolor, geometry.segment.is_clipped))[0])
         if annotate and annotation_text is not None:
             annotations.append(
                 ax.text(geometry.segment.midpoint.x, geometry.segment.midpoint.y, annotation_text, color=resolved_edgecolor))
 
     elif isinstance(geometry, PointGeometry2D):
         marker = ax.plot([geometry.point.x], [geometry.point.y], color=resolved_edgecolor, zorder=zorder, label=label,
-                         **_endpoint_marker_style(geometry.is_closed, resolved_edgecolor))[0]
+                         **_endpoint_marker_style(geometry.is_closed, resolved_edgecolor, geometry.is_clipped))[0]
         markers.append(marker)
         if annotate and annotation_text is not None:
             annotations.append(ax.text(geometry.point.x, geometry.point.y, annotation_text, color=resolved_edgecolor))
@@ -1751,7 +1754,7 @@ def _plot_federation_2d_geometry(
 
         for point in geometry.isolated_points:
             markers.append(ax.plot([point.x], [point.y], color=resolved_edgecolor, zorder=zorder,
-                                   **_endpoint_marker_style(True, resolved_edgecolor))[0])
+                                   **_endpoint_marker_style(True, resolved_edgecolor, False))[0])
 
         if annotate and annotation_text is not None:
             for face in geometry.faces:

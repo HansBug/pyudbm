@@ -925,9 +925,6 @@ matplotlib 坐标轴是有限的，但 zone 可以是无界的。
 建议新增文件：
 
 - `pyudbm/binding/visual.py`
-- `test/plotting/__init__.py`
-- `test/plotting/test_geometry.py`
-- `test/plotting/test_matplotlib.py`
 - `requirements-plot.txt`
 
 可能会跟着调整的已有文件：
@@ -935,6 +932,8 @@ matplotlib 坐标轴是有限的，但 zone 可以是无界的。
 - `pyudbm/binding/__init__.py`
 - `pyudbm/binding/udbm.py`
 - `setup.py`
+- `test/binding/test_visual.py`
+- `test/binding/test_matplotlib.py`
 
 如果第一版只想先走对象方法入口，那么也可以暂时不把 `plot_dbm` / `plot_federation` 额外从包根暴露出去。
 
@@ -948,11 +947,16 @@ matplotlib 坐标轴是有限的，但 zone 可以是无界的。
 
 基于当前仓库代码、测试与文档状态，可以先给出一个同步结论：
 
-- `Phase 0` 已基本完成，唯一仍与原计划不一致的是 plotting 测试还放在 `test/binding/`，尚未迁到 `test/plotting/`
+- `Phase 0` 已基本完成，当前 plotting 测试继续保留在 `test/binding/`
 - `Phase 1` 已完成 `1D / 2D` 几何提取、`1D federation` 精确区间并集、`2D federation` 精确边界提取，以及对应单元测试
 - `Phase 2` 已完成 `1D / 2D` matplotlib 渲染、`plot_dbm(...)` / `plot_federation(...)`、`DBM.plot(...)` / `Federation.plot(...)`、`plot` extra 以及对应测试
 - `Phase 3` 仍未开始，当前对 `3D` 仍显式保留为 `NotImplementedError`
-- `Phase 4` 已完成一部分收尾工作，包括对象方法 docstring、模块级 docstring、`binding.__init__` 导出、默认颜色/图例行为和 API 文档页；但包根导出、示例整理、测试目录整理与 `3D` 文档仍未完成
+- `Phase 4` 已完成一部分收尾工作，包括对象方法 docstring、模块级 docstring、`binding.__init__` 导出、默认颜色/图例行为和 API 文档页；但包根导出、示例整理与 `3D` 文档仍未完成
+
+本次同步后，原始计划里有一条旧约束被直接删除：
+
+- 删除“第一版不对 federation 做布尔并集几何化简”
+  - 原因是当前实现已经明确采用 `1D` 精确区间并集与 `2D` 精确边界提取；继续保留这条旧约束会和现实现状直接冲突，反而误导后续开发
 
 下面的 checklist 已按上述现状同步。
 
@@ -984,11 +988,10 @@ Checklist：
 - [x] 确认 matplotlib 通过 `requirements-plot.txt` 作为可选依赖接入
 - [x] 确认第一版仅支持用户时钟维度 `1..3`
 - [x] 确认第一版不做高维投影
-- [ ] 确认第一版不对 federation 做布尔并集几何化简
 - [x] 确认 `limits`、`strict_epsilon`、`show_unbounded`、`color_mode` 作为保留参数进入第一版设计
 - [x] 确认 `PlotResult` 作为统一返回容器
-- [ ] 确认错误模型至少覆盖 `ImportError`、`TypeError`、`ValueError`、`RuntimeError`
-- [ ] 确认测试目录使用 `test/plotting/`
+- [x] 确认错误模型至少覆盖 `ImportError`、`TypeError`、`ValueError`、`NotImplementedError`
+- [x] 确认 plotting 测试继续保留在 `test/binding/`
 
 完成判定：
 
@@ -1012,7 +1015,7 @@ Checklist：
 建议改动文件：
 
 - `pyudbm/binding/visual.py`
-- `test/plotting/test_geometry.py`
+- `test/binding/test_visual.py`
 
 交付物：
 
@@ -1043,7 +1046,7 @@ Checklist：
 - [x] 实现 2D federation 的精确布尔并集
 - [x] 实现 2D federation 的精确边界提取
 - [x] 明确 2D federation 边界中的外边界与内部共享边处理规则
-- [ ] 明确 2D federation 边界在开 / 闭边界相邻时的归并规则
+- [x] 明确 2D federation 边界在开 / 闭边界相邻时的归并规则
 - [x] 明确 2D federation 边界在多个 DBM 重合边情况下的去重规则
 - [x] 对严格不等式保留开边界元信息，而不是在几何阶段直接丢失
 - [x] 记录哪些边界来自真实 zone，哪些边界仅来自 clip box
@@ -1051,7 +1054,7 @@ Checklist：
 
 Phase 1 测试 Checklist：
 
-- [ ] 新建 `test/plotting/test_geometry.py`
+- [x] 在 `test/binding/test_visual.py` 中覆盖几何层测试
 - [x] 覆盖 1D：`x == 0`
 - [x] 覆盖 1D：`x < 5`
 - [x] 覆盖 1D：`x <= 5`
@@ -1070,7 +1073,7 @@ Phase 1 测试 Checklist：
 - [x] 覆盖 2D federation 的相交并集
 - [x] 覆盖 2D federation 的共享边消解
 - [x] 覆盖 2D federation 的孔洞不存在或被正确表达的约束情形
-- [ ] 覆盖 2D federation 中开边界与闭边界混合的边界提取
+- [x] 覆盖 2D federation 中开边界与闭边界混合的边界提取
 - [x] 断言 2D federation 边界结果不是简单的 DBM 边界拼接
 - [x] 断言几何对象中的开闭边界标记
 - [x] 断言哪些边界来自 clip box
@@ -1101,7 +1104,7 @@ Phase 1 测试 Checklist：
 - `pyudbm/binding/__init__.py`
 - `requirements-plot.txt`
 - `setup.py`
-- `test/plotting/test_matplotlib.py`
+- `test/binding/test_matplotlib.py`
 
 交付物：
 
@@ -1124,7 +1127,7 @@ Checklist：
 - [x] 闭边界使用闭边界样式
 - [x] 开边界使用开边界样式
 - [x] 严格不等式对应的 fill 使用渲染内缩策略
-- [ ] clip box 引入的边界与真实边界区分显示
+- [x] clip box 引入的边界与真实边界区分显示
 - [x] 无界区域添加视觉提示
 - [x] `Federation` 在 1D / 2D 下优先使用精确并集几何结果进行渲染
 - [x] `Federation` 在 2D 下优先使用精确边界结果渲染边界线
@@ -1140,7 +1143,7 @@ Checklist：
 
 Phase 2 测试 Checklist：
 
-- [ ] 新建 `test/plotting/test_matplotlib.py`
+- [x] 在 `test/binding/test_matplotlib.py` 中覆盖 matplotlib 渲染测试
 - [x] 断言 `plot_dbm(...)` 在给定 `ax` 时不新建错误类型的 axes
 - [x] 断言 `plot_federation(...)` 可以处理多 DBM federation
 - [x] 断言返回值是 `PlotResult`
@@ -1171,8 +1174,8 @@ Phase 2 测试 Checklist：
 建议改动文件：
 
 - `pyudbm/binding/visual.py`
-- `test/plotting/test_geometry.py`
-- `test/plotting/test_matplotlib.py`
+- `test/binding/test_visual.py`
+- `test/binding/test_matplotlib.py`
 
 交付物：
 
@@ -1222,7 +1225,7 @@ Phase 3 测试 Checklist：
 - `pyudbm/binding/__init__.py`
 - `pyudbm/__init__.py`
 - `README.md`
-- `test/plotting/test_matplotlib.py`
+- `test/binding/test_matplotlib.py`
 
 交付物：
 
@@ -1385,14 +1388,12 @@ Phase 4 测试 Checklist：
 
 当前分支已经基本把原方案中的 `Phase 1` 和 `Phase 2` 做完，因此后续开发建议直接转到下面几项：
 
-- 先整理测试布局，把 plotting 相关测试从 `test/binding/` 迁到原计划的 `test/plotting/`
 - 补齐 `Phase 4` 里还没完成的公开导出面与示例策略，尤其是“包根是否继续转发绘图函数”与 `1D` 示例
 - 明确 `clip box` 边界与真实边界的可视区分策略，并补一组对应渲染测试
 - 在这些收尾项稳定后，再单开里程碑推进 `Phase 3` 的 `3D` 几何与渲染
 
 如果要继续拆 PR，最稳的顺序是：
 
-1. 测试目录整理与文档同步
-2. 导出面 / 示例 / 文档收尾
-3. `clip box` 边界样式补完
-4. `3D` 几何与渲染
+1. 导出面 / 示例 / 文档收尾
+2. `clip box` 边界样式补完
+3. `3D` 几何与渲染

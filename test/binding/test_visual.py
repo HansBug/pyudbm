@@ -392,6 +392,40 @@ class TestVisualizationGeometry:
             for probe in _segment_probe_points(segment):
                 assert _geometry_contains_2d(geometry, probe.x, probe.y) == _federation_contains_2d(federation, probe.x, probe.y)
 
+    def test_extract_federation_geometry_2d_adjacent_open_and_closed_edges_stay_separate(self):
+        context = Context(["x", "y"])
+        closed_left = (context.x >= 0) & (context.x <= 1) & (context.y >= 0) & (context.y <= 1)
+        open_right = (context.x > 1) & (context.x < 2) & (context.y >= 0) & (context.y < 1)
+        federation = closed_left | open_right
+
+        geometry = extract_federation_geometry(federation, limits=((0, 3), (0, 2)))
+
+        assert isinstance(geometry, FederationGeometry2D)
+        assert len(geometry.boundary_segments) == 5
+
+        top_segments = [
+            segment for segment in geometry.boundary_segments
+            if math.isclose(segment.start.y, 1.0, abs_tol=1e-9) and math.isclose(segment.end.y, 1.0, abs_tol=1e-9)
+        ]
+        assert len(top_segments) == 2
+        assert sorted(
+            (
+                round(min(segment.start.x, segment.end.x), 6),
+                round(max(segment.start.x, segment.end.x), 6),
+                segment.is_closed,
+            )
+            for segment in top_segments
+        ) == [
+            (0.0, 1.0, True),
+            (1.0, 2.0, False),
+        ]
+
+        for x_value in [0.0, 0.5, 1.0, 1.5, 1.999]:
+            for y_value in [0.0, 0.5, 0.999, 1.0]:
+                assert _geometry_contains_2d(geometry, x_value, y_value) == _federation_contains_2d(
+                    federation, x_value, y_value
+                )
+
     def test_extract_federation_geometry_2d_with_hole_and_public_face_structure(self):
         context = Context(["x", "y"])
         parts = [

@@ -21,9 +21,10 @@ from pyudbm.binding import PlotResult, plot_dbm, plot_federation
 
 
 class FakeArtist:
-    def __init__(self, color=None, label=None, markerfacecolor=None, markeredgecolor=None, linestyle="-"):
+    def __init__(self, color=None, label=None, marker=None, markerfacecolor=None, markeredgecolor=None, linestyle="-"):
         self._color = color
         self._label = label
+        self._marker = marker
         self._markerfacecolor = markerfacecolor
         self._markeredgecolor = markeredgecolor
         self._linestyle = linestyle
@@ -33,6 +34,9 @@ class FakeArtist:
 
     def get_label(self):
         return self._label
+
+    def get_marker(self):
+        return self._marker
 
     def get_markerfacecolor(self):
         return self._markerfacecolor
@@ -63,6 +67,7 @@ class FakeAxis:
         artist = FakeArtist(
             color=kwargs.get("color"),
             label=kwargs.get("label"),
+            marker=kwargs.get("marker"),
             markerfacecolor=kwargs.get("markerfacecolor"),
             markeredgecolor=kwargs.get("markeredgecolor"),
             linestyle=kwargs.get("linestyle", "-"),
@@ -200,6 +205,8 @@ class TestMatplotlibVisualization:
         assert len(lower_result.arrows) == 1
         assert len(lower_result.annotations) == 1
         assert isinstance(empty_2d_result, PlotResult)
+        assert lower_result.markers[0].get_marker() == "s"
+        assert lower_result.markers[1].get_marker() == "o"
 
     def test_plot_dbm_2d_polygon_segment_and_point_render(self):
         context = Context(["x", "y"])
@@ -223,6 +230,17 @@ class TestMatplotlibVisualization:
         assert len(segment_result.markers) == 2
         assert isinstance(point_result, PlotResult)
         assert len(point_result.markers) == 1
+
+    def test_plot_dbm_2d_clipped_boundaries_use_distinct_linestyle(self):
+        context = Context(["x", "y"])
+        dbm = (context.x <= 1).to_dbm_list()[0]
+
+        result = plot_dbm(dbm, limits=((0, 2), (0, 2)))
+
+        assert isinstance(result, PlotResult)
+        linestyles = [line.get_linestyle() for line in result.boundaries]
+        assert "-" in linestyles
+        assert "-." in linestyles
 
     def test_plot_dbm_2d_annotations_arrows_and_custom_strict_epsilon(self):
         context = Context(["x", "y"])
