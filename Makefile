@@ -1,6 +1,7 @@
 .PHONY: help info build clean clean_x package zip test unittest \
 	uutils_build uutils_test uutils_install uutils_clean uutils uutils_notest \
 	udbm_build udbm_test udbm_install udbm_clean udbm udbm_notest \
+	ucdd_build ucdd_test ucdd_install ucdd_clean ucdd ucdd_notest \
 	bin_clean bin bin_notest docs docs_en docs_zh pdocs rst_auto uversion
 
 PYTHON := $(shell which python)
@@ -24,6 +25,8 @@ UUTILS_DIR       := ${PROJ_DIR}/UUtils
 UUTILS_BUILD_DIR := ${PROJ_DIR}/UUtils_build
 UDBM_DIR         := ${PROJ_DIR}/UDBM
 UDBM_BUILD_DIR   := ${PROJ_DIR}/UDBM_build
+UCDD_DIR         := ${PROJ_DIR}/UCDD
+UCDD_BUILD_DIR   := ${PROJ_DIR}/UCDD_build
 
 RANGE_DIR       ?= .
 RANGE_TEST_DIR  := ${TEST_DIR}/${RANGE_DIR}
@@ -84,10 +87,17 @@ help:
 	@echo "  make udbm           - Build, test, and install UDBM"
 	@echo "  make udbm_notest    - Build and install UDBM without running tests"
 	@echo ""
+	@echo "  make ucdd_build     - Configure and build UCDD"
+	@echo "  make ucdd_test      - Run UCDD tests"
+	@echo "  make ucdd_install   - Install UCDD into the local prefix"
+	@echo "  make ucdd_clean     - Remove the UCDD build directory"
+	@echo "  make ucdd           - Build, test, and install UCDD"
+	@echo "  make ucdd_notest    - Build and install UCDD without running tests"
+	@echo ""
 	@echo "Combined Dependency Pipeline:"
-	@echo "  make bin          - Build, test, and install UUtils and UDBM"
-	@echo "  make bin_notest   - Build and install UUtils and UDBM without tests"
-	@echo "  make bin_clean    - Remove UUtils, UDBM, and local prefix build outputs"
+	@echo "  make bin          - Build, test, and install UUtils, UDBM, and UCDD"
+	@echo "  make bin_notest   - Build and install UUtils, UDBM, and UCDD without tests"
+	@echo "  make bin_clean    - Remove UUtils, UDBM, UCDD, and local prefix build outputs"
 	@echo ""
 	@echo "Documentation:"
 	@echo "  make docs         - Build documentation (auto-detects language)"
@@ -100,7 +110,7 @@ help:
 	@echo "  make info         - Print current path and CMake environment values"
 	@echo ""
 	@echo "Common Variables:"
-	@echo "  BINSTALL_DIR=<dir> - Local install prefix for UUtils/UDBM"
+	@echo "  BINSTALL_DIR=<dir> - Local install prefix for UUtils/UDBM/UCDD"
 	@echo "  CTEST_CFG=<cfg>    - CMake/CTest build configuration (default: Release)"
 	@echo "  RANGE_DIR=<dir>    - Limit pytest coverage and test scope (default: .)"
 	@echo "  COV_TYPES=<types>  - Coverage report types (default: xml term-missing)"
@@ -159,10 +169,26 @@ udbm_clean:
 udbm: udbm_build udbm_test udbm_install
 udbm_notest: udbm_build udbm_install
 
-bin_clean: uutils_clean udbm_clean
+ucdd_build:
+	cmake -S ${UCDD_DIR} -B "${UCDD_BUILD_DIR}" $(if ${CTEST_CFG},-DCMAKE_BUILD_TYPE=${CTEST_CFG},) \
+		-DCMAKE_PREFIX_PATH="$(shell readlink -f ${BINSTALL_DIR})" \
+		-DUUtils_DIR="$(shell readlink -f ${BINSTALL_DIR}/lib*/cmake/UUtils)" \
+		-DUDBM_DIR="$(shell readlink -f ${BINSTALL_DIR}/lib*/cmake/UDBM)" \
+		-DFIND_FATAL=OFF
+	cmake --build "${UCDD_BUILD_DIR}" $(if ${CTEST_CFG},--config ${CTEST_CFG},)
+ucdd_test:
+	ctest --test-dir "${UCDD_BUILD_DIR}" --output-on-failure $(if ${CTEST_CFG},-C ${CTEST_CFG},)
+ucdd_install:
+	cmake --install "${UCDD_BUILD_DIR}" --prefix "${BINSTALL_DIR}" $(if ${CTEST_CFG},--config ${CTEST_CFG},)
+ucdd_clean:
+	rm -rf "${UCDD_BUILD_DIR}"
+ucdd: udbm ucdd_build ucdd_test ucdd_install
+ucdd_notest: udbm_notest ucdd_build ucdd_install
+
+bin_clean: uutils_clean udbm_clean ucdd_clean
 	rm -rf "${BINSTALL_DIR}"
-bin: uutils udbm
-bin_notest: uutils_notest udbm_notest
+bin: uutils udbm ucdd
+bin_notest: uutils_notest udbm_notest ucdd_notest
 
 docs: bin_notest build
 	$(MAKE) -C "${DOC_DIR}" build

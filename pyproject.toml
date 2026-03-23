@@ -37,12 +37,17 @@ before-build = [
     "cmake --build UDBM_build --config Release",
     "ctest --test-dir UDBM_build --output-on-failure -C Release",
     "cmake --install UDBM_build --prefix bin_install --config Release",
+
+    "cmake -S UCDD -B UCDD_build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH={package}\\bin_install -DUUtils_DIR={package}\\bin_install\\lib\\cmake\\UUtils -DUDBM_DIR={package}\\bin_install\\lib\\cmake\\UDBM -DFIND_FATAL=OFF",
+    "cmake --build UCDD_build --config Release",
+    "ctest --test-dir UCDD_build --output-on-failure -C Release",
+    "cmake --install UCDD_build --prefix bin_install --config Release",
 ]
 before-test = [# Unittest for windows
     "pip install -r {project}/requirements-test.txt",
 ]
 test-command = [
-    "rm -rf {project}/UUtils_build {project}/UDBM_build {project}/bin_install",
+    "rm -rf {project}/UUtils_build {project}/UDBM_build {project}/UCDD_build {project}/bin_install",
     "cp -rf {project}/test test",
     "cp {project}/pytest.ini pytest.ini",
     "pytest test -sv -m unittest --log-level=DEBUG",
@@ -72,12 +77,17 @@ before-build = [
     "cmake --build UDBM_build --config Release",
     "ctest --test-dir UDBM_build --output-on-failure -C Release",
     "cmake --install UDBM_build --prefix bin_install --config Release",
+
+    "if [ \"$CIBW_ARCHS\" = \"arm64\" ]; then cmake -S UCDD -B UCDD_build -DCMAKE_PREFIX_PATH=$(readlink -f bin_install) -DUUtils_DIR=$(readlink -f bin_install/lib*/cmake/UUtils) -DUDBM_DIR=$(readlink -f bin_install/lib*/cmake/UDBM) -DCMAKE_OSX_ARCHITECTURES=\"arm64\" -DCMAKE_SYSTEM_PROCESSOR=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TRY_COMPILE_OSX_ARCHITECTURES=arm64 -DFIND_FATAL=OFF; else cmake -S UCDD -B UCDD_build -DCMAKE_PREFIX_PATH=$(readlink -f bin_install) -DUUtils_DIR=$(readlink -f bin_install/lib*/cmake/UUtils) -DUDBM_DIR=$(readlink -f bin_install/lib*/cmake/UDBM) -DCMAKE_OSX_ARCHITECTURES=\"x86_64\" -DCMAKE_SYSTEM_PROCESSOR=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TRY_COMPILE_OSX_ARCHITECTURES=x86_64 -DFIND_FATAL=OFF; fi",
+    "cmake --build UCDD_build --config Release",
+    "ctest --test-dir UCDD_build --output-on-failure -C Release",
+    "cmake --install UCDD_build --prefix bin_install --config Release",
 ]
 before-test = [# Unittest for macos
     "pip install -r {project}/requirements-test.txt",
 ]
 test-command = [
-    "rm -rf {project}/UUtils_build {project}/UDBM_build {project}/bin_install",
+    "rm -rf {project}/UUtils_build {project}/UDBM_build {project}/UCDD_build {project}/bin_install",
     "cp -rf {project}/test test",
     "cp {project}/pytest.ini pytest.ini",
     "pytest test -sv -m unittest --log-level=DEBUG",
@@ -103,12 +113,17 @@ before-build = [
     "cmake --build UDBM_build --config Release",
     "ctest --test-dir UDBM_build --output-on-failure -C Release",
     "cmake --install UDBM_build --prefix bin_install --config Release",
+
+    "cmake -S UCDD -B UCDD_build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$(readlink -f bin_install) -DUUtils_DIR=$(readlink -f bin_install/lib*/cmake/UUtils) -DUDBM_DIR=$(readlink -f bin_install/lib*/cmake/UDBM) -DFIND_FATAL=OFF",
+    "cmake --build UCDD_build --config Release",
+    "ctest --test-dir UCDD_build --output-on-failure -C Release",
+    "cmake --install UCDD_build --prefix bin_install --config Release",
 ]
 before-test = [# Unittest for linux
     "pip install -r {project}/requirements-test.txt",
 ]
 test-command = [
-    "rm -rf {project}/UUtils_build {project}/UDBM_build {project}/bin_install",
+    "rm -rf {project}/UUtils_build {project}/UDBM_build {project}/UCDD_build {project}/bin_install",
     "cp -rf {project}/test test",
     "cp {project}/pytest.ini pytest.ini",
     "pytest test -sv -m unittest --log-level=DEBUG",
