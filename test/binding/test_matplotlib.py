@@ -450,21 +450,103 @@ class TestMatplotlibVisualization:
         assert isinstance(point_result, PlotResult)
         assert len(point_result.markers) == 1
 
+    def test_plot_dbm_3d_polyhedron_and_degenerate_render(self):
+        context = Context(["x", "y", "z"])
+        polyhedron_dbm = (
+            (context.x <= 1) & (context.y <= 1) & (context.z <= 1) & (context.x - context.y < 1)
+        ).to_dbm_list()[0]
+        face_dbm = ((context.x <= 1) & (context.y <= 1) & (context.z == 0)).to_dbm_list()[0]
+        segment_dbm = ((context.x == 0) & (context.y == 0) & (context.z <= 1)).to_dbm_list()[0]
+        point_dbm = ((context.x == 1) & (context.y == 1) & (context.z == 1)).to_dbm_list()[0]
+
+        figure = plt.figure(figsize=(10, 8))
+        polyhedron_ax = figure.add_subplot(221, projection="3d")
+        face_ax = figure.add_subplot(222, projection="3d")
+        segment_ax = figure.add_subplot(223, projection="3d")
+        point_ax = figure.add_subplot(224, projection="3d")
+
+        polyhedron_result = plot_dbm(polyhedron_dbm, ax=polyhedron_ax, limits=((0, 2), (0, 2), (0, 2)), label="polyhedron")
+        face_result = plot_dbm(face_dbm, ax=face_ax, limits=((0, 2), (0, 2), (0, 1)), label="face")
+        segment_result = plot_dbm(segment_dbm, ax=segment_ax, limits=((0, 1), (0, 1), (0, 2)), label="segment")
+        point_result = plot_dbm(point_dbm, ax=point_ax, limits=((0, 2), (0, 2), (0, 2)), label="point")
+        polyhedron_legend = polyhedron_ax.legend(loc="upper right")
+        face_legend = face_ax.legend(loc="upper right")
+        segment_legend = segment_ax.legend(loc="upper right")
+        point_legend = point_ax.legend(loc="upper right")
+
+        assert isinstance(polyhedron_result, PlotResult)
+        assert polyhedron_result.ax is polyhedron_ax
+        assert len(polyhedron_result.fills) == 1
+        assert polyhedron_result.fills[0].__class__.__name__ == "Poly3DCollection"
+        assert len(polyhedron_result.boundaries) >= 6
+        assert polyhedron_ax.get_zlabel() == "z"
+        assert [text.get_text() for text in polyhedron_legend.get_texts()] == ["polyhedron"]
+
+        assert isinstance(face_result, PlotResult)
+        assert len(face_result.fills) == 1
+        assert len(face_result.boundaries) == 4
+        assert [text.get_text() for text in face_legend.get_texts()] == ["face"]
+        assert isinstance(segment_result, PlotResult)
+        assert len(segment_result.boundaries) == 1
+        assert len(segment_result.markers) == 2
+        assert [text.get_text() for text in segment_legend.get_texts()] == ["segment"]
+        assert isinstance(point_result, PlotResult)
+        assert len(point_result.markers) == 1
+        assert [text.get_text() for text in point_legend.get_texts()] == ["point"]
+
+    def test_plot_federation_3d_handles_multiple_dbms_and_unbounded_arrows(self):
+        context = Context(["x", "y", "z"])
+        left = (
+            (context.x >= 0) & (context.x <= 1)
+            & (context.y >= 0) & (context.y <= 1)
+            & (context.z >= 0) & (context.z <= 1)
+        )
+        right = (
+            (context.x >= 2) & (context.x <= 3)
+            & (context.y >= 0) & (context.y <= 1)
+            & (context.z >= 0) & (context.z <= 1)
+        )
+        unbounded = context.x <= 1
+
+        figure = plt.figure(figsize=(10, 4))
+        shared_ax = figure.add_subplot(121, projection="3d")
+        per_dbm_ax = figure.add_subplot(122, projection="3d")
+
+        shared_result = plot_federation(left | right, ax=shared_ax, limits=((0, 3), (0, 1), (0, 1)), label="boxes")
+        per_dbm_result = plot_federation(
+            unbounded,
+            ax=per_dbm_ax,
+            limits=((0, 2), (0, 2), (0, 2)),
+            color_mode="per_dbm",
+            annotate=True,
+            label="unbounded",
+        )
+        shared_legend = shared_ax.legend(loc="upper right")
+        per_dbm_legend = per_dbm_ax.legend(loc="upper right")
+
+        assert isinstance(shared_result, PlotResult)
+        assert len(shared_result.fills) >= 2
+        assert [text.get_text() for text in shared_legend.get_texts()] == ["boxes"]
+        assert isinstance(per_dbm_result, PlotResult)
+        assert len(per_dbm_result.arrows) >= 1
+        assert len(per_dbm_result.annotations) >= 1
+        assert [text.get_text() for text in per_dbm_legend.get_texts()] == ["unbounded"]
+
     def test_plot_invalid_plot_arguments_raise_clear_errors(self):
         context = Context(["x", "y"])
         dbm = (context.x <= 1).to_dbm_list()[0]
         federation = context.x <= 1
-        context_3d = Context(["x", "y", "z"])
-        federation_3d = (context_3d.x <= 1) & (context_3d.y <= 1) & (context_3d.z <= 1)
+        context_4d = Context(["a", "b", "c", "d"])
+        federation_4d = (context_4d.a <= 1) & (context_4d.b <= 1) & (context_4d.c <= 1) & (context_4d.d <= 1)
 
         with pytest.raises(ValueError, match="strict_epsilon"):
             plot_dbm(dbm, strict_epsilon=0.0)
         with pytest.raises(ValueError, match="color_mode"):
             plot_federation(federation, limits=((0, 2), (0, 2)), color_mode="invalid")
         with pytest.raises(NotImplementedError):
-            plot_dbm(federation_3d.to_dbm_list()[0])
+            plot_dbm(federation_4d.to_dbm_list()[0])
         with pytest.raises(NotImplementedError):
-            plot_federation(federation_3d)
+            plot_federation(federation_4d)
 
     def test_plot_dbm_missing_matplotlib_raises_clear_error(self, monkeypatch):
         context = Context(["x"])

@@ -96,6 +96,69 @@ FederationGeometry2D
     :members: dbm_geometries,boundary_segments,loops,faces,isolated_segments,isolated_points,limits
 
 
+Point3D
+-----------------------------------------------------
+
+.. autoclass:: Point3D
+    :members: x,y,z
+
+
+HalfSpace3D
+-----------------------------------------------------
+
+.. autoclass:: HalfSpace3D
+    :members: evaluate,contains,contains_on_closure,is_active,a,b,c,d,is_strict,is_clip
+
+
+BoundaryEdge3D
+-----------------------------------------------------
+
+.. autoclass:: BoundaryEdge3D
+    :members: length,midpoint,start,end,is_closed,is_clipped
+
+
+Face3D
+-----------------------------------------------------
+
+.. autoclass:: Face3D
+    :members: vertices,edges,normal,is_closed,is_clipped
+
+
+FaceGeometry3D
+-----------------------------------------------------
+
+.. autoclass:: FaceGeometry3D
+    :members: face,halfspaces
+
+
+SegmentGeometry3D
+-----------------------------------------------------
+
+.. autoclass:: SegmentGeometry3D
+    :members: segment,halfspaces
+
+
+PointGeometry3D
+-----------------------------------------------------
+
+.. autoclass:: PointGeometry3D
+    :members: point,is_closed,is_clipped,halfspaces
+
+
+PolyhedronGeometry3D
+-----------------------------------------------------
+
+.. autoclass:: PolyhedronGeometry3D
+    :members: vertices,edges,faces,halfspaces
+
+
+FederationGeometry3D
+-----------------------------------------------------
+
+.. autoclass:: FederationGeometry3D
+    :members: dbm_geometries,limits
+
+
 PlotResult
 -----------------------------------------------------
 

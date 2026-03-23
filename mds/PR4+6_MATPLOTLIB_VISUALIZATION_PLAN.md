@@ -950,8 +950,8 @@ matplotlib 坐标轴是有限的，但 zone 可以是无界的。
 - `Phase 0` 已基本完成，当前 plotting 测试继续保留在 `test/binding/`
 - `Phase 1` 已完成 `1D / 2D` 几何提取、`1D federation` 精确区间并集、`2D federation` 精确边界提取，以及对应单元测试
 - `Phase 2` 已完成 `1D / 2D` matplotlib 渲染、`plot_dbm(...)` / `plot_federation(...)`、`DBM.plot(...)` / `Federation.plot(...)`、`plot` extra 以及对应测试
-- `Phase 3` 仍未开始，当前对 `3D` 仍显式保留为 `NotImplementedError`
-- `Phase 4` 已完成一部分收尾工作，包括对象方法 docstring、模块级 docstring、`binding.__init__` 导出、默认颜色/图例行为和 API 文档页；但包根导出、示例整理与 `3D` 文档仍未完成
+- `Phase 3` 已完成，当前已经支持 `3D` 几何提取、`3D` DBM / federation 渲染、3D 退化分类与根目录真实示例脚本
+- `Phase 4` 已完成一部分收尾工作，包括对象方法 docstring、模块级 docstring、`binding.__init__` 导出、默认颜色/图例行为、API 文档页和 `3D` 示例脚本；但包根导出与部分公开说明仍未完成
 
 本次同步后，原始计划里有一条旧约束被直接删除：
 
@@ -1185,25 +1185,25 @@ Phase 2 测试 Checklist：
 
 Checklist：
 
-- [ ] 在几何层增加 3D 多面体内部表示
-- [ ] 实现 3D 半空间裁剪
-- [ ] 支持 3D 下的面、线、点、空集退化分类
-- [ ] 保留 3D 下的开闭边界元信息
-- [ ] 保留 3D 下的 clip box 截断元信息
-- [ ] 使用 `Poly3DCollection` 渲染 3D 面
-- [ ] 使用单独 edge artists 强化边界
-- [ ] 对无界截断提供至少一种可解释的视觉提示
-- [ ] 保持 `plot_dbm(...)` / `plot_federation(...)` 的参数接口不破坏前两阶段
-- [ ] 继续对高于 3 维直接报错
+- [x] 在几何层增加 3D 多面体内部表示
+- [x] 实现 3D 半空间裁剪
+- [x] 支持 3D 下的面、线、点、空集退化分类
+- [x] 保留 3D 下的开闭边界元信息
+- [x] 保留 3D 下的 clip box 截断元信息
+- [x] 使用 `Poly3DCollection` 渲染 3D 面
+- [x] 使用单独 edge artists 强化边界
+- [x] 对无界截断提供至少一种可解释的视觉提示
+- [x] 保持 `plot_dbm(...)` / `plot_federation(...)` 的参数接口不破坏前两阶段
+- [x] 继续对高于 3 维直接报错
 
 Phase 3 测试 Checklist：
 
-- [ ] 覆盖 3D 有界 box 状 zone
-- [ ] 覆盖 3D 带对角约束的有界 zone
-- [ ] 覆盖 3D 无界但被 render box 截断的 zone
-- [ ] 覆盖 3D 面、线、点级退化输出
-- [ ] 断言 3D artist 类型合理
-- [ ] 断言高于 3 维仍抛出明确异常
+- [x] 覆盖 3D 有界 box 状 zone
+- [x] 覆盖 3D 带对角约束的有界 zone
+- [x] 覆盖 3D 无界但被 render box 截断的 zone
+- [x] 覆盖 3D 面、线、点级退化输出
+- [x] 断言 3D artist 类型合理
+- [x] 断言高于 3 维仍抛出明确异常
 
 完成判定：
 
@@ -1248,7 +1248,7 @@ Checklist：
 - [x] 优化默认颜色与图例行为
 - [ ] 补充至少一组 1D 示例
 - [x] 补充至少一组 2D 示例
-- [ ] 如 3D 已实现，补充至少一组 3D 示例
+- [x] 如 3D 已实现，补充至少一组 3D 示例
 - [x] 回看异常消息是否一致、可理解
 - [x] 回看公开参数命名是否符合现有项目风格
 
@@ -1386,14 +1386,12 @@ Phase 4 测试 Checklist：
 
 ## 建议的直接下一步
 
-当前分支已经基本把原方案中的 `Phase 1` 和 `Phase 2` 做完，因此后续开发建议直接转到下面几项：
+当前分支已经基本把原方案中的 `Phase 1`、`Phase 2` 和 `Phase 3` 做完，因此后续开发建议直接转到下面几项：
 
 - 补齐 `Phase 4` 里还没完成的公开导出面与示例策略，尤其是“包根是否继续转发绘图函数”与 `1D` 示例
 - 明确 `clip box` 边界与真实边界的可视区分策略，并补一组对应渲染测试
-- 在这些收尾项稳定后，再单开里程碑推进 `Phase 3` 的 `3D` 几何与渲染
 
 如果要继续拆 PR，最稳的顺序是：
 
 1. 导出面 / 示例 / 文档收尾
 2. `clip box` 边界样式补完
-3. `3D` 几何与渲染
