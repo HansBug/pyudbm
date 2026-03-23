@@ -257,6 +257,20 @@ class TestVisualizationGeometry:
         assert face.outer is loop
         assert face.holes == (degenerate_loop,)
 
+        halfspace_3d = HalfSpace3D(1.0, 0.0, 0.0, 2.0, is_strict=True)
+        boundary_point_3d = Point3D(2.0, 0.0, 0.0)
+        inside_point_3d = Point3D(1.5, 0.0, 0.0)
+        assert halfspace_3d.evaluate(boundary_point_3d) == 0.0
+        assert halfspace_3d.contains(inside_point_3d)
+        assert not halfspace_3d.contains(boundary_point_3d)
+        assert halfspace_3d.contains(boundary_point_3d, respect_strict=False)
+        assert halfspace_3d.contains_on_closure(boundary_point_3d)
+        assert halfspace_3d.is_active(boundary_point_3d)
+
+        edge_3d = BoundaryEdge3D(Point3D(0.0, 0.0, 0.0), Point3D(1.0, 2.0, 2.0), True, False)
+        assert math.isclose(edge_3d.length, 3.0, abs_tol=1e-9)
+        assert edge_3d.midpoint == Point3D(0.5, 1.0, 1.0)
+
     def test_extract_dbm_geometry_1d_matches_contains(self):
         context = Context(["x"])
         federation = (context.x >= 0) & (context.x < 3)
@@ -784,6 +798,21 @@ class TestVisualizationGeometry:
         )
         assert empty_geometry == EmptyGeometry(dimension=3)
 
+    def test_extract_dbm_geometry_3d_auto_limits_expand_single_point_and_clipped_empty_federation(self):
+        context = Context(["x", "y", "z"])
+
+        point_geometry = extract_dbm_geometry(
+            ((context.x == 1) & (context.y == 1) & (context.z == 1)).to_dbm_list()[0]
+        )
+        assert isinstance(point_geometry, PointGeometry3D)
+        assert point_geometry.point == Point3D(1.0, 1.0, 1.0)
+
+        clipped_empty = extract_federation_geometry(
+            ((context.x >= 10) & (context.x <= 11) & (context.y >= 10) & (context.y <= 11) & (context.z >= 10) & (context.z <= 11)),
+            limits=((0, 1), (0, 1), (0, 1)),
+        )
+        assert clipped_empty == EmptyGeometry(dimension=3)
+
     def test_extract_federation_geometry_3d_matches_contains(self):
         context = Context(["x", "y", "z"])
         left = (
@@ -864,6 +893,18 @@ class TestVisualizationGeometry:
             extract_dbm_geometry(federation.to_dbm_list()[0], limits=((0, 1), (0, 1)))
         with pytest.raises(ValueError):
             extract_dbm_geometry(federation.to_dbm_list()[0], limits=((0, 1), (0, 1), (1, 0)))
+        with pytest.raises(ValueError):
+            extract_dbm_geometry(federation.to_dbm_list()[0], limits=(0, 1, 2))
+        with pytest.raises(ValueError):
+            extract_dbm_geometry(federation.to_dbm_list()[0], limits=((0, 1, 2), (0, 1), (0, 1)))
+        with pytest.raises(ValueError):
+            extract_dbm_geometry(federation.to_dbm_list()[0], limits=((0, 1), (0, 1, 2), (0, 1)))
+        with pytest.raises(ValueError):
+            extract_dbm_geometry(federation.to_dbm_list()[0], limits=((0, 1), (0, 1), (0, 1, 2)))
+        with pytest.raises(ValueError):
+            extract_dbm_geometry(federation.to_dbm_list()[0], limits=((1, 0), (0, 1), (0, 1)))
+        with pytest.raises(ValueError):
+            extract_dbm_geometry(federation.to_dbm_list()[0], limits=((0, 1), (1, 0), (0, 1)))
 
         with pytest.raises(ValueError):
             extract_dbm_geometry((context_4d.a <= 1).to_dbm_list()[0])

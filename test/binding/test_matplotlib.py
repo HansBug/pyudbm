@@ -450,6 +450,29 @@ class TestMatplotlibVisualization:
         assert isinstance(point_result, PlotResult)
         assert len(point_result.markers) == 1
 
+    def test_plot_dbm_3d_without_axes_uses_auto_limits_and_same_ax_merges_view(self):
+        context = Context(["x", "y", "z"])
+        left_dbm = ((context.x <= 1) & (context.y <= 1) & (context.z <= 1)).to_dbm_list()[0]
+        right_dbm = (
+            (context.x >= 3) & (context.x <= 4)
+            & (context.y >= 2) & (context.y <= 3)
+            & (context.z >= 1) & (context.z <= 2)
+        ).to_dbm_list()[0]
+
+        left_result = plot_dbm(left_dbm, label="left")
+        right_result = plot_dbm(right_dbm, ax=left_result.ax, label="right")
+
+        assert isinstance(left_result, PlotResult)
+        assert isinstance(right_result, PlotResult)
+        assert right_result.ax is left_result.ax
+        assert left_result.ax.get_zlabel() == "z"
+        assert left_result.ax.get_xlim()[0] <= 0.0
+        assert left_result.ax.get_xlim()[1] > 4.0
+        assert left_result.ax.get_ylim()[0] <= 0.0
+        assert left_result.ax.get_ylim()[1] > 3.0
+        assert left_result.ax.get_zlim()[0] <= 0.0
+        assert left_result.ax.get_zlim()[1] > 2.0
+
     def test_plot_dbm_3d_polyhedron_and_degenerate_render(self):
         context = Context(["x", "y", "z"])
         polyhedron_dbm = (
@@ -494,6 +517,32 @@ class TestMatplotlibVisualization:
         assert len(point_result.markers) == 1
         assert [text.get_text() for text in point_legend.get_texts()] == ["point"]
 
+    def test_plot_dbm_3d_zorder_and_degenerate_annotations(self):
+        context = Context(["x", "y", "z"])
+        polyhedron_dbm = ((context.x <= 1) & (context.y <= 1) & (context.z <= 1)).to_dbm_list()[0]
+        face_dbm = ((context.x <= 1) & (context.y <= 1) & (context.z == 0)).to_dbm_list()[0]
+        segment_dbm = ((context.x == 0) & (context.y == 0) & (context.z <= 1)).to_dbm_list()[0]
+        clipped_point_dbm = ((context.x <= 0) & (context.y <= 0) & (context.z <= 0)).to_dbm_list()[0]
+
+        figure = plt.figure(figsize=(10, 8))
+        polyhedron_ax = figure.add_subplot(221, projection="3d")
+        face_ax = figure.add_subplot(222, projection="3d")
+        segment_ax = figure.add_subplot(223, projection="3d")
+        point_ax = figure.add_subplot(224, projection="3d")
+
+        polyhedron_result = plot_dbm(polyhedron_dbm, ax=polyhedron_ax, limits=((0, 2), (0, 2), (0, 2)), zorder=7)
+        face_result = plot_dbm(face_dbm, ax=face_ax, limits=((0, 2), (0, 2), (0, 1)), annotate=True, zorder=6)
+        segment_result = plot_dbm(segment_dbm, ax=segment_ax, limits=((0, 1), (0, 1), (0, 2)), annotate=True)
+        point_result = plot_dbm(clipped_point_dbm, ax=point_ax, limits=((0, 1), (0, 1), (0, 1)), annotate=True)
+
+        assert polyhedron_result.fills[0].get_zorder() == 7
+        assert face_result.fills[0].get_zorder() == 6
+        assert len(face_result.annotations) == 1
+        assert len(segment_result.annotations) == 1
+        assert len(point_result.annotations) == 1
+        assert len(point_result.arrows) >= 1
+        assert point_result.markers[0].get_marker() == "s"
+
     def test_plot_federation_3d_handles_multiple_dbms_and_unbounded_arrows(self):
         context = Context(["x", "y", "z"])
         left = (
@@ -532,6 +581,27 @@ class TestMatplotlibVisualization:
         assert len(per_dbm_result.annotations) >= 1
         assert [text.get_text() for text in per_dbm_legend.get_texts()] == ["unbounded"]
 
+    def test_plot_federation_3d_empty_defaults_and_invalid_color_mode(self):
+        context = Context(["x", "y", "z"])
+        empty_federation = (context.x < 0) & (context.x > 0) & (context.y == 0) & (context.z == 0)
+        non_empty_federation = (context.x <= 1) & (context.y <= 1) & (context.z <= 1)
+
+        empty_result = plot_federation(empty_federation)
+        bounded_result = plot_federation(non_empty_federation)
+
+        assert isinstance(empty_result, PlotResult)
+        assert isinstance(bounded_result, PlotResult)
+        assert empty_result.ax.get_zlabel() == "z"
+        assert tuple(round(value, 6) for value in empty_result.ax.get_xlim()) == (-5.0, 5.0)
+        assert tuple(round(value, 6) for value in empty_result.ax.get_ylim()) == (-5.0, 5.0)
+        assert tuple(round(value, 6) for value in empty_result.ax.get_zlim()) == (-5.0, 5.0)
+        assert tuple(round(value, 6) for value in bounded_result.ax.get_xlim()) == (-0.5, 1.5)
+        assert tuple(round(value, 6) for value in bounded_result.ax.get_ylim()) == (-0.5, 1.5)
+        assert tuple(round(value, 6) for value in bounded_result.ax.get_zlim()) == (-0.5, 1.5)
+
+        with pytest.raises(ValueError, match="color_mode"):
+            plot_federation(non_empty_federation, color_mode="invalid")
+
     def test_plot_invalid_plot_arguments_raise_clear_errors(self):
         context = Context(["x", "y"])
         dbm = (context.x <= 1).to_dbm_list()[0]
@@ -556,6 +626,21 @@ class TestMatplotlibVisualization:
         def _fake_import_module(name, package=None):
             if name.startswith("matplotlib"):
                 raise ImportError("missing matplotlib")
+            return original_import_module(name, package)
+
+        monkeypatch.setattr(importlib, "import_module", _fake_import_module)
+
+        with pytest.raises(ImportError, match=r"pyudbm\[plot\]"):
+            plot_dbm(dbm)
+
+    def test_plot_dbm_3d_missing_mplot3d_raises_clear_error(self, monkeypatch):
+        context = Context(["x", "y", "z"])
+        dbm = ((context.x <= 1) & (context.y <= 1) & (context.z <= 1)).to_dbm_list()[0]
+        original_import_module = importlib.import_module
+
+        def _fake_import_module(name, package=None):
+            if name == "mpl_toolkits.mplot3d.art3d":
+                raise ImportError("missing mplot3d")
             return original_import_module(name, package)
 
         monkeypatch.setattr(importlib, "import_module", _fake_import_module)
