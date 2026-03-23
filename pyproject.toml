@@ -15,6 +15,7 @@ skip = ["pp*", "cp31?t-*"] # Do not build for PyPy or free-threaded CPython
 #archs = ["x86", 'AMD64']
 archs = ['AMD64']
 before-build = [
+    "choco install mingw -y",
     "pip install pybind11[global]",
     "pip install -U \"cmake<4\"",
     "ls -al",
@@ -38,16 +39,26 @@ before-build = [
     "ctest --test-dir UDBM_build --output-on-failure -C Release",
     "cmake --install UDBM_build --prefix bin_install --config Release",
 
-    "cmake -S UCDD -B UCDD_build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH={package}\\bin_install -DUUtils_DIR={package}\\bin_install\\lib\\cmake\\UUtils -DUDBM_DIR={package}\\bin_install\\lib\\cmake\\UDBM -DFIND_FATAL=OFF",
-    "cmake --build UCDD_build --config Release",
-    "ctest --test-dir UCDD_build --output-on-failure -C Release",
-    "cmake --install UCDD_build --prefix bin_install --config Release",
+    "gcc --version",
+    "g++ --version",
+    "cmake -G \"MinGW Makefiles\" -S UUtils -B UUtils_build_ucdd -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Release",
+    "cmake --build UUtils_build_ucdd --config Release",
+    "cmake --install UUtils_build_ucdd --prefix bin_install_ucdd --config Release",
+
+    "cmake -G \"MinGW Makefiles\" -S UDBM -B UDBM_build_ucdd -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Release -DUUtils_DIR={package}\\bin_install_ucdd\\lib\\cmake\\UUtils",
+    "cmake --build UDBM_build_ucdd --config Release",
+    "cmake --install UDBM_build_ucdd --prefix bin_install_ucdd --config Release",
+
+    "cmake -G \"MinGW Makefiles\" -S UCDD -B UCDD_build_ucdd -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH={package}\\bin_install_ucdd -DUUtils_DIR={package}\\bin_install_ucdd\\lib\\cmake\\UUtils -DUDBM_DIR={package}\\bin_install_ucdd\\lib\\cmake\\UDBM -DFIND_FATAL=OFF",
+    "cmake --build UCDD_build_ucdd --config Release",
+    "ctest --test-dir UCDD_build_ucdd --output-on-failure -C Release",
+    "cmake --install UCDD_build_ucdd --prefix bin_install_ucdd --config Release",
 ]
 before-test = [# Unittest for windows
     "pip install -r {project}/requirements-test.txt",
 ]
 test-command = [
-    "rm -rf {project}/UUtils_build {project}/UDBM_build {project}/UCDD_build {project}/bin_install",
+    "rm -rf {project}/UUtils_build {project}/UDBM_build {project}/UUtils_build_ucdd {project}/UDBM_build_ucdd {project}/UCDD_build_ucdd {project}/bin_install {project}/bin_install_ucdd",
     "cp -rf {project}/test test",
     "cp {project}/pytest.ini pytest.ini",
     "pytest test -sv -m unittest --log-level=DEBUG",
