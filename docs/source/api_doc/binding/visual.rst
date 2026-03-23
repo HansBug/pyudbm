@@ -96,6 +96,13 @@ FederationGeometry2D
     :members: dbm_geometries,boundary_segments,loops,faces,isolated_segments,isolated_points,limits
 
 
+PlotResult
+-----------------------------------------------------
+
+.. autoclass:: PlotResult
+    :members: ax,fills,boundaries,markers,arrows,annotations
+
+
 extract\_dbm\_geometry
 -----------------------------------------------------
 
@@ -107,4 +114,15 @@ extract\_federation\_geometry
 
 .. autofunction:: extract_federation_geometry
 
+
+plot\_dbm
+-----------------------------------------------------
+
+.. autofunction:: plot_dbm
+
+
+plot\_federation
+-----------------------------------------------------
+
+.. autofunction:: plot_federation
 

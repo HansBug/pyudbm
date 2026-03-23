@@ -19,6 +19,7 @@ Example::
 """
 
 from .udbm import DBM, Clock, Constraint, Context, Federation, FloatValuation, IntValuation, Valuation, VariableDifference
+from .visual import PlotResult, plot_dbm, plot_federation
 
 __all__ = [
     "DBM",
@@ -28,6 +29,9 @@ __all__ = [
     "Federation",
     "FloatValuation",
     "IntValuation",
+    "PlotResult",
     "Valuation",
     "VariableDifference",
+    "plot_dbm",
+    "plot_federation",
 ]
