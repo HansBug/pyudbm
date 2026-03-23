@@ -100,6 +100,7 @@ jobs:
         run: |
           pip install -r requirements.txt
           pip install -r requirements-test.txt
+          pip install -r requirements-plot.txt
           pip install -r requirements-build.txt
       - name: Build and run unittest
         env:

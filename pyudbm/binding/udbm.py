@@ -544,6 +544,32 @@ class DBM:
         """
         return "DBM(clock_names={0})".format(self.clock_names)
 
+    def plot(self, ax: Any = None, **kwargs: Any) -> Any:
+        """
+        Plot this DBM through :mod:`pyudbm.binding.visual`.
+
+        The import is intentionally lazy so matplotlib stays optional unless
+        plotting is actually requested. For the full parameter list and the
+        exact plotting semantics, see :func:`pyudbm.binding.visual.plot_dbm`.
+
+        :param ax: Optional matplotlib axes.
+        :type ax: Any
+        :param kwargs: Forwarded plotting keyword arguments.
+        :type kwargs: Any
+        :return: Plot result wrapper from :func:`pyudbm.binding.visual.plot_dbm`.
+        :rtype: Any
+
+        .. seealso::
+
+            :func:`pyudbm.binding.visual.plot_dbm`
+                Module-level plotting helper documented with the complete
+                parameter set.
+        """
+
+        from .visual import plot_dbm
+
+        return plot_dbm(self, ax=ax, **kwargs)
+
 
 class Clock:
     """
@@ -1463,6 +1489,32 @@ class Federation:
         """
 
         return Federation._from_native(self.context, self._fed.copy())
+
+    def plot(self, ax: Any = None, **kwargs: Any) -> Any:
+        """
+        Plot this federation through :mod:`pyudbm.binding.visual`.
+
+        The import is intentionally lazy so matplotlib stays optional unless
+        plotting is actually requested. For the full parameter list and the
+        exact plotting semantics, see :func:`pyudbm.binding.visual.plot_federation`.
+
+        :param ax: Optional matplotlib axes.
+        :type ax: Any
+        :param kwargs: Forwarded plotting keyword arguments.
+        :type kwargs: Any
+        :return: Plot result wrapper from :func:`pyudbm.binding.visual.plot_federation`.
+        :rtype: Any
+
+        .. seealso::
+
+            :func:`pyudbm.binding.visual.plot_federation`
+                Module-level plotting helper documented with the complete
+                parameter set.
+        """
+
+        from .visual import plot_federation
+
+        return plot_federation(self, ax=ax, **kwargs)
 
     def to_dbm_list(self) -> List[DBM]:
         """

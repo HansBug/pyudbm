@@ -6,16 +6,16 @@ import argparse
 
 from matplotlib import pyplot as plt
 
-from plot_common import add_polygon, save_figure, style_axes, zone_polygon
+from pyudbm import Context
+
+from dbm_plot import plot_region, save_figure, style_axes
 
 
-RUNNING_ZONE = [
-    (-1.0, 0.0, 0.0),   # x >= 0
-    (1.0, 0.0, 5.0),    # x <= 5
-    (0.0, -1.0, 0.0),   # y >= 0
-    (0.0, 1.0, 3.0),    # y <= 3
-    (1.0, -1.0, 2.0),   # x - y <= 2
-]
+context = Context(["x", "y"])
+x = context.x
+y = context.y
+
+RUNNING_ZONE = (x >= 0) & (x <= 5) & (y >= 0) & (y <= 3) & (x - y <= 2)
 
 VIEWPORT = (0.0, 6.0, 0.0, 4.0)
 
@@ -37,12 +37,20 @@ def build_figure():
     """
     Build the zone geometry figure.
     """
-    polygon = zone_polygon(RUNNING_ZONE, VIEWPORT)
-
     fig, ax = plt.subplots(figsize=(6.6, 4.6))
-    style_axes(ax, VIEWPORT)
+    plot_region(
+        ax,
+        RUNNING_ZONE,
+        VIEWPORT,
+        facecolor="#9ecae1",
+        edgecolor="#2b6cb0",
+        alpha=0.45,
+        linewidth=2.0,
+        zorder=2,
+        show_unbounded=False,
+    )
     draw_boundary_lines(ax)
-    add_polygon(ax, polygon, facecolor="#9ecae1", edgecolor="#2b6cb0", alpha=0.45)
+    style_axes(ax, VIEWPORT)
     ax.set_title(r"$Z$", fontsize=12, pad=8)
     return fig
 

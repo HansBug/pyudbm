@@ -10,4 +10,5 @@ pyudbm.binding
     :maxdepth: 3
 
     udbm
+    visual
 
