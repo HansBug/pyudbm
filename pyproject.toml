@@ -16,7 +16,7 @@ skip = ["pp*", "cp31?t-*"] # Do not build for PyPy or free-threaded CPython
 #archs = ["x86", 'AMD64']
 archs = ['AMD64']
 before-build = [
-    "bash -lc 'pkg=\"{package}\"; pkg_u=$(cygpath -u \"$pkg\"); exec bash \"$pkg_u/cibw/windows_before_build.sh\" \"$pkg\"'",
+    "bash -c 'pkg=\"{package}\"; pkg_u=$(cygpath -u \"$pkg\"); exec bash \"$pkg_u/cibw/windows_before_build.sh\" \"$pkg\"'",
 ]
 before-test = [# Unittest for windows
     "python -m pip install -r {project}/requirements-test.txt",
@@ -33,7 +33,7 @@ test-command = [
 [tool.cibuildwheel.macos]
 archs = ["x86_64", "arm64"] # Build for x86_64 and arm64
 before-build = [
-    "bash -lc 'exec bash \"{package}/cibw/macos_before_build.sh\" \"{package}\"'",
+    "bash -c 'exec bash \"{package}/cibw/macos_before_build.sh\" \"{package}\"'",
 ]
 before-test = [# Unittest for macos
     "python -m pip install -r {project}/requirements-test.txt",
@@ -50,9 +50,9 @@ test-command = [
 ## Linux build configuration
 [tool.cibuildwheel.linux]
 archs = ["x86_64", "aarch64"] # Build for x86_64 and arm64
-skip = ["pp*", "*musllinux*"] # native dependency chain is currently validated only on glibc-based Linux wheels
+skip = ["pp*"] # dependencies do not build for PyPy
 before-build = [
-    "bash -lc 'exec bash \"{package}/cibw/linux_before_build.sh\" \"{package}\"'",
+    "bash -c 'exec bash \"{package}/cibw/linux_before_build.sh\" \"{package}\"'",
 ]
 before-test = [# Unittest for linux
     "python -m pip install -r {project}/requirements-test.txt",
