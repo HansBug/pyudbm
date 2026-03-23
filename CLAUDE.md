@@ -11,7 +11,10 @@ Relevant upstream context:
 - `UPPAALModelChecker` is the public GitHub organization for UPPAAL components and libraries.
 - `UPPAALModelChecker/UDBM` is the upstream DBM library used here.
 - `UDBM` depends on `UUtils`.
+- `UPPAALModelChecker/UCDD` is an upstream companion library now vendored here as a submodule for native build / CI coherence.
+- `UCDD` depends on both `UUtils` and `UDBM`.
 - This repository currently vendors `UUtils/` as a submodule from `HansBug/UUtils`, while the original upstream utility library lives at `UPPAALModelChecker/UUtils`.
+- This repository also vendors `UCDD/` as a submodule pinned to a historical revision chosen to stay close to the current `UDBM` snapshot.
 
 Current status:
 
@@ -39,6 +42,10 @@ Short-term repository direction:
 As the repository currently stands:
 
 - The binding stack is `pybind11 + CMake + setuptools`, not SWIG.
+- The native dependency chain used by local builds and CI is now:
+  - `UUtils`
+  - `UDBM`
+  - `UCDD`
 - The root `CMakeLists.txt` builds one pybind11 extension module from:
   - `pyudbm/binding/_binding.cpp`
 - The currently visible Python-side code mostly lives in:
@@ -49,6 +56,12 @@ As the repository currently stands:
 - Test coverage is currently centered on:
   - `test/binding/test_api.py`
   - `test/config/test_meta.py`
+
+Important current boundary:
+
+- `pyudbm` is still primarily a Python wrapper around `UDBM`.
+- `UCDD` is currently integrated as a vendored native dependency for build / packaging / CI consistency.
+- Do not assume `UCDD` is already exposed as a stable Python public API surface in this repository.
 
 That means the repository has already moved back to a compatibility-oriented high-level API, but the wrapper is still unfinished and should continue to follow the long-term legacy-parity direction instead of ossifying around temporary implementation details.
 
@@ -86,6 +99,10 @@ Current CI / wheel facts that matter:
 - `PyPy` is skipped.
 - Free-threaded CPython `3.13t` / `3.14t` wheels are skipped.
 - Current workflows cover mainstream Linux / Windows / macOS combinations.
+- Current native toolchain split is intentional:
+  - Linux uses GNU toolchains.
+  - Windows uses GNU toolchains via MinGW.
+  - macOS uses Apple Clang to preserve `macosx_11_0_*` wheel compatibility.
 - Windows is currently validated primarily on `AMD64`.
 - Win32 still has known failures, so do not assume 32-bit Windows is already solved.
 - On macOS arm64, do not assume every older Python release is available; for example, Python `3.7` has upstream installer availability constraints.
@@ -180,11 +197,11 @@ Therefore:
 
 ## Hard Boundary: Submodules
 
-The `UDBM/` and `UUtils/` directories are git submodules.
+The `UDBM/`, `UUtils/`, and `UCDD/` directories are git submodules.
 
 Non-negotiable rule:
 
-- Do not modify files inside `UDBM/` or `UUtils/`.
+- Do not modify files inside `UDBM/`, `UUtils/`, or `UCDD/`.
 - The only allowed change involving those directories is updating the submodule version pointer.
 - Do not apply “small local fixes” inside a submodule.
 - Do not silently repoint submodule remotes or rewrite `.gitmodules` unless explicitly requested.
@@ -212,6 +229,7 @@ Safe places to work:
   - `Makefile`
   - `setup.py`
   - `pyproject.toml`
+  - `.gitmodules`
   - `.github/workflows/*`
 
 Treat these as generated or local-only artifacts:
@@ -222,6 +240,7 @@ Treat these as generated or local-only artifacts:
 - `bin_install/`
 - `UDBM_build/`
 - `UUtils_build/`
+- `UCDD_build/`
 - `.pytest_cache/`
 - `__pycache__/`
 - `venv/`
@@ -381,7 +400,8 @@ The current repository layout can be understood like this:
 |- Makefile                      # Unified local build / test / package entrypoint
 |- tools/                        # Repository maintenance helper scripts
 |  |- __init__.py
-|  `- udbm_version.py            # Sync UDBM version/commit into pyudbm metadata
+|  |- udbm_version.py            # Sync UDBM version/commit into pyudbm metadata
+|  `- windows_mingw.py           # Discover the MinGW toolchain dynamically on Windows
 |- pyproject.toml                # Build-system metadata and cibuildwheel config
 |- setup.py                      # setuptools + CMake bridge
 |- requirements*.txt             # runtime / build / test / docs dependencies
@@ -402,8 +422,10 @@ The current repository layout can be understood like this:
 |- srcpy2/                       # historical Python 2 binding snapshot
 |- UUtils/                       # upstream submodule, do not patch directly
 |- UDBM/                         # upstream submodule, do not patch directly
+|- UCDD/                         # upstream submodule, do not patch directly
 |- UUtils_build/                 # local UUtils build directory
 |- UDBM_build/                   # local UDBM build directory
+|- UCDD_build/                   # local UCDD build directory
 |- bin_install/                  # local install prefix
 |- build/                        # Python extension temporary build directory
 `- .github/workflows/            # CI / wheel / release workflows
@@ -478,6 +500,7 @@ Linux:
 macOS:
 
 - Prepare Xcode Command Line Tools.
+- Prefer the native Apple Clang toolchain.
 - Prepare `make`.
 - Prepare a recent `cmake`.
 - The repository includes `macos_kill_cmake.sh`, which is a sign that old system CMake versions have been a real issue.
@@ -485,6 +508,7 @@ macOS:
 Windows:
 
 - Prefer running repository-level `make` commands from `Git Bash` or another environment with `bash`.
+- Current repository logic expects a GNU toolchain on Windows via MinGW rather than MSVC for the native dependency pipeline.
 - The current `Makefile` uses `readlink -f`, shell expansion, and quoted environment-variable passing. Do not assume a pure `cmd.exe` workflow will work cleanly.
 - Current CI validates `windows-2022` with `bash`, `make`, and `cmake`.
 - Do not assume Win32 is already working.
@@ -528,7 +552,7 @@ If you want to run the repository end-to-end locally once, the correct order is:
 3. Run `make build`.
 4. Run `make unittest`.
 
-If you skip `make bin`, `make build` will likely fail because the root `CMakeLists.txt` expects to find installed UUtils / UDBM libraries and headers under the local prefix, by default `bin_install/`.
+If you skip `make bin`, `make build` will likely fail because the root `CMakeLists.txt` expects to find installed native dependencies under the local prefix, by default `bin_install/`.
 
 ### Step 1: Initialize Submodules
 
@@ -536,7 +560,7 @@ If you skip `make bin`, `make build` will likely fail because the root `CMakeLis
 git submodule update --init --recursive
 ```
 
-Without this, `UDBM/` and `UUtils/` may be incomplete.
+Without this, `UDBM/`, `UUtils/`, and `UCDD/` may be incomplete.
 
 ### Step 2: Build, Test, and Install Native Dependencies
 
@@ -548,11 +572,13 @@ make bin
 
 1. `make uutils`
 2. `make udbm`
+3. `make ucdd`
 
 And those expand to:
 
 - `make uutils` = `uutils_build` + `uutils_test` + `uutils_install`
 - `make udbm` = `udbm_build` + `udbm_test` + `udbm_install`
+- `make ucdd` = `ucdd_build` + `ucdd_test` + `ucdd_install`
 
 So `make bin` is not just “compile native code”. It actually:
 
@@ -562,6 +588,9 @@ So `make bin` is not just “compile native code”. It actually:
 - configures and builds `UDBM`
 - runs `ctest` for `UDBM`
 - installs `UDBM` into the local prefix `bin_install/`
+- configures and builds `UCDD`
+- runs `ctest` for `UCDD`
+- installs `UCDD` into the local prefix `bin_install/`
 
 This is the native prerequisite chain for Python extension builds.
 
@@ -615,6 +644,15 @@ If you want something closer to the current CI flow:
 
 ```bash
 CC=gcc CXX=g++ CTEST_CFG=Release make bin
+make build
+make clean_x
+make unittest
+```
+
+On macOS, prefer the native toolchain instead:
+
+```bash
+CC=clang CXX=clang++ CTEST_CFG=Release make bin
 make build
 make clean_x
 make unittest
@@ -749,22 +787,50 @@ make unittest WORKERS=4
 
 - `udbm_build` + `udbm_install`
 
+### UCDD Targets
+
+`make ucdd_build`
+
+- Configure and build `UCDD`
+- Requires `UUtils` and `UDBM` to have already been installed into the local prefix
+
+`make ucdd_test`
+
+- Run `ctest` inside `UCDD_build/`
+
+`make ucdd_install`
+
+- Install `UCDD` into `bin_install/`
+
+`make ucdd_clean`
+
+- Remove `UCDD_build/`
+
+`make ucdd`
+
+- `ucdd_build` + `ucdd_test` + `ucdd_install`
+
+`make ucdd_notest`
+
+- `ucdd_build` + `ucdd_install`
+
 ### Combined Native Dependency Pipeline
 
 `make bin`
 
-- `uutils` + `udbm`
+- `uutils` + `udbm` + `ucdd`
 - Full build + test + install pipeline for native dependencies
 
 `make bin_notest`
 
-- `uutils_notest` + `udbm_notest`
+- `uutils_notest` + `udbm_notest` + `ucdd_notest`
 
 `make bin_clean`
 
 - Remove:
   - `UUtils_build/`
   - `UDBM_build/`
+  - `UCDD_build/`
   - `bin_install/`
 
 ### Documentation Targets
@@ -809,7 +875,7 @@ BINSTALL_DIR=/custom/prefix make build
 Important rule:
 
 - `make build` must use the same prefix that was used for `make bin`
-- otherwise the Python extension build may fail to locate UUtils / UDBM
+- otherwise the Python extension build may fail to locate the installed native dependencies
 
 ### CMake Build Configuration
 
@@ -1531,7 +1597,7 @@ Do not:
 ## Agent Decision Rules
 
 - If the task is about Python ergonomics, packaging, build orchestration, CI, tests, or docs, solve it in this repository.
-- If the task would require changing UDBM or UUtils source, stop at the wrapper boundary unless the user explicitly asks for a submodule version bump.
+- If the task would require changing UDBM, UUtils, or UCDD source, stop at the wrapper boundary unless the user explicitly asks for a submodule version bump.
 - If a task mentions `srcpy2/`, default to reading it as historical reference material. Modify only `srcpy2/README.md` unless the user explicitly asks for a refresh or direct edit of the vendored snapshot.
 - When in doubt, keep `pyudbm` aligned with upstream behavior rather than inventing repository-local semantics.
 - If behavior is unclear, inspect the historical binding first, then decide how the modern wrapper should expose it.
@@ -1549,7 +1615,7 @@ make unittest RANGE_DIR=binding
 
 This assumes you have already run `make bin` at least once before.
 
-### If You Changed UDBM / UUtils Integration Logic
+### If You Changed Native Dependency Integration Logic
 
 Recommended flow:
 
@@ -1578,4 +1644,5 @@ Then verify:
 - UPPAAL organization: <https://github.com/UPPAALModelChecker>
 - UDBM upstream: <https://github.com/UPPAALModelChecker/UDBM>
 - UUtils upstream: <https://github.com/UPPAALModelChecker/UUtils>
+- UCDD upstream: <https://github.com/UPPAALModelChecker/UCDD>
 - Current vendored UUtils fork: <https://github.com/HansBug/UUtils>
