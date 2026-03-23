@@ -18,9 +18,10 @@ Example::
     True
 """
 
-from .udbm import Clock, Constraint, Context, Federation, FloatValuation, IntValuation, Valuation, VariableDifference
+from .udbm import DBM, Clock, Constraint, Context, Federation, FloatValuation, IntValuation, Valuation, VariableDifference
 
 __all__ = [
+    "DBM",
     "Clock",
     "Constraint",
     "Context",

@@ -388,7 +388,8 @@ Python dependency layers in this repository:
 
 Concrete dependency notes from the current files:
 
-- `requirements.txt` is currently empty because the restored high-level binding does not need extra runtime Python dependencies.
+- `requirements.txt` currently includes:
+  - `hbutils`
 - `requirements-build.txt` currently contains:
   - `pybind11[global]`
   - `build>=0.7.0`
@@ -833,6 +834,25 @@ This section is adapted from the Python style guidance in `~/oo-projects/pyfcstm
 - New behavior should come with tests.
 - Python-side semantics should stay aligned with upstream UDBM and the historical binding.
 
+### Python Naming Rules
+
+- Follow normal Python naming conventions for all Python code.
+- Use `UPPER_SNAKE_CASE` for constants.
+- Use `CapWords` / PascalCase for class names.
+- Use `snake_case` for module-level functions, methods, properties, attributes, variables, and parameters.
+- Do not introduce Java-style or mixed naming such as `camelCase` in new Python APIs unless there is a strong compatibility reason.
+- When extending existing compatibility surfaces that already expose historical camelCase names, preserve backward compatibility deliberately, but prefer adding any new Python-facing APIs in `snake_case`.
+
+Examples:
+
+```python
+MAX_CLOCKS = 16
+
+class ClockMatrix:
+    def to_min_dbm(self) -> bytes:
+        ...
+```
+
 ### Python 3.7 Compatibility Rules
 
 Because support starts at Python `3.7`, do not default to newer-only syntax or stdlib features such as:
@@ -875,6 +895,56 @@ def f(items: list[str] | None) -> dict[str, int]:
 - Use `os.path` or `pathlib` for paths.
 - Be explicit about subprocess behavior, path handling, and encodings instead of relying on platform defaults.
 
+### `hbutils` Reuse Guidance
+
+`hbutils` is now an explicit repository dependency. Before adding small
+repository-local helpers for generic Python infrastructure work, first check
+whether `hbutils` already provides a stable utility that fits the task.
+
+Useful upstream entry points:
+
+- GitHub repository: <https://github.com/HansBug/hbutils>
+- README: <https://github.com/HansBug/hbutils/blob/main/README.md>
+- Package source tree: <https://github.com/HansBug/hbutils/tree/main/hbutils>
+- API documentation: <https://hbutils.readthedocs.io/>
+
+What it already covers at a high level, based on the upstream README:
+
+- `hbutils.collection`: collection utilities such as grouping, deduplication, and sequence helpers.
+- `hbutils.design`: reusable design-pattern helpers instead of ad hoc local implementations.
+- `hbutils.encoding`: encoding, decoding, and hashing helpers.
+- `hbutils.file`: file-stream and file-like-object helpers.
+- `hbutils.logging`: logging and output-formatting helpers.
+- `hbutils.model`: decorators and model helpers for Python classes.
+- `hbutils.random`: random strings, hashes, and other random-data helpers.
+- `hbutils.reflection`: introspection helpers.
+- `hbutils.scale`: human-readable size and duration parsing/formatting helpers.
+- `hbutils.string`: small but useful string helpers.
+- `hbutils.system`: cross-platform filesystem and environment helpers.
+- `hbutils.testing`: test helpers for isolation, capture, comparison, and test data generation.
+
+Practical rule for this repository:
+
+- If the task is “generic Python utility work” rather than UDBM-specific semantics, prefer checking `hbutils` first.
+- If an `hbutils` helper is a good fit, prefer using it instead of creating a new local mini-framework or one-off utility wrapper.
+- Keep the wrapper thin: use `hbutils` as a dependency, not as content to copy into this repository.
+- Do not introduce a dependency on obscure `hbutils` behavior blindly; verify the exact API from the upstream source or docs before relying on it.
+- Because this repository supports Python `3.7-3.14`, be careful not to assume a latest-only `hbutils` API exists in every supported environment. Prefer conservative, already-documented helpers.
+- If the standard library is clearer or more stable for a tiny task, use the standard library.
+
+Repository-specific hints:
+
+- `test/conftest.py` already imports `TextAligner` from `hbutils.testing`, so test-side reuse is already accepted here.
+- For test isolation or output comparison, check `hbutils.testing` before writing custom temporary-directory or text-alignment helpers.
+- For small cross-platform filesystem helpers in maintenance code, check `hbutils.system` before introducing shell-heavy or platform-specific logic.
+- For generic collection and string cleanup code in Python, check `hbutils.collection` and `hbutils.string` before adding new utility functions under `tools/` or `test/`.
+
+What not to do:
+
+- Do not copy substantial `hbutils` source code into `pyudbm`.
+- Do not rewrite core UDBM wrapper semantics in terms of unrelated `hbutils` abstractions.
+- Do not add `hbutils` usage where it obscures straightforward DBM or federation semantics.
+
 ### API Semantics Rules
 
 - If a historical method was non-mutating, do not casually make it mutating.
@@ -915,6 +985,66 @@ Follow the dominant repository convention from recent history.
 - Merge commits should keep the generated style used in history, such as `Merge branch 'main' into dev/...` or
   `Merge pull request #52 from HansBug/dev/fixed`.
 
+## Pull Request Workflow
+
+When the task includes creating or updating a pull request, treat the PR as
+part of the deliverable rather than an afterthought.
+
+### Core Rules
+
+- If the current branch already has an open PR, update that PR instead of creating a duplicate.
+- Keep the PR title aligned with the dominant change on the branch, not just the latest small follow-up commit.
+- After pushing commits that materially change scope, update the PR body in the same task so the PR stays accurate.
+- Prefer editing PR metadata with `gh pr view`, `gh pr edit`, and related non-interactive commands.
+
+### PR Body Structure
+
+Use a compact structure like this unless the repository or user asks for a
+different format:
+
+```markdown
+## Summary
+
+One short paragraph explaining the branch-level outcome.
+
+## Changes
+
+- concrete change 1
+- concrete change 2
+- concrete change 3
+
+## Validation
+
+- `command 1`
+- `command 2`
+```
+
+Additional expectations:
+
+- `Summary` should describe the user-visible or reviewer-relevant result, not just restate the branch name.
+- `Changes` should cover the whole branch diff, including important docs, test, packaging, or workflow updates when they materially affect review.
+- `Validation` should list the commands run and concise outcomes. Do not paste large raw build logs into the PR body unless the user explicitly wants that.
+- If something was not validated, say so plainly instead of implying it was covered.
+
+### Labels and Assignees
+
+- Use only labels that already exist in the repository unless the user explicitly asks you to create new ones.
+- Apply labels that match the branch-level scope. In this repository the common defaults are:
+  - `enhancement` for feature work or meaningful behavior expansion
+  - `bug` for fixes to incorrect behavior
+  - `documentation` for docs-only or docs-heavy changes
+- It is fine to apply more than one label when the branch genuinely spans multiple categories.
+- When choosing an assignee, prefer the current editor / owner of the branch if that identity is clear from local and GitHub context.
+- Determine that identity from concrete signals such as `git config user.name`, `git config user.email`, `gh pr view` author data, and the branch owner on the remote.
+- If the responsible person is ambiguous, do not guess wildly; ask the user or leave the PR unassigned.
+
+### Reviewer-Facing Hygiene
+
+- Keep the PR description synchronized with the actual diff reviewers will see.
+- Mention supporting process or contributor-guide changes when they affect how future work should be done.
+- Avoid noisy changelog-style repetition; include enough detail for review, but compress low-signal trivia.
+- If tests are very fast, prefer rerunning the relevant subset before updating the PR validation section.
+
 ## reST Documentation and Docstring Style Guide
 
 Use **reStructuredText (reST)** conventions for both public Python docstrings and repository `.rst` documentation
@@ -931,84 +1061,294 @@ discipline and prefer source-only edits rather than touching generated outputs.
 6. Document exceptions with `:raises:`.
 7. User-facing public APIs should ideally have at least a minimal example.
 
+### Public Python API pydoc Expectations
+
+- When a patch adds or changes a public Python API, update its docstring in the same patch.
+- Public class docstrings should explain the object's semantic role, mutability or snapshot behavior, and how it relates to the upstream UDBM model when that is not obvious from the name alone.
+- Public method and property docstrings should describe returned value shapes precisely, especially for tuples, nested lists, packed encodings, and other structured data.
+- For DBM-facing APIs, explicitly document the reference clock at index `0` whenever matrix indices, row and column order, or clock-name layout matter.
+- Examples should be self-contained and executable in principle: reuse one consistent `Context`, avoid pseudo-code, and avoid snippets that cannot actually run as written.
+- For user-facing string-producing APIs such as `__str__`, `__repr__`, formatting helpers, and stable textual exports, prefer exact expected output in examples instead of vague placeholder text when the output is deterministic.
+- If an API returns a detached snapshot, a read-only view, or data that will not track future mutations, state that explicitly in the docstring.
+- Use docstrings to document semantics, invariants, and user-visible behavior. Do not fill them with implementation trivia that does not affect users.
+- For operator overloads, explicitly say what Python syntax means semantically. In this repository many operators build symbolic constraints or perform set algebra, so do not leave readers guessing whether an operator returns a boolean, a federation, or a helper object.
+- For mutating versus non-mutating APIs, state that distinction in the first paragraph, not only indirectly in an example.
+- For constructors and factories, explain what kind of initial symbolic state is created, not just the accepted parameter types.
+- For validation-heavy methods, document accepted name forms and realistic failure modes. In this codebase that often means spelling out whether inputs may be integer indices, bare clock names, qualified clock names like ``"c.x"``, or the reference clock ``"0"``.
+- Prefer one canonical runnable setup for examples unless a different setup is required by the API under discussion. The default example context should usually be ``Context(["x", "y"], name="c")`` so examples stay comparable across the module.
+
+### Binding-Oriented Docstring Conventions
+
+When documenting `pyudbm.binding` APIs, prefer writing in terms of the actual
+symbolic model rather than abstract placeholder prose.
+
+- Name the semantic role early: “symbolic clock”, “detached DBM snapshot”, “union of DBMs”, “valuation over one context”.
+- Call out the upstream model when it matters: reference clock `0`, DBM dimension `n + 1`, federation as a union of convex zones, and clock differences as symbolic expressions rather than numeric subtraction.
+- For APIs that return structured data, document both the container shape and the element meaning. “Nested list” is not enough; say whether it is row-major, whether it includes clock `0`, and what each cell contains.
+- For APIs with historical semantics, mention legacy behavior directly when it affects usage, especially copy-vs-mutate behavior and expression-building syntax.
+- Keep examples short but complete. A good example normally has setup, one operation, and one observable result.
+
+### Preferred Example Setup
+
+Unless a narrower example is clearer, prefer reusing this setup in binding
+docstrings:
+
+```python
+>>> from pyudbm import Context
+>>> context = Context(["x", "y"], name="c")
+>>> zone = (context.x <= 10) & (context.x - context.y < 3)
+```
+
+This keeps clock naming, reference-clock behavior, and printed output
+consistent across the module.
+
 ### Module Template
 
 ```python
 """
-Brief one-line description.
+Legacy-style high-level UDBM API.
 
-Longer description of the module purpose and how it fits into :mod:`pyudbm`.
+This module exposes the main symbolic modeling layer of :mod:`pyudbm`. It
+keeps the historical ``Context`` / ``Clock`` / ``Federation`` programming
+model while delegating DBM algorithms to the native UDBM library.
 
-The module contains:
-* :class:`SomeClass` - Brief summary
-* :func:`some_function` - Brief summary
+Conceptually:
+
+* a DBM represents one convex zone;
+* a federation is a finite union of DBMs;
+* DBM index ``0`` is the implicit reference clock;
+* expressions such as ``c.x < 5`` build symbolic constraints instead of
+  Python booleans.
 
 Example::
 
-    >>> from pyudbm.some_module import some_function
-    >>> some_function()
-    expected_result
+    >>> from pyudbm import Context
+    >>> context = Context(["x", "y"], name="c")
+    >>> zone = (context.x <= 10) & (context.x - context.y < 3)
+    >>> str(zone)
+    '(c.x-c.y<3 & c.x<=10)'
 """
 ```
 
 ### Class Template
 
 ```python
-class SomeClass:
+class DBM:
     """
-    Brief one-line description.
+    Immutable read-only DBM snapshot.
 
-    Longer explanation of responsibilities and expected usage.
+    A :class:`DBM` represents one convex zone extracted from a federation. It
+    stays detached from future mutations of the source federation, so it is
+    safe to inspect or render even after the original federation changes.
 
-    :param dim: Dimension of the DBM.
-    :type dim: int
-    :ivar dim: Stored DBM dimension.
-    :vartype dim: int
+    In UDBM terms, the first row and column always correspond to the implicit
+    reference clock ``0``. User clocks therefore start at matrix index ``1``
+    even though they are exposed by name at the Python level.
+
+    :param context: Context whose clock names label this DBM.
+    :type context: Context
+    :param native: Native detached DBM snapshot.
+    :type native: _NativeDBM
+    :ivar context: Context whose clock names label the exported matrix.
+    :vartype context: Context
 
     Example::
 
-        >>> obj = SomeClass(3)
-        >>> obj.dim
+        >>> from pyudbm import Context
+        >>> context = Context(["x", "y"], name="c")
+        >>> federation = (context.x <= 10) & (context.y <= 7)
+        >>> dbm = federation.to_dbm_list()[0]
+        >>> dbm.dimension
+        3
+        >>> dbm.clock_names
+        ('0', 'c.x', 'c.y')
+    """
+```
+
+### Property Template
+
+```python
+@property
+def clock_names(self) -> tuple:
+    """
+    Return the matrix headers including the reference clock ``0``.
+
+    The tuple order matches the DBM row and column order used by
+    :meth:`raw`, :meth:`bound`, :meth:`to_matrix`, and
+    :meth:`format_matrix`.
+
+    :return: Tuple of row and column names in DBM index order.
+    :rtype: tuple
+
+    Example::
+
+        >>> from pyudbm import Context
+        >>> dbm = (Context(["x"], name="c").x <= 1).to_dbm_list()[0]
+        >>> dbm.clock_names
+        ('0', 'c.x')
+    """
+```
+
+### Non-Mutating Method Template
+
+```python
+def free_clock(self, clock: Clock) -> "Federation":
+    """
+    Return a copy with one clock removed from all constraints.
+
+    This method does not mutate the original federation. The returned
+    federation belongs to the same :class:`Context` but no longer constrains
+    the given clock.
+
+    :param clock: Clock to unconstrain.
+    :type clock: Clock
+    :return: Modified federation copy.
+    :rtype: Federation
+    :raises TypeError: If ``clock`` is not a :class:`Clock`.
+    :raises ValueError: If ``clock`` belongs to a different context.
+
+    Example::
+
+        >>> from pyudbm import Context
+        >>> context = Context(["x", "y"], name="c")
+        >>> original = (context.x <= 10) & (context.y <= 7)
+        >>> relaxed = original.free_clock(context.x)
+        >>> str(original)
+        '(c.x<=10 & c.y<=7)'
+        >>> str(relaxed)
+        '(c.y<=7)'
+    """
+```
+
+### In-Place Method Template
+
+```python
+def set_zero(self) -> "Federation":
+    """
+    Reset this federation in place to the zero zone and return ``self``.
+
+    The zero zone fixes every user clock to the reference clock ``0``. Unlike
+    methods such as :meth:`up` or :meth:`free_clock`, this method mutates the
+    current federation object.
+
+    :return: ``self`` after the reset.
+    :rtype: Federation
+
+    Example::
+
+        >>> from pyudbm import Context
+        >>> context = Context(["x", "y"])
+        >>> zone = (context.x == 1) & (context.y == 2)
+        >>> zone.set_zero() == ((context.x == 0) & (context.y == 0))
+        True
+        >>> zone.has_zero()
+        True
+    """
+```
+
+### Operator-Overload Template
+
+```python
+def __lt__(self, bound: Any) -> Any:
+    """
+    Build the strict upper-bound constraint ``clock < bound``.
+
+    This operator does not return a boolean. It returns a
+    :class:`Federation` representing the symbolic zone
+    ``clock - x0 < bound``.
+
+    :param bound: Integer upper bound.
+    :type bound: Any
+    :return: Federation representing the strict constraint.
+    :rtype: Any
+
+    Example::
+
+        >>> from pyudbm import Context
+        >>> context = Context(["x"])
+        >>> result = context.x < 2
+        >>> str(result)
+        '(x<2)'
+    """
+```
+
+### Validation-Heavy Method Template
+
+```python
+def raw(self, i: Union[int, str], j: Union[int, str]) -> int:
+    """
+    Return the raw UDBM matrix cell at ``(i, j)``.
+
+    ``i`` and ``j`` may be integer DBM indices or clock-name strings. String
+    indices accept ``"0"``, bare clock names such as ``"x"``, and qualified
+    names such as ``"c.x"`` when this DBM belongs to context ``c``.
+
+    :param i: Row index or clock name.
+    :type i: int or str
+    :param j: Column index or clock name.
+    :type j: int or str
+    :return: Raw encoded DBM value.
+    :rtype: int
+    :raises TypeError: If an index is neither an integer nor a string.
+    :raises IndexError: If an integer index is outside ``0`` through
+        ``dimension - 1``.
+    :raises ValueError: If a string index does not identify a clock in this
+        DBM context.
+
+    Example::
+
+        >>> from pyudbm import Context
+        >>> dbm = (Context(["x"], name="c").x <= 1).to_dbm_list()[0]
+        >>> dbm.raw("c.x", "0")
         3
     """
 ```
 
-### Function or Method Template
+### Better-Than-Placeholder Example
+
+Avoid placeholder docstrings like this:
 
 ```python
-def some_function(value: int, strict: bool = False) -> int:
+def __and__(self, other: "Federation") -> "Federation":
     """
-    Brief one-line description.
+    Do intersection.
 
-    Longer explanation of behavior or important semantic notes.
-
-    :param value: Input value to encode.
-    :type value: int
-    :param strict: Whether strict semantics should be used, defaults to ``False``.
-    :type strict: bool, optional
-    :return: Encoded raw DBM bound.
-    :rtype: int
-    :raises ValueError: If ``value`` is outside the accepted range.
-
-    Example::
-
-        >>> some_function(5, strict=True)
-        10
+    :param other: Other object.
+    :type other: Federation
+    :return: Result.
+    :rtype: Federation
     """
 ```
 
-### Parameter, Return, and Exception Patterns
+Prefer a complete binding-aware version:
 
 ```python
-:param name: Description
-:type name: int
-:param strict: Description, defaults to ``False``
-:type strict: bool, optional
-:return: Encoded value
-:rtype: int
-:return: ``None``.
-:rtype: None
-:raises ValueError: If the input is invalid.
+def __and__(self, other: "Federation") -> "Federation":
+    """
+    Return the exact intersection of two federations.
+
+    Both operands must belong to the same :class:`Context`. The result is a
+    new federation; neither input is mutated.
+
+    :param other: Other federation in the same context.
+    :type other: Federation
+    :return: Intersection result.
+    :rtype: Federation
+    :raises TypeError: If ``other`` is not a federation.
+    :raises ValueError: If the federations come from different contexts.
+
+    Example::
+
+        >>> from pyudbm import Context
+        >>> context = Context(["x"], name="c")
+        >>> left = context.x >= 1
+        >>> right = context.x <= 3
+        >>> result = left & right
+        >>> str(result)
+        '(1<=c.x & c.x<=3)'
+        >>> str(left)
+        '(1<=c.x)'
+    """
 ```
 
 ### Documentation Editing

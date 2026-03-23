@@ -2,7 +2,7 @@ import pytest
 
 import pyudbm
 import pyudbm.binding
-from pyudbm.binding import Constraint, Context, Federation, FloatValuation, IntValuation, Valuation, VariableDifference
+from pyudbm.binding import DBM, Constraint, Context, Federation, FloatValuation, IntValuation, Valuation, VariableDifference
 
 
 @pytest.mark.unittest
@@ -11,10 +11,12 @@ class TestBindingApi:
         self.c = Context(["x", "y", "z"], name="c")
 
     def test_binding_exports(self):
+        assert DBM is pyudbm.binding.DBM
         assert Context is pyudbm.binding.Context
         assert Federation is pyudbm.binding.Federation
         assert IntValuation is pyudbm.binding.IntValuation
         assert FloatValuation is pyudbm.binding.FloatValuation
+        assert pyudbm.binding.DBM is not None
         assert pyudbm.binding.Clock is not None
         assert pyudbm.binding.Context is not None
         assert pyudbm.binding.Federation is not None
@@ -22,6 +24,7 @@ class TestBindingApi:
         assert pyudbm.binding.FloatValuation is not None
 
     def test_root_exports(self):
+        assert pyudbm.DBM is pyudbm.binding.DBM
         assert pyudbm.Clock is pyudbm.binding.Clock
         assert pyudbm.Context is pyudbm.binding.Context
         assert pyudbm.Federation is pyudbm.binding.Federation
@@ -449,3 +452,164 @@ class TestBindingApi:
         assert not hasattr(federation, "extrapolateMaxBounds")
         assert not hasattr(federation, "isZero")
         assert not hasattr(federation, "isEmpty")
+
+    def test_dbm_list_snapshots(self):
+        context = Context(["x"])
+        federation = context.x == 0
+
+        dbms = federation.to_dbm_list()
+
+        assert len(dbms) == 1
+        assert isinstance(dbms[0], DBM)
+        assert str(dbms[0]) == "(x==0)"
+
+        federation |= (context.x == 1)
+
+        assert str(dbms[0]) == "(x==0)"
+        assert federation.get_size() == 2
+
+    def test_dbm_matrix_and_min_dbm_exports(self, text_aligner):
+        context = Context(["x", "y"], name="c")
+        federation = (context.x <= 10) & (context.y <= 7) & (context.x - context.y < 3)
+
+        dbm = federation.to_dbm_list()[0]
+
+        assert dbm.shape == (3, 3)
+        assert dbm.clock_names == ("0", "c.x", "c.y")
+        text_aligner.assert_equal(str(federation), str(dbm))
+        text_aligner.assert_equal(
+            "DBM(clock_names=('0', 'c.x', 'c.y'))",
+            repr(dbm),
+        )
+        text_aligner.assert_equal(
+            "(0<=c.x & 0<=c.y & c.x<10 & c.x-c.y<3 & c.y<=7 & c.y-c.x<=7)",
+            dbm.to_string(full=True),
+        )
+
+        assert dbm.raw(0, 0) == 1
+        assert dbm.bound(1, 2) == 3
+        assert dbm.bound("c.x", "y") == 3
+        assert dbm.is_strict(1, 2)
+        assert dbm.is_strict("x", "c.y")
+        assert dbm.bound(2, 0) == 7
+        assert dbm.raw("c.x", "0") == 20
+        assert not dbm.is_strict(2, 0)
+        assert dbm.bound(2, 1) == 7
+        assert dbm.bound("y", "c.x") == 7
+        assert not dbm.is_strict(2, 1)
+        assert not dbm.is_infinity(2, 1)
+        assert not dbm.is_infinity("c.y", "x")
+        assert dbm.to_matrix(mode="raw") == [
+            [1, 1, 1],
+            [20, 1, 6],
+            [15, 15, 1],
+        ]
+        assert dbm.to_matrix(mode="string") == [
+            ["<=0", "<=0", "<=0"],
+            ["<10", "<=0", "<3"],
+            ["<=7", "<=7", "<=0"],
+        ]
+        assert dbm.to_matrix() == [
+            [("<=", 0), ("<=", 0), ("<=", 0)],
+            [("<", 10), ("<=", 0), ("<", 3)],
+            [("<=", 7), ("<=", 7), ("<=", 0)],
+        ]
+        assert dbm.to_matrix(mode="tuple") == dbm.to_matrix()
+        text_aligner.multiple_lines().assert_equal(
+            """
+                   0  c.x  c.y
+              0  <=0  <=0  <=0
+            c.x  <10  <=0   <3
+            c.y  <=7  <=7  <=0
+            """,
+            dbm.format_matrix(),
+        )
+
+        min_dbm = dbm.to_min_dbm()
+        assert isinstance(min_dbm, tuple)
+        assert len(min_dbm) > 0
+        assert min_dbm == tuple(min_dbm)
+
+    def test_dbm_to_matrix_rejects_invalid_mode(self):
+        context = Context(["x"])
+        dbm = (context.x <= 1).to_dbm_list()[0]
+
+        with pytest.raises(TypeError):
+            dbm.to_matrix(mode=None)
+
+        with pytest.raises(ValueError):
+            dbm.to_matrix(mode="invalid")
+
+    def test_dbm_cell_access_accepts_string_indices(self):
+        context = Context(["x", "y"], name="c")
+        dbm = ((context.x <= 10) & (context.y <= 7) & (context.x - context.y < 3)).to_dbm_list()[0]
+
+        assert dbm.raw("c.x", "0") == 20
+        assert dbm.raw("x", "c.y") == 6
+        assert dbm.bound("y", "c.x") == 7
+        assert dbm.is_strict("x", "y")
+        assert not dbm.is_infinity("y", "c.x")
+
+    def test_dbm_cell_access_rejects_invalid_string_indices(self):
+        context = Context(["x", "y"], name="c")
+        dbm = (context.x <= 1).to_dbm_list()[0]
+
+        with pytest.raises(ValueError, match=r"DBM row \(i\) index 'missing' is not a valid clock name"):
+            dbm.raw("missing", 0)
+
+        with pytest.raises(ValueError, match=r"uses context prefix 'other', but this DBM belongs to context 'c'"):
+            dbm.raw("other.x", 0)
+
+        with pytest.raises(ValueError, match=r"uses the correct context prefix 'c', but 'missing' is not a clock"):
+            dbm.raw("c.missing", 0)
+
+        unnamed_dbm = (Context(["x"]).x <= 1).to_dbm_list()[0]
+        with pytest.raises(ValueError, match=r"uses a qualified clock name, but this DBM context is unnamed"):
+            unnamed_dbm.raw("c.x", 0)
+
+    def test_dbm_cell_access_rejects_invalid_index_types(self):
+        context = Context(["x"])
+        dbm = (context.x <= 1).to_dbm_list()[0]
+
+        with pytest.raises(TypeError, match=r"DBM row \(i\) index must be an integer or a clock name string, got float"):
+            dbm.raw(0.5, 0)
+
+        with pytest.raises(TypeError, match=r"DBM column \(j\) index must be an integer or a clock name string, got object"):
+            dbm.raw(0, object())
+
+        with pytest.raises(IndexError, match=r"DBM row \(i\) index -1 is out of range"):
+            dbm.raw(-1, 0)
+
+        with pytest.raises(IndexError, match=r"DBM column \(j\) index 3 is out of range"):
+            dbm.raw(0, 3)
+
+    def test_dbm_to_matrix_tuple_mode_keeps_infinity(self):
+        context = Context(["x", "y"])
+        dbm = (context.x <= 1).to_dbm_list()[0]
+
+        assert dbm.to_matrix(mode="raw") == [
+            [1, 1, 1],
+            [3, 1, 3],
+            [2147483646, 2147483646, 1],
+        ]
+        assert dbm.to_matrix(mode="string") == [
+            ["<=0", "<=0", "<=0"],
+            ["<=1", "<=0", "<=1"],
+            ["<inf", "<inf", "<=0"],
+        ]
+        assert dbm.to_matrix() == [
+            [("<=", 0), ("<=", 0), ("<=", 0)],
+            [("<=", 1), ("<=", 0), ("<=", 1)],
+            [("<", float("inf")), ("<", float("inf")), ("<=", 0)],
+        ]
+        assert dbm.to_matrix(mode="tuple")[2][1] == ("<", float("inf"))
+
+    def test_union_to_dbm_list_returns_all_dbms(self):
+        context = Context(["x"])
+        federation = (context.x == 0) | (context.x == 1)
+
+        dbms = federation.to_dbm_list()
+
+        assert len(dbms) == 2
+        assert all(isinstance(dbm, DBM) for dbm in dbms)
+        assert sorted(str(dbm) for dbm in dbms) == ["(x==0)", "(x==1)"]
