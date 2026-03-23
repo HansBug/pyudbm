@@ -1,18 +1,117 @@
 import importlib
+import importlib.util
 
 import pytest
 
-matplotlib = pytest.importorskip("matplotlib")
-matplotlib.use("Agg")
+_MATPLOTLIB_SPEC = importlib.util.find_spec("matplotlib")
+_HAS_MATPLOTLIB = _MATPLOTLIB_SPEC is not None
 
-from matplotlib import pyplot as plt
-from matplotlib.colors import to_hex
+if _HAS_MATPLOTLIB:
+    matplotlib = importlib.import_module("matplotlib")
+    matplotlib.use("Agg")
+    plt = importlib.import_module("matplotlib.pyplot")
+    to_hex = importlib.import_module("matplotlib.colors").to_hex
+else:
+    matplotlib = None
+    plt = None
+    to_hex = None
 
 from pyudbm import Context
 from pyudbm.binding import PlotResult, plot_dbm, plot_federation
 
 
+class FakeArtist:
+    def __init__(self, color=None, label=None, markerfacecolor=None, markeredgecolor=None, linestyle="-"):
+        self._color = color
+        self._label = label
+        self._markerfacecolor = markerfacecolor
+        self._markeredgecolor = markeredgecolor
+        self._linestyle = linestyle
+
+    def get_color(self):
+        return self._color
+
+    def get_label(self):
+        return self._label
+
+    def get_markerfacecolor(self):
+        return self._markerfacecolor
+
+    def get_markeredgecolor(self):
+        return self._markeredgecolor
+
+    def get_linestyle(self):
+        return self._linestyle
+
+
+class FakeAxis:
+    def __init__(self):
+        self._xlim = (0.0, 1.0)
+        self._ylim = (0.0, 1.0)
+        self._has_data = False
+        self._xlabel = ""
+        self._ylabel = ""
+        self.lines = []
+        self.patches = []
+        self.texts = []
+
+    def has_data(self):
+        return self._has_data
+
+    def plot(self, x_values, y_values, **kwargs):
+        self._has_data = True
+        artist = FakeArtist(
+            color=kwargs.get("color"),
+            label=kwargs.get("label"),
+            markerfacecolor=kwargs.get("markerfacecolor"),
+            markeredgecolor=kwargs.get("markeredgecolor"),
+            linestyle=kwargs.get("linestyle", "-"),
+        )
+        self.lines.append((tuple(x_values), tuple(y_values), artist))
+        return [artist]
+
+    def add_patch(self, patch):
+        self._has_data = True
+        self.patches.append(patch)
+
+    def text(self, x, y, text, **kwargs):
+        self._has_data = True
+        artist = FakeArtist(color=kwargs.get("color"), label=text)
+        artist.get_position = lambda: (x, y)
+        artist.get_text = lambda: text
+        self.texts.append(artist)
+        return artist
+
+    def set_xlim(self, left, right):
+        self._xlim = (float(left), float(right))
+
+    def get_xlim(self):
+        return self._xlim
+
+    def set_ylim(self, bottom, top):
+        self._ylim = (float(bottom), float(top))
+
+    def get_ylim(self):
+        return self._ylim
+
+    def set_xlabel(self, value):
+        self._xlabel = value
+
+    def get_xlabel(self):
+        return self._xlabel
+
+    def set_ylabel(self, value):
+        self._ylabel = value
+
+    def get_ylabel(self):
+        return self._ylabel
+
+    def set_aspect(self, *_args, **_kwargs):
+        return None
+
+
 @pytest.mark.unittest
+@pytest.mark.skipif(not _HAS_MATPLOTLIB, reason="matplotlib is not installed")
 class TestMatplotlibVisualization:
     def teardown_method(self):
         plt.close("all")
@@ -56,6 +155,20 @@ class TestMatplotlibVisualization:
         assert xlim[1] > 3.0
         assert ylim[0] <= 0.0
         assert ylim[1] > 2.0
+
+    def test_plot_dbm_default_label_uses_dbm_string_and_same_ax_auto_merges_view_in_1d(self):
+        context = Context(["x"])
+        left_dbm = ((context.x > 0) & (context.x <= 1)).to_dbm_list()[0]
+        right_dbm = ((context.x >= 3) & (context.x < 5)).to_dbm_list()[0]
+        _, ax = plt.subplots()
+
+        left_result = plot_dbm(left_dbm, ax=ax)
+        right_result = plot_dbm(right_dbm, ax=ax)
+
+        assert isinstance(left_result, PlotResult)
+        assert isinstance(right_result, PlotResult)
+        assert ax.get_xlim()[0] <= 0.0
+        assert ax.get_xlim()[1] > 4.0
 
     def test_plot_dbm_1d_unbounded_interval_adds_arrow(self):
         context = Context(["x"])
@@ -130,6 +243,16 @@ class TestMatplotlibVisualization:
         assert len(point_result.annotations) == 1
         assert len(thin_result.fills) == 0
         assert isinstance(custom_epsilon_result, PlotResult)
+
+    def test_plot_dbm_facecolor_without_edgecolor_reuses_fill_color(self):
+        context = Context(["x", "y"])
+        dbm = ((context.x <= 1) & (context.y <= 1)).to_dbm_list()[0]
+
+        result = plot_dbm(dbm, limits=((0, 2), (0, 2)), facecolor="#123456")
+
+        assert isinstance(result, PlotResult)
+        assert to_hex(result.fills[0].get_facecolor()) == "#123456"
+        assert result.boundaries[0].get_color() == "#123456"
 
     def test_plot_dbm_annotation_text_defaults_to_minimal_expression(self):
         context = Context(["x", "y"])
@@ -339,3 +462,19 @@ class TestMatplotlibVisualization:
 
         with pytest.raises(ImportError, match=r"pyudbm\[plot\]"):
             plot_dbm(dbm)
+
+    def test_plot_dbm_falls_back_to_public_matplotlib_cycle_when_axes_has_no_line_helper(self):
+        context = Context(["x"])
+        left_dbm = ((context.x > 0) & (context.x <= 1)).to_dbm_list()[0]
+        right_dbm = ((context.x >= 2) & (context.x <= 3)).to_dbm_list()[0]
+        ax = FakeAxis()
+
+        left_result = plot_dbm(left_dbm, ax=ax, label="left")
+        right_result = plot_dbm(right_dbm, ax=ax, label="right")
+
+        assert isinstance(left_result, PlotResult)
+        assert isinstance(right_result, PlotResult)
+        assert left_result.boundaries[0].get_color() == "#1f77b4"
+        assert right_result.boundaries[0].get_color() == "#ff7f0e"
+        assert ax.get_xlabel() == "x"
+        assert ax.get_ylabel() == "visual baseline"

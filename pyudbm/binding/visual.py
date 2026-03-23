@@ -1137,27 +1137,16 @@ def _auto_plot_axis_limits(bounds: Sequence[Tuple[Optional[float], Optional[floa
         pad = max(span * 0.15, 0.5)
         lower = min(minimum - pad, -pad)
         upper = maximum + pad
-    elif finite_lowers:
-        bound = min(finite_lowers)
+    elif finite_lowers or finite_uppers:
+        bound = min(finite_lowers) if finite_lowers else max(finite_uppers)
         scale = max(abs(bound), 1.0)
         pad = max(scale * 0.15, 0.5)
         span = max(scale * 0.5, 3.0)
-        lower = min(bound - pad, -pad)
-        upper = bound + span
-    elif finite_uppers:
-        bound = max(finite_uppers)
-        scale = max(abs(bound), 1.0)
-        pad = max(scale * 0.15, 0.5)
-        span = max(scale * 0.5, 3.0)
-        lower = min(bound - span, -pad)
-        upper = bound + pad
+        lower = min(bound - (pad if finite_lowers else span), -pad)
+        upper = bound + (span if finite_lowers else pad)
     else:
         return -5.0, 5.0
 
-    if not lower < upper:
-        center = (lower + upper) / 2.0
-        lower = center - 1.0
-        upper = center + 1.0
     return lower, upper
 
 
@@ -1168,10 +1157,8 @@ def _auto_plot_limits_for_dbm(
     if user_dimension == 1:
         lower, upper, _, _ = _dbm_axis_bounds_1d(dbm)
         return _auto_plot_axis_limits([(lower, upper)])
-    if user_dimension == 2:
-        x_lower, x_upper, y_lower, y_upper = _dbm_axis_bounds_2d(dbm)
-        return _auto_plot_axis_limits([(x_lower, x_upper)]), _auto_plot_axis_limits([(y_lower, y_upper)])
-    raise NotImplementedError("Automatic plot limits currently support only 1D and 2D DBMs.")
+    x_lower, x_upper, y_lower, y_upper = _dbm_axis_bounds_2d(dbm)
+    return _auto_plot_axis_limits([(x_lower, x_upper)]), _auto_plot_axis_limits([(y_lower, y_upper)])
 
 
 def _auto_plot_limits_for_federation(
@@ -1182,15 +1169,13 @@ def _auto_plot_limits_for_federation(
     if user_dimension == 1:
         bounds = [_dbm_axis_bounds_1d(dbm)[:2] for dbm in dbms]
         return _auto_plot_axis_limits(bounds)
-    if user_dimension == 2:
-        x_bounds = []  # type: List[Tuple[Optional[float], Optional[float]]]
-        y_bounds = []  # type: List[Tuple[Optional[float], Optional[float]]]
-        for dbm in dbms:
-            x_lower, x_upper, y_lower, y_upper = _dbm_axis_bounds_2d(dbm)
-            x_bounds.append((x_lower, x_upper))
-            y_bounds.append((y_lower, y_upper))
-        return _auto_plot_axis_limits(x_bounds), _auto_plot_axis_limits(y_bounds)
-    raise NotImplementedError("Automatic plot limits currently support only 1D and 2D federations.")
+    x_bounds = []  # type: List[Tuple[Optional[float], Optional[float]]]
+    y_bounds = []  # type: List[Tuple[Optional[float], Optional[float]]]
+    for dbm in dbms:
+        x_lower, x_upper, y_lower, y_upper = _dbm_axis_bounds_2d(dbm)
+        x_bounds.append((x_lower, x_upper))
+        y_bounds.append((y_lower, y_upper))
+    return _auto_plot_axis_limits(x_bounds), _auto_plot_axis_limits(y_bounds)
 
 
 def _set_axis_clock_labels(ax: Any, clock_names: Sequence[str], dimension: int) -> None:
@@ -1345,6 +1330,7 @@ def _merged_view_limits(
         baseline: float,
         view_limits: Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]],
 ) -> Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]]:
+    del baseline
     if not ax.has_data():
         return view_limits
 
@@ -1363,9 +1349,7 @@ def _merged_view_limits(
 
 
 def _line_label(label: Optional[str], index: int) -> Optional[str]:
-    if label is None:
-        return None
-    return label if index == 0 else "_nolegend_"
+    return label if (label is None or index == 0) else "_nolegend_"
 
 
 def _resolve_annotation_text(
@@ -1534,26 +1518,6 @@ def _plot_boundary_segment(ax: Any, segment: BoundarySegment2D, edgecolor: Any, 
         zorder=zorder,
         label=label,
     )[0]
-
-
-def _arrow_for_segment(ax: Any, segment: BoundarySegment2D, edgecolor: Any, linewidth: float, zorder: Optional[float],
-                       patches: Any, outward_sign: float) -> Any:
-    direction_x = segment.end.x - segment.start.x
-    direction_y = segment.end.y - segment.start.y
-    length = math.hypot(direction_x, direction_y)
-    normal_x = outward_sign * (direction_y / length)
-    normal_y = outward_sign * (-direction_x / length)
-    arrow_length = max(min(length, 1.0) * 0.12, 0.08)
-    midpoint = segment.midpoint
-    return patches.FancyArrowPatch(
-        (midpoint.x, midpoint.y),
-        (midpoint.x + (normal_x * arrow_length), midpoint.y + (normal_y * arrow_length)),
-        arrowstyle="->",
-        mutation_scale=10.0,
-        color=edgecolor,
-        linewidth=linewidth,
-        zorder=zorder,
-    )
 
 
 def _arrows_for_segment(ax: Any, segment: BoundarySegment2D, edgecolor: Any, linewidth: float, zorder: Optional[float],
