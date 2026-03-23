@@ -41,7 +41,7 @@ Example::
 from __future__ import annotations
 
 import logging
-from typing import Any, Iterable, List, Mapping, Optional, Union
+from typing import Any, Iterable, List, Mapping, Optional, Tuple, Union
 
 from ._binding import _NativeConstraint, _NativeDBM, _NativeFederation
 
@@ -82,21 +82,62 @@ def _format_dbm_raw(raw_value: int) -> str:
     return "{0}{1}".format("<" if (raw_value & 1) == 0 else "<=", raw_value >> 1)
 
 
+def _tuple_from_dbm_raw(raw_value: int) -> Tuple[str, Union[int, float]]:
+    """Return one decoded DBM cell as ``(operator, bound)``."""
+
+    if raw_value == _DBM_INFINITY_RAW:
+        return "<", float("inf")
+    return ("<" if (raw_value & 1) == 0 else "<=", raw_value >> 1)
+
+
 class DBM:
     """
     Immutable read-only DBM snapshot.
 
     A :class:`DBM` represents one convex zone extracted from a federation. It
-    provides DBM-level rendering, matrix export, and minimal-graph export while
-    staying detached from future mutations of the source federation.
+    provides DBM-level rendering, direct matrix-cell inspection, matrix export,
+    and minimal-graph export while staying detached from future mutations of
+    the source federation.
+
+    In UDBM terms, this object is one closed DBM over the clocks of a single
+    :class:`Context`. The first matrix row and column always correspond to the
+    implicit reference clock ``0``. User clocks therefore start at matrix index
+    ``1`` even though they are exposed by name at the Python level.
 
     :param context: Context whose clock names apply to this DBM.
     :type context: Context
     :param native: Native DBM snapshot.
     :type native: _NativeDBM
+    :ivar context: Context whose clock names label the DBM matrix.
+
+    Example::
+
+        >>> from pyudbm import Context
+        >>> context = Context(["x", "y"], name="c")
+        >>> federation = (context.x <= 10) & (context.y <= 7) & (context.x - context.y < 3)
+        >>> dbm = federation.to_dbm_list()[0]
+        >>> dbm.dimension
+        3
+        >>> dbm.clock_names
+        ('0', 'c.x', 'c.y')
+        >>> str(dbm)
+        '(c.x-c.y<3 & c.y<=7)'
     """
 
     def __init__(self, context: "Context", native: _NativeDBM):
+        """
+        Initialize one read-only DBM snapshot.
+
+        Instances are normally created internally by
+        :meth:`Federation.to_dbm_list` rather than directly by user code.
+
+        :param context: Context whose clock names apply to this DBM.
+        :type context: Context
+        :param native: Native DBM snapshot.
+        :type native: _NativeDBM
+        :return: ``None``.
+        :rtype: None
+        """
         self.context = context
         self._dbm = native
 
@@ -106,28 +147,124 @@ class DBM:
     def _raw_matrix(self) -> tuple:
         return tuple(int(value) for value in self._dbm.raw_matrix())
 
-    def _normalize_indices(self, i: int, j: int) -> tuple:
-        if not isinstance(i, int) or not isinstance(j, int):
-            raise TypeError("DBM indices must be integers.")
-        if i < 0 or j < 0 or i >= self.dimension or j >= self.dimension:
-            raise IndexError("DBM indices are out of range.")
+    def _available_index_names(self) -> List[str]:
+        names = ["0"] + [clock.name for clock in self.context.clocks]
+        if self.context.name:
+            names.extend(clock.get_full_name() for clock in self.context.clocks)
+        return names
+
+    def _resolve_index(self, value: Union[int, str], position: str) -> int:
+        if isinstance(value, int):
+            if value < 0 or value >= self.dimension:
+                raise IndexError(
+                    "DBM {0} index {1!r} is out of range. Valid integer indices are 0 through {2}.".format(
+                        position, value, self.dimension - 1
+                    )
+                )
+            return value
+
+        if not isinstance(value, str):
+            raise TypeError(
+                "DBM {0} index must be an integer or a clock name string, got {1}.".format(
+                    position, type(value).__name__
+                )
+            )
+
+        if value == "0":
+            return 0
+
+        short_name_to_index = {clock.name: clock.dbm_index for clock in self.context.clocks}
+        if value in short_name_to_index:
+            return short_name_to_index[value]
+
+        if "." in value:
+            prefix, suffix = value.split(".", 1)
+            if not self.context.name:
+                raise ValueError(
+                    "DBM {0} index {1!r} uses a qualified clock name, but this DBM context is unnamed. "
+                    "Available names: {2}.".format(position, value, ", ".join(repr(name) for name in self._available_index_names()))
+                )
+            if prefix != self.context.name:
+                raise ValueError(
+                    "DBM {0} index {1!r} uses context prefix {2!r}, but this DBM belongs to context {3!r}. "
+                    "Available names: {4}.".format(
+                        position, value, prefix, self.context.name, ", ".join(repr(name) for name in self._available_index_names())
+                    )
+                )
+            if suffix in short_name_to_index:
+                return short_name_to_index[suffix]
+            raise ValueError(
+                "DBM {0} index {1!r} uses the correct context prefix {2!r}, but {3!r} is not a clock in this context. "
+                "Available names: {4}.".format(
+                    position, value, self.context.name, suffix, ", ".join(repr(name) for name in self._available_index_names())
+                )
+            )
+
+        raise ValueError(
+            "DBM {0} index {1!r} is not a valid clock name for this context. Available names: {2}.".format(
+                position, value, ", ".join(repr(name) for name in self._available_index_names())
+            )
+        )
+
+    def _normalize_indices(self, i: Union[int, str], j: Union[int, str]) -> Tuple[int, int]:
+        i = self._resolve_index(i, "row (i)")
+        j = self._resolve_index(j, "column (j)")
         return i, j
 
     @property
     def dimension(self) -> int:
-        """Return the DBM dimension including the reference clock."""
+        """
+        Return the DBM dimension including the reference clock.
+
+        For a context with ``n`` user clocks, the DBM dimension is ``n + 1``
+        because index ``0`` is reserved for the reference clock.
+
+        :return: Matrix dimension.
+        :rtype: int
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> dbm = (Context(["x", "y"]).x <= 1).to_dbm_list()[0]
+            >>> dbm.dimension
+            3
+        """
 
         return self._dbm.get_dimension()
 
     @property
     def shape(self) -> tuple:
-        """Return ``(dimension, dimension)`` for the DBM matrix."""
+        """
+        Return ``(dimension, dimension)`` for the DBM matrix.
+
+        :return: Matrix shape tuple.
+        :rtype: tuple
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> dbm = (Context(["x"]).x <= 1).to_dbm_list()[0]
+            >>> dbm.shape
+            (2, 2)
+        """
 
         return self.dimension, self.dimension
 
     @property
     def clock_names(self) -> tuple:
-        """Return the matrix headers including the reference clock ``0``."""
+        """
+        Return the matrix headers including the reference clock ``0``.
+
+        :return: Tuple of matrix row and column names.
+        :rtype: tuple
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> dbm = (Context(["x"], name="c").x <= 1).to_dbm_list()[0]
+            >>> dbm.clock_names
+            ('0', 'c.x')
+        """
 
         return tuple(self._clock_names())
 
@@ -135,63 +272,182 @@ class DBM:
         """
         Return a textual representation of the DBM.
 
+        With ``full=False`` the output uses UDBM's minimal-constraint
+        rendering. With ``full=True`` all finite non-diagonal constraints of
+        the closed matrix are printed explicitly.
+
         :param full: Whether to print all finite non-diagonal constraints
             instead of the minimal constraint set.
         :type full: bool
         :return: Human-readable DBM expression.
         :rtype: str
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x", "y"], name="c")
+            >>> dbm = ((context.x <= 10) & (context.y <= 7) & (context.x - context.y < 3)).to_dbm_list()[0]
+            >>> dbm.to_string()
+            '(c.x-c.y<3 & c.y<=7)'
+            >>> dbm.to_string(full=True)
+            '(0<=c.x & 0<=c.y & c.x<10 & c.x-c.y<3 & c.y<=7 & c.y-c.x<=7)'
         """
 
         return self._dbm.to_string(self._clock_names(), full).replace(" && ", " & ")
 
-    def raw(self, i: int, j: int) -> int:
+    def raw(self, i: Union[int, str], j: Union[int, str]) -> int:
         """
         Return the raw UDBM matrix cell at ``(i, j)``.
 
-        :param i: Row index.
-        :type i: int
-        :param j: Column index.
-        :type j: int
+        The returned integer is UDBM's encoded ``raw_t`` value. Use
+        :meth:`bound`, :meth:`is_strict`, and :meth:`is_infinity` when you
+        need decoded semantics.
+
+        ``i`` and ``j`` may be either integer matrix indices or clock-name
+        strings. String indices accept the reference clock ``"0"``, bare
+        clock names such as ``"x"``, and context-qualified names such as
+        ``"c.x"`` when this DBM belongs to the context ``c``.
+
+        :param i: Row index or clock name.
+        :type i: int or str
+        :param j: Column index or clock name.
+        :type j: int or str
         :return: Raw encoded DBM value.
         :rtype: int
+        :raises TypeError: If either index is neither an integer nor a string.
+        :raises IndexError: If an integer index is out of range.
+        :raises ValueError: If a string index does not identify a clock in
+            this DBM context.
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> dbm = (Context(["x"], name="c").x <= 1).to_dbm_list()[0]
+            >>> dbm.raw("c.x", "0")
+            3
         """
 
         i, j = self._normalize_indices(i, j)
         values = self._raw_matrix()
         return values[i * self.dimension + j]
 
-    def bound(self, i: int, j: int) -> int:
-        """Return the decoded integer bound at ``(i, j)``."""
+    def bound(self, i: Union[int, str], j: Union[int, str]) -> int:
+        """
+        Return the decoded integer bound at ``(i, j)``.
+
+        This is the integer part of UDBM's ``raw_t`` encoding. For finite
+        cells it matches the bound printed by :meth:`to_string` and
+        :meth:`format_matrix`.
+
+        :param i: Row index or clock name.
+        :type i: int or str
+        :param j: Column index or clock name.
+        :type j: int or str
+        :return: Decoded integer bound.
+        :rtype: int
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x", "y"], name="c")
+            >>> dbm = (context.x - context.y <= 1).to_dbm_list()[0]
+            >>> dbm.bound("c.x", "y")
+            1
+        """
 
         return self.raw(i, j) >> 1
 
-    def is_strict(self, i: int, j: int) -> bool:
-        """Return whether the DBM cell at ``(i, j)`` is strict."""
+    def is_strict(self, i: Union[int, str], j: Union[int, str]) -> bool:
+        """
+        Return whether the DBM cell at ``(i, j)`` is strict.
+
+        :param i: Row index or clock name.
+        :type i: int or str
+        :param j: Column index or clock name.
+        :type j: int or str
+        :return: ``True`` when the encoded inequality is strict.
+        :rtype: bool
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x", "y"], name="c")
+            >>> dbm = (context.x - context.y < 3).to_dbm_list()[0]
+            >>> dbm.is_strict("x", "c.y")
+            True
+        """
 
         return (self.raw(i, j) & 1) == 0
 
-    def is_infinity(self, i: int, j: int) -> bool:
-        """Return whether the DBM cell at ``(i, j)`` equals ``< inf``."""
+    def is_infinity(self, i: Union[int, str], j: Union[int, str]) -> bool:
+        """
+        Return whether the DBM cell at ``(i, j)`` equals ``< inf``.
+
+        :param i: Row index or clock name.
+        :type i: int or str
+        :param j: Column index or clock name.
+        :type j: int or str
+        :return: ``True`` if the matrix cell is the infinity sentinel.
+        :rtype: bool
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> dbm = (Context(["x", "y"], name="c").x <= 1).to_dbm_list()[0]
+            >>> dbm.is_infinity("c.y", "x")
+            True
+        """
 
         return self.raw(i, j) == _DBM_INFINITY_RAW
 
-    def to_matrix(self, raw: bool = True) -> List[List[Union[int, str]]]:
+    def to_matrix(self, mode: str = "tuple") -> List[List[Union[int, str, Tuple[str, Union[int, float]]]]]:
         """
         Export the DBM matrix as a nested Python list.
 
-        :param raw: Whether to return raw encoded integers instead of
-            formatted constraint strings.
-        :type raw: bool
+        The matrix is returned in row-major order and includes the reference
+        clock row and column at index ``0``.
+
+        ``mode="tuple"`` is the default and returns decoded tuples of the
+        form ``('<', 3)`` or ``('<=', 7)``; the infinity sentinel becomes
+        ``('<', float('inf'))``. ``mode="raw"`` returns native encoded
+        integers. ``mode="string"``
+        returns presentation-oriented strings such as ``<=0`` or ``<inf``.
+
+        :param mode: Output mode. Supported values are ``"raw"``,
+            ``"string"``, and ``"tuple"``.
+        :type mode: str
         :return: Nested row-major matrix.
-        :rtype: List[List[Union[int, str]]]
+        :rtype: List[List[Union[int, str, Tuple[str, Union[int, float]]]]]
+        :raises TypeError: If ``mode`` is not a string.
+        :raises ValueError: If ``mode`` is not one of the supported modes.
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> dbm = (Context(["x"]).x <= 1).to_dbm_list()[0]
+            >>> dbm.to_matrix()
+            [[('<=', 0), ('<=', 0)], [('<=', 1), ('<=', 0)]]
+            >>> dbm.to_matrix(mode="string")
+            [['<=0', '<=0'], ['<=1', '<=0']]
         """
 
-        rows = []  # type: List[List[Union[int, str]]]
+        if not isinstance(mode, str):
+            raise TypeError("Matrix export mode must be a string.")
+        if mode not in {"raw", "string", "tuple"}:
+            raise ValueError("Unsupported matrix export mode: {0!r}.".format(mode))
+
+        rows = []  # type: List[List[Union[int, str, Tuple[str, Union[int, float]]]]]
         for i in range(self.dimension):
             row = []
             for j in range(self.dimension):
                 raw_value = self.raw(i, j)
-                row.append(raw_value if raw else _format_dbm_raw(raw_value))
+                if mode == "raw":
+                    cell = raw_value
+                elif mode == "string":
+                    cell = _format_dbm_raw(raw_value)
+                else:
+                    cell = _tuple_from_dbm_raw(raw_value)
+                row.append(cell)
             rows.append(row)
         return rows
 
@@ -199,8 +455,20 @@ class DBM:
         """
         Return a human-readable table view of the DBM matrix.
 
+        The formatted view includes row and column headers, including the
+        reference clock ``0``.
+
         :return: Pretty-printed matrix with row and column headers.
         :rtype: str
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> dbm = (Context(["x"]).x <= 1).to_dbm_list()[0]
+            >>> print(dbm.format_matrix())
+                 0   x
+              0 <=0 <=0
+              x <=1 <=0
         """
 
         headers = [""] + list(self.clock_names)
@@ -221,6 +489,10 @@ class DBM:
         """
         Export the DBM as packed UDBM minimal-DBM words.
 
+        The returned tuple is the raw packed minimal-graph representation
+        produced by UDBM. It is intended for inspection, persistence, or
+        interoperability rather than direct hand-editing.
+
         :param minimize_graph: Whether to request graph minimization.
         :type minimize_graph: bool
         :param try_constraints_16: Whether UDBM may compress finite
@@ -228,14 +500,48 @@ class DBM:
         :type try_constraints_16: bool
         :return: Packed minimal-DBM words.
         :rtype: tuple
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> dbm = (Context(["x"]).x <= 1).to_dbm_list()[0]
+            >>> isinstance(dbm.to_min_dbm(), tuple)
+            True
         """
 
         return tuple(self._dbm.to_min_dbm(minimize_graph, try_constraints_16))
 
     def __str__(self) -> str:
+        """
+        Return the default minimal textual rendering of the DBM.
+
+        :return: Minimal DBM expression.
+        :rtype: str
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x", "y"], name="c")
+            >>> dbm = ((context.x <= 10) & (context.y <= 7) & (context.x - context.y < 3)).to_dbm_list()[0]
+            >>> str(dbm)
+            '(c.x-c.y<3 & c.y<=7)'
+        """
         return self.to_string()
 
     def __repr__(self) -> str:
+        """
+        Return a debugging representation including the DBM clock names.
+
+        :return: Debugging representation.
+        :rtype: str
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> dbm = (Context(["x"], name="c").x <= 1).to_dbm_list()[0]
+            >>> repr(dbm)
+            "DBM(clock_names=('0', 'c.x'))"
+        """
         return "DBM(clock_names={0})".format(self.clock_names)
 
 
@@ -1168,6 +1474,16 @@ class Federation:
 
         :return: List of DBMs in native federation order.
         :rtype: List[DBM]
+
+        Example::
+
+            >>> from pyudbm import Context
+            >>> context = Context(["x"], name="c")
+            >>> dbms = ((context.x <= 1) | (context.x >= 3)).to_dbm_list()
+            >>> len(dbms)
+            2
+            >>> [str(dbm) for dbm in dbms]
+            ['(c.x<=1)', '(3<=c.x)']
         """
 
         return [DBM(self.context, native) for native in self._fed.to_dbm_list()]

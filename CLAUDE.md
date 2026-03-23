@@ -950,6 +950,17 @@ discipline and prefer source-only edits rather than touching generated outputs.
 6. Document exceptions with `:raises:`.
 7. User-facing public APIs should ideally have at least a minimal example.
 
+### Public Python API pydoc Expectations
+
+- When a patch adds or changes a public Python API, update its docstring in the same patch.
+- Public class docstrings should explain the object's semantic role, mutability or snapshot behavior, and how it relates to the upstream UDBM model when that is not obvious from the name alone.
+- Public method and property docstrings should describe returned value shapes precisely, especially for tuples, nested lists, packed encodings, and other structured data.
+- For DBM-facing APIs, explicitly document the reference clock at index `0` whenever matrix indices, row and column order, or clock-name layout matter.
+- Examples should be self-contained and executable in principle: reuse one consistent `Context`, avoid pseudo-code, and avoid snippets that cannot actually run as written.
+- For user-facing string-producing APIs such as `__str__`, `__repr__`, formatting helpers, and stable textual exports, prefer exact expected output in examples instead of vague placeholder text when the output is deterministic.
+- If an API returns a detached snapshot, a read-only view, or data that will not track future mutations, state that explicitly in the docstring.
+- Use docstrings to document semantics, invariants, and user-visible behavior. Do not fill them with implementation trivia that does not affect users.
+
 ### Module Template
 
 ```python
