@@ -1,5 +1,11 @@
 # Matplotlib Visualization Plan For DBM And Federation
 
+## PR Reference
+
+This plan is tracked by GitHub pull request:
+
+- PR #4: <https://github.com/HansBug/pyudbm/pull/4>
+
 ## Purpose
 
 This document turns the current design discussion around DBM / federation visualization into a concrete implementation plan for `pyudbm`.
