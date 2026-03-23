@@ -549,7 +549,8 @@ class DBM:
         Plot this DBM through :mod:`pyudbm.binding.visual`.
 
         The import is intentionally lazy so matplotlib stays optional unless
-        plotting is actually requested.
+        plotting is actually requested. For the full parameter list and the
+        exact plotting semantics, see :func:`pyudbm.binding.visual.plot_dbm`.
 
         :param ax: Optional matplotlib axes.
         :type ax: Any
@@ -557,6 +558,12 @@ class DBM:
         :type kwargs: Any
         :return: Plot result wrapper from :func:`pyudbm.binding.visual.plot_dbm`.
         :rtype: Any
+
+        .. seealso::
+
+            :func:`pyudbm.binding.visual.plot_dbm`
+                Module-level plotting helper documented with the complete
+                parameter set.
         """
 
         from .visual import plot_dbm
@@ -1488,7 +1495,8 @@ class Federation:
         Plot this federation through :mod:`pyudbm.binding.visual`.
 
         The import is intentionally lazy so matplotlib stays optional unless
-        plotting is actually requested.
+        plotting is actually requested. For the full parameter list and the
+        exact plotting semantics, see :func:`pyudbm.binding.visual.plot_federation`.
 
         :param ax: Optional matplotlib axes.
         :type ax: Any
@@ -1496,6 +1504,12 @@ class Federation:
         :type kwargs: Any
         :return: Plot result wrapper from :func:`pyudbm.binding.visual.plot_federation`.
         :rtype: Any
+
+        .. seealso::
+
+            :func:`pyudbm.binding.visual.plot_federation`
+                Module-level plotting helper documented with the complete
+                parameter set.
         """
 
         from .visual import plot_federation

@@ -3,14 +3,6 @@ Geometry foundation for visualization-oriented DBM / federation handling.
 
 This module keeps matplotlib optional while exposing both the pure geometry
 layer and the first plotting-layer helpers built on top of it.
-
-The current implementation covers the Phase 0 / Phase 1 / Phase 2 foundation:
-
-* 1D DBM interval extraction;
-* 1D federation exact interval union;
-* 2D DBM convex geometry extraction from DBM half-spaces;
-* 2D federation exact boundary extraction for polygonal DBM unions.
-* 1D / 2D matplotlib rendering helpers for DBMs and federations.
 """
 
 from __future__ import annotations
@@ -48,14 +40,41 @@ _GEOMETRY_EPSILON = 1e-9
 
 @dataclass(frozen=True)
 class EmptyGeometry:
-    """Empty visualization geometry."""
+    """
+    Empty visualization geometry placeholder.
+
+    This is returned when clipping removes the whole region or when the source
+    DBM / federation is empty in the requested render box.
+
+    :ivar dimension: User-visible geometry dimension.
+    :vartype dimension: int
+    """
 
     dimension: int
 
 
 @dataclass(frozen=True)
 class Interval1D:
-    """Closed/open bounded interval after optional clipping."""
+    """
+    One clipped 1D interval with exact open/closed endpoint semantics.
+
+    The interval is always finite after clipping. Whether an endpoint comes
+    from the original DBM or from the render-box clipping step is tracked
+    separately.
+
+    :ivar lower: Lower endpoint after clipping.
+    :vartype lower: float
+    :ivar upper: Upper endpoint after clipping.
+    :vartype upper: float
+    :ivar lower_closed: Whether the lower endpoint is included.
+    :vartype lower_closed: bool
+    :ivar upper_closed: Whether the upper endpoint is included.
+    :vartype upper_closed: bool
+    :ivar lower_clipped: Whether the lower endpoint was introduced by clipping.
+    :vartype lower_clipped: bool
+    :ivar upper_clipped: Whether the upper endpoint was introduced by clipping.
+    :vartype upper_clipped: bool
+    """
 
     lower: float
     upper: float
@@ -73,14 +92,28 @@ class Interval1D:
 
 @dataclass(frozen=True)
 class MultiInterval1D:
-    """Exact finite union of 1D intervals."""
+    """
+    Exact finite union of 1D intervals.
+
+    This is the 1D geometry form returned for federations.
+
+    :ivar intervals: Normalized exact interval union in ascending order.
+    :vartype intervals: Tuple[Interval1D, ...]
+    """
 
     intervals: Tuple[Interval1D, ...]
 
 
 @dataclass(frozen=True)
 class Point2D:
-    """One 2D point."""
+    """
+    One 2D point.
+
+    :ivar x: X coordinate.
+    :vartype x: float
+    :ivar y: Y coordinate.
+    :vartype y: float
+    """
 
     x: float
     y: float
@@ -88,7 +121,23 @@ class Point2D:
 
 @dataclass(frozen=True)
 class HalfSpace2D:
-    """Affine 2D half-space ``a*x + b*y <= c`` or ``< c``."""
+    """
+    One affine 2D half-space ``a*x + b*y <= c`` or ``a*x + b*y < c``.
+
+    DBM constraints and clipping box edges are both converted to this common
+    representation before polygon extraction.
+
+    :ivar a: Coefficient of ``x``.
+    :vartype a: float
+    :ivar b: Coefficient of ``y``.
+    :vartype b: float
+    :ivar c: Right-hand-side constant.
+    :vartype c: float
+    :ivar is_strict: Whether the inequality is strict.
+    :vartype is_strict: bool
+    :ivar is_clip: Whether this half-space comes from the render-box clipping boundary.
+    :vartype is_clip: bool
+    """
 
     a: float
     b: float
@@ -122,7 +171,21 @@ class HalfSpace2D:
 
 @dataclass(frozen=True)
 class BoundarySegment2D:
-    """One directed 2D boundary segment."""
+    """
+    One directed 2D boundary segment.
+
+    Direction matters for loop tracing and for deciding outward arrow
+    directions on unbounded clipped edges.
+
+    :ivar start: Segment start point.
+    :vartype start: Point2D
+    :ivar end: Segment end point.
+    :vartype end: Point2D
+    :ivar is_closed: Whether this boundary segment is included in the represented set.
+    :vartype is_closed: bool
+    :ivar is_clipped: Whether this segment lies on the clipping box.
+    :vartype is_clipped: bool
+    """
 
     start: Point2D
     end: Point2D
@@ -144,7 +207,16 @@ class BoundarySegment2D:
 
 @dataclass(frozen=True)
 class PolygonGeometry2D:
-    """Convex 2D polygon extracted from one DBM plus clip box."""
+    """
+    Convex 2D polygon extracted from one DBM inside the clip box.
+
+    :ivar vertices: Polygon vertices in boundary order.
+    :vartype vertices: Tuple[Point2D, ...]
+    :ivar edges: Directed boundary edges in boundary order.
+    :vartype edges: Tuple[BoundarySegment2D, ...]
+    :ivar halfspaces: Active DBM and clip half-spaces used to define the polygon.
+    :vartype halfspaces: Tuple[HalfSpace2D, ...]
+    """
 
     vertices: Tuple[Point2D, ...]
     edges: Tuple[BoundarySegment2D, ...]
@@ -153,7 +225,14 @@ class PolygonGeometry2D:
 
 @dataclass(frozen=True)
 class SegmentGeometry2D:
-    """Degenerate 2D line-segment geometry extracted from one DBM."""
+    """
+    Degenerate 2D line-segment geometry extracted from one DBM.
+
+    :ivar segment: Exact visible segment.
+    :vartype segment: BoundarySegment2D
+    :ivar halfspaces: Original half-space constraints used during extraction.
+    :vartype halfspaces: Tuple[HalfSpace2D, ...]
+    """
 
     segment: BoundarySegment2D
     halfspaces: Tuple[HalfSpace2D, ...]
@@ -161,7 +240,18 @@ class SegmentGeometry2D:
 
 @dataclass(frozen=True)
 class PointGeometry2D:
-    """Degenerate 2D point geometry extracted from one DBM."""
+    """
+    Degenerate 2D point geometry extracted from one DBM.
+
+    :ivar point: Exact visible point.
+    :vartype point: Point2D
+    :ivar is_closed: Whether the point is included.
+    :vartype is_closed: bool
+    :ivar is_clipped: Whether the point lies on the clipping box.
+    :vartype is_clipped: bool
+    :ivar halfspaces: Original half-space constraints used during extraction.
+    :vartype halfspaces: Tuple[HalfSpace2D, ...]
+    """
 
     point: Point2D
     is_closed: bool
@@ -171,7 +261,14 @@ class PointGeometry2D:
 
 @dataclass(frozen=True)
 class BoundaryLoop2D:
-    """Closed boundary loop of one 2D federation component or hole."""
+    """
+    Closed 2D boundary loop of one federation component or hole.
+
+    :ivar segments: Directed boundary segments that form the loop.
+    :vartype segments: Tuple[BoundarySegment2D, ...]
+    :ivar is_hole: Whether this loop bounds a hole instead of an outer face.
+    :vartype is_hole: bool
+    """
 
     segments: Tuple[BoundarySegment2D, ...]
     is_hole: bool
@@ -191,7 +288,14 @@ class BoundaryLoop2D:
 
 @dataclass(frozen=True)
 class Face2D:
-    """One exact 2D face consisting of an outer loop and optional holes."""
+    """
+    One exact 2D face consisting of an outer loop and optional holes.
+
+    :ivar outer: Outer boundary loop.
+    :vartype outer: BoundaryLoop2D
+    :ivar holes: Hole loops contained inside the outer boundary.
+    :vartype holes: Tuple[BoundaryLoop2D, ...]
+    """
 
     outer: BoundaryLoop2D
     holes: Tuple[BoundaryLoop2D, ...]
@@ -199,7 +303,27 @@ class Face2D:
 
 @dataclass(frozen=True)
 class FederationGeometry2D:
-    """Exact 2D geometry summary for one federation clipped to a render box."""
+    """
+    Exact 2D geometry summary for one federation inside one render box.
+
+    It contains both the original per-DBM geometries and the exact union-level
+    boundary decomposition.
+
+    :ivar dbm_geometries: Exact clipped geometries of the individual DBMs.
+    :vartype dbm_geometries: Tuple[Union[PolygonGeometry2D, SegmentGeometry2D, PointGeometry2D], ...]
+    :ivar boundary_segments: Exact union boundary segments after simplification and loop tracing.
+    :vartype boundary_segments: Tuple[BoundarySegment2D, ...]
+    :ivar loops: Closed outer and hole loops reconstructed from the boundary graph.
+    :vartype loops: Tuple[BoundaryLoop2D, ...]
+    :ivar faces: Final union faces with hole assignment.
+    :vartype faces: Tuple[Face2D, ...]
+    :ivar isolated_segments: Degenerate union segments not absorbed into 2D faces.
+    :vartype isolated_segments: Tuple[BoundarySegment2D, ...]
+    :ivar isolated_points: Degenerate union points not absorbed into segments or faces.
+    :vartype isolated_points: Tuple[Point2D, ...]
+    :ivar limits: Effective 2D clip box used during extraction.
+    :vartype limits: Tuple[Tuple[float, float], Tuple[float, float]]
+    """
 
     dbm_geometries: Tuple[Union[PolygonGeometry2D, SegmentGeometry2D, PointGeometry2D], ...]
     boundary_segments: Tuple[BoundarySegment2D, ...]
@@ -212,7 +336,25 @@ class FederationGeometry2D:
 
 @dataclass(frozen=True)
 class PlotResult:
-    """Matplotlib artist container returned by plotting helpers."""
+    """
+    Matplotlib artist container returned by :func:`plot_dbm` and :func:`plot_federation`.
+
+    The returned artists are grouped by role so callers can inspect, restyle,
+    or remove them after plotting.
+
+    :ivar ax: Axes that received the plotted artists.
+    :vartype ax: Any
+    :ivar fills: Filled polygon/path artists.
+    :vartype fills: Tuple[Any, ...]
+    :ivar boundaries: Line artists for visible boundaries.
+    :vartype boundaries: Tuple[Any, ...]
+    :ivar markers: Point artists for endpoints or isolated points.
+    :vartype markers: Tuple[Any, ...]
+    :ivar arrows: Arrow artists indicating unbounded continuation.
+    :vartype arrows: Tuple[Any, ...]
+    :ivar annotations: Text artists created by annotation support.
+    :vartype annotations: Tuple[Any, ...]
+    """
 
     ax: Any
     fills: Tuple[Any, ...] = tuple()
@@ -835,6 +977,23 @@ def extract_dbm_geometry(
 
     This is the geometry-layer Phase 1 entry point. It intentionally performs
     no matplotlib import or artist creation.
+
+    For a 1D DBM this returns one clipped :class:`Interval1D` or
+    :class:`EmptyGeometry`. For a 2D DBM it returns one exact clipped geometry
+    object among :class:`PolygonGeometry2D`, :class:`SegmentGeometry2D`,
+    :class:`PointGeometry2D`, or :class:`EmptyGeometry`.
+
+    :param dbm: Source DBM to convert into visualization geometry.
+    :type dbm: DBM
+    :param limits: Optional render limits. Use ``(xmin, xmax)`` for 1D and
+        ``((xmin, xmax), (ymin, ymax))`` for 2D. When omitted, limits are
+        derived from the finite DBM bounds.
+    :type limits: Optional[Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]]]
+    :return: Pure-Python exact geometry snapshot for the requested render box.
+    :rtype: Union[EmptyGeometry, Interval1D, PolygonGeometry2D, SegmentGeometry2D, PointGeometry2D]
+    :raises TypeError: If ``dbm`` is not a :class:`DBM`.
+    :raises NotImplementedError: If the DBM has 3 user clocks. 3D extraction is reserved for later phases.
+    :raises ValueError: If the DBM dimension is outside the supported range or if ``limits`` are malformed.
     """
 
     if not isinstance(dbm, DBM):
@@ -890,6 +1049,18 @@ def extract_federation_geometry(
     For 1D federations this returns the exact interval union. For 2D
     federations this returns the exact clipped polygon-union boundary for the
     polygonal DBM components.
+
+    :param federation: Source federation to convert into visualization geometry.
+    :type federation: Federation
+    :param limits: Optional render limits. Use ``(xmin, xmax)`` for 1D and
+        ``((xmin, xmax), (ymin, ymax))`` for 2D. When omitted, limits are
+        derived from the finite bounds of all DBMs in the federation.
+    :type limits: Optional[Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]]]
+    :return: Exact pure-Python geometry summary for the requested render box.
+    :rtype: Union[EmptyGeometry, MultiInterval1D, FederationGeometry2D]
+    :raises TypeError: If ``federation`` is not a :class:`Federation`.
+    :raises NotImplementedError: If the federation has 3 user clocks. 3D extraction is reserved for later phases.
+    :raises ValueError: If the dimension is outside the supported range or if ``limits`` are malformed.
     """
 
     if not isinstance(federation, Federation):
@@ -1658,6 +1829,56 @@ def plot_dbm(
 
     Matplotlib remains an optional dependency. Importing this module does not
     require it, but calling :func:`plot_dbm` does.
+
+    The result is drawn on the provided axes or on a newly created axes when
+    ``ax`` is omitted. The default legend label and, when enabled, the default
+    annotation text are both derived from ``str(dbm)``.
+
+    :param dbm: DBM to render.
+    :type dbm: DBM
+    :param ax: Optional matplotlib axes. When omitted, a new axes is created.
+    :type ax: Optional[Any]
+    :param limits: Optional explicit render limits. Use ``(xmin, xmax)`` for
+        1D and ``((xmin, xmax), (ymin, ymax))`` for 2D. When omitted, limits
+        are inferred from the DBM bounds and merged with existing axes limits
+        when plotting into a reused axes.
+    :type limits: Optional[Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]]]
+    :param strict_epsilon: Optional positive epsilon used when shrinking fill
+        interiors for strict inequalities.
+    :type strict_epsilon: Optional[float]
+    :param show_unbounded: Whether clipped unbounded directions should be marked with arrows.
+    :type show_unbounded: bool
+    :param annotate: Whether to add one text annotation to the plotted geometry.
+    :type annotate: bool
+    :param annotate_text: Optional annotation text. When omitted and
+        ``annotate=True``, ``str(dbm)`` is used. When provided while
+        ``annotate`` is not ``True``, plotting emits a warning and enables
+        annotations automatically.
+    :type annotate_text: Optional[str]
+    :param baseline: Vertical baseline used by 1D plots.
+    :type baseline: float
+    :param facecolor: Optional fill color for 2D regions. When both
+        ``facecolor`` and ``edgecolor`` are omitted, the next matplotlib
+        default cycle color is used.
+    :type facecolor: Optional[Any]
+    :param edgecolor: Optional boundary color. When omitted, it follows the
+        fill color or the current axes color cycle.
+    :type edgecolor: Optional[Any]
+    :param alpha: Optional fill alpha for 2D regions.
+    :type alpha: Optional[float]
+    :param linewidth: Optional boundary line width.
+    :type linewidth: Optional[float]
+    :param linestyle: Optional default line style for closed boundaries.
+    :type linestyle: Optional[Any]
+    :param label: Optional legend label. When omitted, ``str(dbm)`` is used.
+    :type label: Optional[str]
+    :param zorder: Optional matplotlib z-order passed to created artists.
+    :type zorder: Optional[float]
+    :return: Container of created matplotlib artists.
+    :rtype: PlotResult
+    :raises ImportError: If matplotlib is not installed.
+    :raises NotImplementedError: If the DBM is not 1D or 2D.
+    :raises ValueError: If ``strict_epsilon`` is non-positive or if ``limits`` are malformed.
     """
 
     user_dimension = dbm.dimension - 1
@@ -1734,6 +1955,59 @@ def plot_federation(
     For 1D federations this renders the exact interval union. For 2D
     federations this renders the exact clipped boundary extracted in the
     geometry layer.
+
+    The default legend label and, when enabled, the default annotation text
+    are both derived from ``str(federation)``.
+
+    :param federation: Federation to render.
+    :type federation: Federation
+    :param ax: Optional matplotlib axes. When omitted, a new axes is created.
+    :type ax: Optional[Any]
+    :param limits: Optional explicit render limits. Use ``(xmin, xmax)`` for
+        1D and ``((xmin, xmax), (ymin, ymax))`` for 2D. When omitted, limits
+        are inferred from the federation bounds and merged with existing axes
+        limits when plotting into a reused axes.
+    :type limits: Optional[Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]]]
+    :param strict_epsilon: Optional positive epsilon used when shrinking fill
+        interiors for strict inequalities.
+    :type strict_epsilon: Optional[float]
+    :param show_unbounded: Whether clipped unbounded directions should be marked with arrows.
+    :type show_unbounded: bool
+    :param annotate: Whether to add text annotations to the plotted geometry.
+    :type annotate: bool
+    :param annotate_text: Optional annotation text. When omitted and
+        ``annotate=True``, ``str(federation)`` is used. When provided while
+        ``annotate`` is not ``True``, plotting emits a warning and enables
+        annotations automatically.
+    :type annotate_text: Optional[str]
+    :param baseline: Vertical baseline used by 1D plots.
+    :type baseline: float
+    :param color_mode: ``"shared"`` to render the exact union with one visual
+        style, or ``"per_dbm"`` to additionally show individual DBM pieces in
+        distinct colors.
+    :type color_mode: str
+    :param facecolor: Optional fill color for 2D regions. When both
+        ``facecolor`` and ``edgecolor`` are omitted, the next matplotlib
+        default cycle color is used.
+    :type facecolor: Optional[Any]
+    :param edgecolor: Optional boundary color. When omitted, it follows the
+        fill color or the current axes color cycle.
+    :type edgecolor: Optional[Any]
+    :param alpha: Optional fill alpha for 2D regions.
+    :type alpha: Optional[float]
+    :param linewidth: Optional boundary line width.
+    :type linewidth: Optional[float]
+    :param linestyle: Optional default line style for closed boundaries.
+    :type linestyle: Optional[Any]
+    :param label: Optional legend label. When omitted, ``str(federation)`` is used.
+    :type label: Optional[str]
+    :param zorder: Optional matplotlib z-order passed to created artists.
+    :type zorder: Optional[float]
+    :return: Container of created matplotlib artists.
+    :rtype: PlotResult
+    :raises ImportError: If matplotlib is not installed.
+    :raises NotImplementedError: If the federation is not 1D or 2D.
+    :raises ValueError: If ``strict_epsilon`` is non-positive, if ``color_mode`` is invalid, or if ``limits`` are malformed.
     """
 
     user_dimension = len(federation.context.clocks)
