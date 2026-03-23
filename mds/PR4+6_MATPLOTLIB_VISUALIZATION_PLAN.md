@@ -5,6 +5,7 @@
 本方案对应的 GitHub Pull Request：
 
 - PR #4: <https://github.com/HansBug/pyudbm/pull/4>
+- PR #6: <https://github.com/HansBug/pyudbm/pull/6>
 
 ## 目的
 
