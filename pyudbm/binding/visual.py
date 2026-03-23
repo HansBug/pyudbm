@@ -16,18 +16,27 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union
 from .udbm import DBM, Federation
 
 __all__ = [
+    "BoundaryEdge3D",
     "BoundaryLoop2D",
     "BoundarySegment2D",
     "EmptyGeometry",
+    "Face3D",
     "Face2D",
+    "FaceGeometry3D",
+    "FederationGeometry3D",
     "FederationGeometry2D",
+    "HalfSpace3D",
     "HalfSpace2D",
     "Interval1D",
     "MultiInterval1D",
+    "Point3D",
+    "PointGeometry3D",
     "Point2D",
     "PointGeometry2D",
+    "PolyhedronGeometry3D",
     "PolygonGeometry2D",
     "PlotResult",
+    "SegmentGeometry3D",
     "SegmentGeometry2D",
     "extract_dbm_geometry",
     "extract_federation_geometry",
@@ -335,6 +344,230 @@ class FederationGeometry2D:
 
 
 @dataclass(frozen=True)
+class Point3D:
+    """
+    One 3D point.
+
+    :ivar x: X coordinate.
+    :vartype x: float
+    :ivar y: Y coordinate.
+    :vartype y: float
+    :ivar z: Z coordinate.
+    :vartype z: float
+    """
+
+    x: float
+    y: float
+    z: float
+
+
+@dataclass(frozen=True)
+class HalfSpace3D:
+    """
+    One affine 3D half-space ``a*x + b*y + c*z <= d`` or ``< d``.
+
+    :ivar a: Coefficient of ``x``.
+    :vartype a: float
+    :ivar b: Coefficient of ``y``.
+    :vartype b: float
+    :ivar c: Coefficient of ``z``.
+    :vartype c: float
+    :ivar d: Right-hand-side constant.
+    :vartype d: float
+    :ivar is_strict: Whether the inequality is strict.
+    :vartype is_strict: bool
+    :ivar is_clip: Whether this half-space comes from the render-box clipping boundary.
+    :vartype is_clip: bool
+    """
+
+    a: float
+    b: float
+    c: float
+    d: float
+    is_strict: bool = False
+    is_clip: bool = False
+
+    def evaluate(self, point: Point3D) -> float:
+        """Return ``a*x + b*y + c*z - d`` at ``point``."""
+
+        return (self.a * point.x) + (self.b * point.y) + (self.c * point.z) - self.d
+
+    def contains(self, point: Point3D, respect_strict: bool = True) -> bool:
+        """Return whether ``point`` satisfies this half-space."""
+
+        value = self.evaluate(point)
+        if respect_strict and self.is_strict:
+            return value < -_GEOMETRY_EPSILON
+        return value <= _GEOMETRY_EPSILON
+
+    def contains_on_closure(self, point: Point3D) -> bool:
+        """Return whether ``point`` lies in the closure of this half-space."""
+
+        return self.evaluate(point) <= _GEOMETRY_EPSILON
+
+    def is_active(self, point: Point3D) -> bool:
+        """Return whether ``point`` lies on the boundary plane of this half-space."""
+
+        return abs(self.evaluate(point)) <= _GEOMETRY_EPSILON
+
+
+@dataclass(frozen=True)
+class BoundaryEdge3D:
+    """
+    One directed 3D boundary edge.
+
+    :ivar start: Edge start point.
+    :vartype start: Point3D
+    :ivar end: Edge end point.
+    :vartype end: Point3D
+    :ivar is_closed: Whether this edge is included in the represented set.
+    :vartype is_closed: bool
+    :ivar is_clipped: Whether this edge lies on the clipping box.
+    :vartype is_clipped: bool
+    """
+
+    start: Point3D
+    end: Point3D
+    is_closed: bool
+    is_clipped: bool
+
+    @property
+    def length(self) -> float:
+        """Return Euclidean edge length."""
+
+        return math.sqrt(
+            ((self.end.x - self.start.x) ** 2)
+            + ((self.end.y - self.start.y) ** 2)
+            + ((self.end.z - self.start.z) ** 2)
+        )
+
+    @property
+    def midpoint(self) -> Point3D:
+        """Return edge midpoint."""
+
+        return Point3D(
+            (self.start.x + self.end.x) / 2.0,
+            (self.start.y + self.end.y) / 2.0,
+            (self.start.z + self.end.z) / 2.0,
+        )
+
+
+@dataclass(frozen=True)
+class Face3D:
+    """
+    One polygonal 3D face.
+
+    :ivar vertices: Ordered face vertices.
+    :vartype vertices: Tuple[Point3D, ...]
+    :ivar edges: Directed face edges in boundary order.
+    :vartype edges: Tuple[BoundaryEdge3D, ...]
+    :ivar normal: Outward face normal.
+    :vartype normal: Point3D
+    :ivar is_closed: Whether the face boundary plane is included.
+    :vartype is_closed: bool
+    :ivar is_clipped: Whether the face comes only from the clipping box.
+    :vartype is_clipped: bool
+    """
+
+    vertices: Tuple[Point3D, ...]
+    edges: Tuple[BoundaryEdge3D, ...]
+    normal: Point3D
+    is_closed: bool
+    is_clipped: bool
+
+
+@dataclass(frozen=True)
+class FaceGeometry3D:
+    """
+    Degenerate 3D polygonal face geometry extracted from one DBM.
+
+    :ivar face: Exact visible face.
+    :vartype face: Face3D
+    :ivar halfspaces: Original half-space constraints used during extraction.
+    :vartype halfspaces: Tuple[HalfSpace3D, ...]
+    """
+
+    face: Face3D
+    halfspaces: Tuple[HalfSpace3D, ...]
+
+
+@dataclass(frozen=True)
+class SegmentGeometry3D:
+    """
+    Degenerate 3D line-segment geometry extracted from one DBM.
+
+    :ivar segment: Exact visible segment.
+    :vartype segment: BoundaryEdge3D
+    :ivar halfspaces: Original half-space constraints used during extraction.
+    :vartype halfspaces: Tuple[HalfSpace3D, ...]
+    """
+
+    segment: BoundaryEdge3D
+    halfspaces: Tuple[HalfSpace3D, ...]
+
+
+@dataclass(frozen=True)
+class PointGeometry3D:
+    """
+    Degenerate 3D point geometry extracted from one DBM.
+
+    :ivar point: Exact visible point.
+    :vartype point: Point3D
+    :ivar is_closed: Whether the point is included.
+    :vartype is_closed: bool
+    :ivar is_clipped: Whether the point lies on the clipping box.
+    :vartype is_clipped: bool
+    :ivar halfspaces: Original half-space constraints used during extraction.
+    :vartype halfspaces: Tuple[HalfSpace3D, ...]
+    """
+
+    point: Point3D
+    is_closed: bool
+    is_clipped: bool
+    halfspaces: Tuple[HalfSpace3D, ...]
+
+
+@dataclass(frozen=True)
+class PolyhedronGeometry3D:
+    """
+    Convex 3D polyhedron extracted from one DBM inside the clip box.
+
+    :ivar vertices: Unique polyhedron vertices.
+    :vartype vertices: Tuple[Point3D, ...]
+    :ivar edges: Unique visible boundary edges.
+    :vartype edges: Tuple[BoundaryEdge3D, ...]
+    :ivar faces: Polygonal boundary faces.
+    :vartype faces: Tuple[Face3D, ...]
+    :ivar halfspaces: Active DBM and clip half-spaces used to define the polyhedron.
+    :vartype halfspaces: Tuple[HalfSpace3D, ...]
+    """
+
+    vertices: Tuple[Point3D, ...]
+    edges: Tuple[BoundaryEdge3D, ...]
+    faces: Tuple[Face3D, ...]
+    halfspaces: Tuple[HalfSpace3D, ...]
+
+
+@dataclass(frozen=True)
+class FederationGeometry3D:
+    """
+    Exact clipped 3D geometry summary for one federation.
+
+    The current 3D federation form keeps the exact clipped geometry of each
+    constituent DBM instead of attempting a full 3D boolean-union boundary
+    simplification.
+
+    :ivar dbm_geometries: Exact clipped geometries of the individual DBMs.
+    :vartype dbm_geometries: Tuple[Union[PolyhedronGeometry3D, FaceGeometry3D, SegmentGeometry3D, PointGeometry3D], ...]
+    :ivar limits: Effective 3D clip box used during extraction.
+    :vartype limits: Tuple[Tuple[float, float], Tuple[float, float], Tuple[float, float]]
+    """
+
+    dbm_geometries: Tuple[Union[PolyhedronGeometry3D, FaceGeometry3D, SegmentGeometry3D, PointGeometry3D], ...]
+    limits: Tuple[Tuple[float, float], Tuple[float, float], Tuple[float, float]]
+
+
+@dataclass(frozen=True)
 class PlotResult:
     """
     Matplotlib artist container returned by :func:`plot_dbm` and :func:`plot_federation`.
@@ -370,6 +603,14 @@ def _almost_equal(left: float, right: float, epsilon: float = _GEOMETRY_EPSILON)
 
 def _point_key(point: Point2D) -> Tuple[int, int]:
     return int(round(point.x * 1000000000.0)), int(round(point.y * 1000000000.0))
+
+
+def _point_key_3d(point: Point3D) -> Tuple[int, int, int]:
+    return (
+        int(round(point.x * 1000000000.0)),
+        int(round(point.y * 1000000000.0)),
+        int(round(point.z * 1000000000.0)),
+    )
 
 
 def _normalize_1d_limits(limits: Optional[Tuple[float, float]],
@@ -452,6 +693,82 @@ def _normalize_2d_limits(
     return (x_lower, x_upper), (y_lower, y_upper)
 
 
+def _normalize_3d_limits(
+        limits: Optional[Tuple[Tuple[float, float], Tuple[float, float], Tuple[float, float]]],
+        bounds: Sequence[
+            Tuple[
+                Optional[float], Optional[float], Optional[float], Optional[float], Optional[float], Optional[float]
+            ]
+        ],
+) -> Tuple[Tuple[float, float], Tuple[float, float], Tuple[float, float]]:
+    if limits is not None:
+        if not isinstance(limits, tuple) or len(limits) != 3:
+            raise ValueError("3D limits must be ((xmin, xmax), (ymin, ymax), (zmin, zmax)).")
+        x_limits = limits[0]
+        y_limits = limits[1]
+        z_limits = limits[2]
+        if not isinstance(x_limits, tuple) or len(x_limits) != 2:
+            raise ValueError("3D x limits must be a tuple of the form (xmin, xmax).")
+        if not isinstance(y_limits, tuple) or len(y_limits) != 2:
+            raise ValueError("3D y limits must be a tuple of the form (ymin, ymax).")
+        if not isinstance(z_limits, tuple) or len(z_limits) != 2:
+            raise ValueError("3D z limits must be a tuple of the form (zmin, zmax).")
+
+        xmin = float(x_limits[0])
+        xmax = float(x_limits[1])
+        ymin = float(y_limits[0])
+        ymax = float(y_limits[1])
+        zmin = float(z_limits[0])
+        zmax = float(z_limits[1])
+        if not xmin < xmax:
+            raise ValueError("3D limits require xmin < xmax.")
+        if not ymin < ymax:
+            raise ValueError("3D limits require ymin < ymax.")
+        if not zmin < zmax:
+            raise ValueError("3D limits require zmin < zmax.")
+        return (xmin, xmax), (ymin, ymax), (zmin, zmax)
+
+    x_values = []  # type: List[float]
+    y_values = []  # type: List[float]
+    z_values = []  # type: List[float]
+    for xmin, xmax, ymin, ymax, zmin, zmax in bounds:
+        if xmin is not None:
+            x_values.append(float(xmin))
+        if xmax is not None:
+            x_values.append(float(xmax))
+        if ymin is not None:
+            y_values.append(float(ymin))
+        if ymax is not None:
+            y_values.append(float(ymax))
+        if zmin is not None:
+            z_values.append(float(zmin))
+        if zmax is not None:
+            z_values.append(float(zmax))
+
+    x_values = x_values or [-5.0, 5.0]
+    y_values = y_values or [-5.0, 5.0]
+    z_values = z_values or [-5.0, 5.0]
+
+    x_lower = min(x_values)
+    x_upper = max(x_values)
+    y_lower = min(y_values)
+    y_upper = max(y_values)
+    z_lower = min(z_values)
+    z_upper = max(z_values)
+
+    if _almost_equal(x_lower, x_upper):
+        x_lower -= 1.0
+        x_upper += 1.0
+    if _almost_equal(y_lower, y_upper):
+        y_lower -= 1.0
+        y_upper += 1.0
+    if _almost_equal(z_lower, z_upper):
+        z_lower -= 1.0
+        z_upper += 1.0
+
+    return (x_lower, x_upper), (y_lower, y_upper), (z_lower, z_upper)
+
+
 def _dbm_axis_bounds_1d(dbm: DBM) -> Tuple[Optional[float], Optional[float], bool, bool]:
     lower = None  # type: Optional[float]
     upper = None  # type: Optional[float]
@@ -475,6 +792,18 @@ def _dbm_axis_bounds_2d(dbm: DBM) -> Tuple[Optional[float], Optional[float], Opt
     y_lower = None if dbm.is_infinity(0, 2) else float(-dbm.bound(0, 2))
     y_upper = None if dbm.is_infinity(2, 0) else float(dbm.bound(2, 0))
     return x_lower, x_upper, y_lower, y_upper
+
+
+def _dbm_axis_bounds_3d(
+        dbm: DBM,
+) -> Tuple[Optional[float], Optional[float], Optional[float], Optional[float], Optional[float], Optional[float]]:
+    x_lower = None if dbm.is_infinity(0, 1) else float(-dbm.bound(0, 1))
+    x_upper = None if dbm.is_infinity(1, 0) else float(dbm.bound(1, 0))
+    y_lower = None if dbm.is_infinity(0, 2) else float(-dbm.bound(0, 2))
+    y_upper = None if dbm.is_infinity(2, 0) else float(dbm.bound(2, 0))
+    z_lower = None if dbm.is_infinity(0, 3) else float(-dbm.bound(0, 3))
+    z_upper = None if dbm.is_infinity(3, 0) else float(dbm.bound(3, 0))
+    return x_lower, x_upper, y_lower, y_upper, z_lower, z_upper
 
 
 def _merge_intervals(intervals: Sequence[Interval1D]) -> MultiInterval1D:
@@ -639,6 +968,372 @@ def _extract_dbm_geometry_2d(dbm: DBM, limits: Tuple[Tuple[float, float], Tuple[
         end = hull[(index + 1) % len(hull)]
         edges.append(_segment_from_points(start, end, halfspaces))
     return PolygonGeometry2D(vertices=hull, edges=tuple(edges), halfspaces=halfspaces)
+
+
+def _build_halfspaces_for_dbm_3d(
+        dbm: DBM,
+        limits: Tuple[Tuple[float, float], Tuple[float, float], Tuple[float, float]],
+) -> Tuple[HalfSpace3D, ...]:
+    result = []  # type: List[HalfSpace3D]
+    for i in range(dbm.dimension):
+        for j in range(dbm.dimension):
+            if i == j or dbm.is_infinity(i, j):
+                continue
+
+            coefficients = [0.0, 0.0, 0.0]
+            if i > 0:
+                coefficients[i - 1] += 1.0
+            if j > 0:
+                coefficients[j - 1] -= 1.0
+
+            result.append(
+                HalfSpace3D(
+                    coefficients[0],
+                    coefficients[1],
+                    coefficients[2],
+                    float(dbm.bound(i, j)),
+                    dbm.is_strict(i, j),
+                    False,
+                )
+            )
+
+    (xmin, xmax), (ymin, ymax), (zmin, zmax) = limits
+    result.extend(
+        [
+            HalfSpace3D(1.0, 0.0, 0.0, xmax, False, True),
+            HalfSpace3D(-1.0, 0.0, 0.0, -xmin, False, True),
+            HalfSpace3D(0.0, 1.0, 0.0, ymax, False, True),
+            HalfSpace3D(0.0, -1.0, 0.0, -ymin, False, True),
+            HalfSpace3D(0.0, 0.0, 1.0, zmax, False, True),
+            HalfSpace3D(0.0, 0.0, -1.0, -zmin, False, True),
+        ]
+    )
+    return tuple(result)
+
+
+def _point_in_halfspaces_3d(point: Point3D, halfspaces: Sequence[HalfSpace3D], respect_strict: bool = True) -> bool:
+    return all(halfspace.contains(point, respect_strict=respect_strict) for halfspace in halfspaces)
+
+
+def _unique_points_3d(points: Iterable[Point3D]) -> Tuple[Point3D, ...]:
+    mapping = {}  # type: Dict[Tuple[int, int, int], Point3D]
+    for point in points:
+        mapping[_point_key_3d(point)] = point
+    return tuple(mapping.values())
+
+
+def _vector3(left: Point3D, right: Point3D) -> Point3D:
+    return Point3D(right.x - left.x, right.y - left.y, right.z - left.z)
+
+
+def _dot3(left: Point3D, right: Point3D) -> float:
+    return (left.x * right.x) + (left.y * right.y) + (left.z * right.z)
+
+
+def _cross3(left: Point3D, right: Point3D) -> Point3D:
+    return Point3D(
+        (left.y * right.z) - (left.z * right.y),
+        (left.z * right.x) - (left.x * right.z),
+        (left.x * right.y) - (left.y * right.x),
+    )
+
+
+def _norm3(vector: Point3D) -> float:
+    return math.sqrt((vector.x ** 2) + (vector.y ** 2) + (vector.z ** 2))
+
+
+def _normalize3(vector: Point3D) -> Point3D:
+    length = _norm3(vector)
+    if length <= _GEOMETRY_EPSILON:
+        return Point3D(0.0, 0.0, 0.0)
+    return Point3D(vector.x / length, vector.y / length, vector.z / length)
+
+
+def _determinant3(rows: Sequence[Tuple[float, float, float]]) -> float:
+    return (
+        (rows[0][0] * ((rows[1][1] * rows[2][2]) - (rows[1][2] * rows[2][1])))
+        - (rows[0][1] * ((rows[1][0] * rows[2][2]) - (rows[1][2] * rows[2][0])))
+        + (rows[0][2] * ((rows[1][0] * rows[2][1]) - (rows[1][1] * rows[2][0])))
+    )
+
+
+def _triple_plane_intersections(halfspaces: Sequence[HalfSpace3D]) -> Tuple[Point3D, ...]:
+    points = []  # type: List[Point3D]
+    for first_index in range(len(halfspaces)):
+        for second_index in range(first_index + 1, len(halfspaces)):
+            for third_index in range(second_index + 1, len(halfspaces)):
+                first = halfspaces[first_index]
+                second = halfspaces[second_index]
+                third = halfspaces[third_index]
+                coefficients = [
+                    (first.a, first.b, first.c),
+                    (second.a, second.b, second.c),
+                    (third.a, third.b, third.c),
+                ]
+                determinant = _determinant3(coefficients)
+                if abs(determinant) <= _GEOMETRY_EPSILON:
+                    continue
+
+                x_determinant = _determinant3(
+                    [
+                        (first.d, first.b, first.c),
+                        (second.d, second.b, second.c),
+                        (third.d, third.b, third.c),
+                    ]
+                )
+                y_determinant = _determinant3(
+                    [
+                        (first.a, first.d, first.c),
+                        (second.a, second.d, second.c),
+                        (third.a, third.d, third.c),
+                    ]
+                )
+                z_determinant = _determinant3(
+                    [
+                        (first.a, first.b, first.d),
+                        (second.a, second.b, second.d),
+                        (third.a, third.b, third.d),
+                    ]
+                )
+                points.append(
+                    Point3D(
+                        x_determinant / determinant,
+                        y_determinant / determinant,
+                        z_determinant / determinant,
+                    )
+                )
+    return tuple(points)
+
+
+def _active_halfspaces_3d(point: Point3D, halfspaces: Sequence[HalfSpace3D]) -> Tuple[HalfSpace3D, ...]:
+    return tuple(halfspace for halfspace in halfspaces if halfspace.is_active(point))
+
+
+def _segment_from_points_3d(start: Point3D, end: Point3D, halfspaces: Sequence[HalfSpace3D]) -> BoundaryEdge3D:
+    midpoint = Point3D(
+        (start.x + end.x) / 2.0,
+        (start.y + end.y) / 2.0,
+        (start.z + end.z) / 2.0,
+    )
+    active = _active_halfspaces_3d(midpoint, halfspaces)
+    return BoundaryEdge3D(
+        start=start,
+        end=end,
+        is_closed=_point_in_halfspaces_3d(midpoint, halfspaces, respect_strict=True),
+        is_clipped=bool(active) and all(halfspace.is_clip for halfspace in active),
+    )
+
+
+def _plane_basis(normal: Point3D) -> Tuple[Point3D, Point3D]:
+    normalized = _normalize3(normal)
+    if abs(normalized.x) < 0.9:
+        reference = Point3D(1.0, 0.0, 0.0)
+    else:
+        reference = Point3D(0.0, 1.0, 0.0)
+    axis_u = _normalize3(_cross3(normalized, reference))
+    axis_v = _normalize3(_cross3(normalized, axis_u))
+    return axis_u, axis_v
+
+
+def _order_face_vertices_3d(vertices: Sequence[Point3D], normal: Point3D) -> Tuple[Point3D, ...]:
+    unique_vertices = _unique_points_3d(vertices)
+    if len(unique_vertices) <= 2:
+        return unique_vertices
+
+    center = Point3D(
+        sum(point.x for point in unique_vertices) / float(len(unique_vertices)),
+        sum(point.y for point in unique_vertices) / float(len(unique_vertices)),
+        sum(point.z for point in unique_vertices) / float(len(unique_vertices)),
+    )
+    axis_u, axis_v = _plane_basis(normal)
+    return tuple(
+        sorted(
+            unique_vertices,
+            key=lambda point: math.atan2(
+                _dot3(_vector3(center, point), axis_v),
+                _dot3(_vector3(center, point), axis_u),
+            ),
+        )
+    )
+
+
+def _plane_key_3d(halfspace: HalfSpace3D) -> Tuple[int, int, int, int]:
+    normalized = _normalize3(Point3D(halfspace.a, halfspace.b, halfspace.c))
+    scale = math.sqrt((halfspace.a ** 2) + (halfspace.b ** 2) + (halfspace.c ** 2))
+    d_value = halfspace.d / scale if scale > _GEOMETRY_EPSILON else halfspace.d
+    values = [normalized.x, normalized.y, normalized.z, d_value]
+    for candidate in values[:3]:
+        if abs(candidate) > _GEOMETRY_EPSILON:
+            if candidate < 0.0:
+                values = [-item for item in values]
+            break
+    return tuple(int(round(item * 1000000000.0)) for item in values)  # type: ignore[return-value]
+
+
+def _edge_key_3d(edge: BoundaryEdge3D) -> Tuple[Tuple[int, int, int], Tuple[int, int, int]]:
+    return tuple(sorted((_point_key_3d(edge.start), _point_key_3d(edge.end))))  # type: ignore[return-value]
+
+
+def _deduplicate_edges_3d(edges: Sequence[BoundaryEdge3D]) -> Tuple[BoundaryEdge3D, ...]:
+    result = {}  # type: Dict[Tuple[Tuple[int, int, int], Tuple[int, int, int]], BoundaryEdge3D]
+    for edge in edges:
+        key = _edge_key_3d(edge)
+        existing = result.get(key)
+        if existing is None:
+            result[key] = edge
+        else:
+            result[key] = BoundaryEdge3D(
+                start=existing.start,
+                end=existing.end,
+                is_closed=existing.is_closed or edge.is_closed,
+                is_clipped=existing.is_clipped and edge.is_clipped,
+            )
+    return tuple(result.values())
+
+
+def _point_on_segment_3d(point: Point3D, segment: BoundaryEdge3D) -> bool:
+    left = _vector3(segment.start, segment.end)
+    right = _vector3(segment.start, point)
+    cross = _cross3(left, right)
+    if _norm3(cross) > _GEOMETRY_EPSILON:
+        return False
+    dot = _dot3(right, left)
+    if dot < -_GEOMETRY_EPSILON:
+        return False
+    if dot > _dot3(left, left) + _GEOMETRY_EPSILON:
+        return False
+    return True
+
+
+def _build_face_from_vertices_3d(
+        vertices: Sequence[Point3D],
+        normal: Point3D,
+        halfspaces: Sequence[HalfSpace3D],
+        plane_halfspaces: Sequence[HalfSpace3D],
+) -> Face3D:
+    ordered = _order_face_vertices_3d(vertices, normal)
+    edges = []  # type: List[BoundaryEdge3D]
+    for index, start in enumerate(ordered):
+        end = ordered[(index + 1) % len(ordered)]
+        edges.append(_segment_from_points_3d(start, end, halfspaces))
+
+    center = Point3D(
+        sum(point.x for point in ordered) / float(len(ordered)),
+        sum(point.y for point in ordered) / float(len(ordered)),
+        sum(point.z for point in ordered) / float(len(ordered)),
+    )
+    is_closed = _point_in_halfspaces_3d(center, halfspaces, respect_strict=True)
+    is_clipped = all(halfspace.is_clip for halfspace in plane_halfspaces)
+    return Face3D(
+        vertices=ordered,
+        edges=tuple(edges),
+        normal=_normalize3(normal),
+        is_closed=is_closed,
+        is_clipped=is_clipped,
+    )
+
+
+def _polyhedron_faces_3d(
+        vertices: Sequence[Point3D],
+        halfspaces: Sequence[HalfSpace3D],
+) -> Tuple[Face3D, ...]:
+    groups = {}  # type: Dict[Tuple[int, int, int, int], List[HalfSpace3D]]
+    for halfspace in halfspaces:
+        groups.setdefault(_plane_key_3d(halfspace), []).append(halfspace)
+
+    faces = []  # type: List[Face3D]
+    for plane_halfspaces in groups.values():
+        representative = plane_halfspaces[0]
+        face_vertices = [point for point in vertices if representative.is_active(point)]
+        face_vertices = list(_unique_points_3d(face_vertices))
+        if len(face_vertices) < 3:
+            continue
+        faces.append(
+            _build_face_from_vertices_3d(
+                face_vertices,
+                Point3D(representative.a, representative.b, representative.c),
+                halfspaces,
+                plane_halfspaces,
+            )
+        )
+    return tuple(faces)
+
+
+def _classify_points_3d(points: Sequence[Point3D]) -> Tuple[str, Optional[Point3D]]:
+    ordered = list(_unique_points_3d(points))
+    if not ordered:
+        return "empty", None
+    if len(ordered) == 1:
+        return "point", None
+
+    origin = ordered[0]
+    direction = None  # type: Optional[Point3D]
+    for point in ordered[1:]:
+        candidate = _vector3(origin, point)
+        if _norm3(candidate) > _GEOMETRY_EPSILON:
+            direction = candidate
+            break
+    if direction is None:
+        return "point", None
+
+    normal = None  # type: Optional[Point3D]
+    for point in ordered[1:]:
+        candidate = _cross3(direction, _vector3(origin, point))
+        if _norm3(candidate) > _GEOMETRY_EPSILON:
+            normal = candidate
+            break
+    if normal is None:
+        return "segment", _normalize3(direction)
+
+    for point in ordered[1:]:
+        distance = _dot3(_vector3(origin, point), normal)
+        if abs(distance) > _GEOMETRY_EPSILON:
+            return "polyhedron", _normalize3(normal)
+    return "face", _normalize3(normal)
+
+
+def _extract_dbm_geometry_3d(
+        dbm: DBM,
+        limits: Tuple[Tuple[float, float], Tuple[float, float], Tuple[float, float]],
+) -> Union[EmptyGeometry, PolyhedronGeometry3D, FaceGeometry3D, SegmentGeometry3D, PointGeometry3D]:
+    halfspaces = _build_halfspaces_for_dbm_3d(dbm, limits)
+    candidate_points = [
+        point for point in _triple_plane_intersections(halfspaces)
+        if _point_in_halfspaces_3d(point, halfspaces, respect_strict=False)
+    ]
+    unique_points = _unique_points_3d(candidate_points)
+    if not unique_points:
+        return EmptyGeometry(dimension=3)
+
+    kind, normal = _classify_points_3d(unique_points)
+    if kind == "point":
+        point = unique_points[0]
+        return PointGeometry3D(
+            point=point,
+            is_closed=_point_in_halfspaces_3d(point, halfspaces, respect_strict=True),
+            is_clipped=any(halfspace.is_clip for halfspace in _active_halfspaces_3d(point, halfspaces)),
+            halfspaces=halfspaces,
+        )
+
+    if kind == "segment":
+        origin = unique_points[0]
+        direction = normal if normal is not None else Point3D(1.0, 0.0, 0.0)
+        ordered = sorted(unique_points, key=lambda point: _dot3(_vector3(origin, point), direction))
+        segment = _segment_from_points_3d(ordered[0], ordered[-1], halfspaces)
+        return SegmentGeometry3D(segment=segment, halfspaces=halfspaces)
+
+    if kind == "face":
+        face = _build_face_from_vertices_3d(unique_points, normal or Point3D(0.0, 0.0, 1.0), halfspaces, _active_halfspaces_3d(unique_points[0], halfspaces))
+        return FaceGeometry3D(face=face, halfspaces=halfspaces)
+
+    faces = _polyhedron_faces_3d(unique_points, halfspaces)
+    edges = _deduplicate_edges_3d([edge for face in faces for edge in face.edges])
+    return PolyhedronGeometry3D(
+        vertices=tuple(unique_points),
+        edges=edges,
+        faces=faces,
+        halfspaces=halfspaces,
+    )
 
 
 def _orientation(point_a: Point2D, point_b: Point2D, point_c: Point2D) -> float:
@@ -835,6 +1530,7 @@ def _trace_boundary_loops(boundary_segments: Sequence[BoundarySegment2D]) -> Tup
 def _segments_are_mergeable(left: BoundarySegment2D, right: Optional[BoundarySegment2D]) -> bool:
     if right is None:
         return False
+    # Preserve semantic transition points on the traced boundary.
     if left.is_closed != right.is_closed or left.is_clipped != right.is_clipped:
         return False
 
@@ -970,8 +1666,17 @@ def _point_on_segment(point: Point2D, segment: BoundarySegment2D) -> bool:
 
 def extract_dbm_geometry(
         dbm: DBM,
-        limits: Optional[Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]]] = None,
-) -> Union[EmptyGeometry, Interval1D, PolygonGeometry2D, SegmentGeometry2D, PointGeometry2D]:
+        limits: Optional[
+            Union[
+                Tuple[float, float],
+                Tuple[Tuple[float, float], Tuple[float, float]],
+                Tuple[Tuple[float, float], Tuple[float, float], Tuple[float, float]],
+            ]
+        ] = None,
+) -> Union[
+    EmptyGeometry, Interval1D, PolygonGeometry2D, SegmentGeometry2D, PointGeometry2D,
+    PolyhedronGeometry3D, FaceGeometry3D, SegmentGeometry3D, PointGeometry3D
+]:
     """
     Extract a pure-Python visualization geometry snapshot from one DBM.
 
@@ -985,14 +1690,14 @@ def extract_dbm_geometry(
 
     :param dbm: Source DBM to convert into visualization geometry.
     :type dbm: DBM
-    :param limits: Optional render limits. Use ``(xmin, xmax)`` for 1D and
-        ``((xmin, xmax), (ymin, ymax))`` for 2D. When omitted, limits are
-        derived from the finite DBM bounds.
-    :type limits: Optional[Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]]]
+    :param limits: Optional render limits. Use ``(xmin, xmax)`` for 1D,
+        ``((xmin, xmax), (ymin, ymax))`` for 2D, and
+        ``((xmin, xmax), (ymin, ymax), (zmin, zmax))`` for 3D. When omitted,
+        limits are derived from the finite DBM bounds.
+    :type limits: Optional[Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]], Tuple[Tuple[float, float], Tuple[float, float], Tuple[float, float]]]]
     :return: Pure-Python exact geometry snapshot for the requested render box.
-    :rtype: Union[EmptyGeometry, Interval1D, PolygonGeometry2D, SegmentGeometry2D, PointGeometry2D]
+    :rtype: Union[EmptyGeometry, Interval1D, PolygonGeometry2D, SegmentGeometry2D, PointGeometry2D, PolyhedronGeometry3D, FaceGeometry3D, SegmentGeometry3D, PointGeometry3D]
     :raises TypeError: If ``dbm`` is not a :class:`DBM`.
-    :raises NotImplementedError: If the DBM has 3 user clocks. 3D extraction is reserved for later phases.
     :raises ValueError: If the DBM dimension is outside the supported range or if ``limits`` are malformed.
     """
 
@@ -1035,14 +1740,21 @@ def extract_dbm_geometry(
         return _extract_dbm_geometry_2d(dbm, normalized_limits)
 
     if user_dimension == 3:
-        raise NotImplementedError("3D visualization geometry is reserved for the later rendering phase.")
-    raise ValueError("Visualization geometry currently supports only 1D, 2D, and reserved 3D contexts.")
+        normalized_limits = _normalize_3d_limits(limits, [_dbm_axis_bounds_3d(dbm)])  # type: ignore[arg-type]
+        return _extract_dbm_geometry_3d(dbm, normalized_limits)
+    raise ValueError("Visualization geometry currently supports only 1D, 2D, and 3D contexts.")
 
 
 def extract_federation_geometry(
         federation: Federation,
-        limits: Optional[Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]]] = None,
-) -> Union[EmptyGeometry, MultiInterval1D, FederationGeometry2D]:
+        limits: Optional[
+            Union[
+                Tuple[float, float],
+                Tuple[Tuple[float, float], Tuple[float, float]],
+                Tuple[Tuple[float, float], Tuple[float, float], Tuple[float, float]],
+            ]
+        ] = None,
+) -> Union[EmptyGeometry, MultiInterval1D, FederationGeometry2D, FederationGeometry3D]:
     """
     Extract a pure-Python visualization geometry snapshot from one federation.
 
@@ -1052,14 +1764,14 @@ def extract_federation_geometry(
 
     :param federation: Source federation to convert into visualization geometry.
     :type federation: Federation
-    :param limits: Optional render limits. Use ``(xmin, xmax)`` for 1D and
-        ``((xmin, xmax), (ymin, ymax))`` for 2D. When omitted, limits are
-        derived from the finite bounds of all DBMs in the federation.
-    :type limits: Optional[Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]]]
+    :param limits: Optional render limits. Use ``(xmin, xmax)`` for 1D,
+        ``((xmin, xmax), (ymin, ymax))`` for 2D, and
+        ``((xmin, xmax), (ymin, ymax), (zmin, zmax))`` for 3D. When omitted,
+        limits are derived from the finite bounds of all DBMs in the federation.
+    :type limits: Optional[Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]], Tuple[Tuple[float, float], Tuple[float, float], Tuple[float, float]]]]
     :return: Exact pure-Python geometry summary for the requested render box.
-    :rtype: Union[EmptyGeometry, MultiInterval1D, FederationGeometry2D]
+    :rtype: Union[EmptyGeometry, MultiInterval1D, FederationGeometry2D, FederationGeometry3D]
     :raises TypeError: If ``federation`` is not a :class:`Federation`.
-    :raises NotImplementedError: If the federation has 3 user clocks. 3D extraction is reserved for later phases.
     :raises ValueError: If the dimension is outside the supported range or if ``limits`` are malformed.
     """
 
@@ -1112,8 +1824,16 @@ def extract_federation_geometry(
         )
 
     if user_dimension == 3:
-        raise NotImplementedError("3D visualization geometry is reserved for the later rendering phase.")
-    raise ValueError("Visualization geometry currently supports only 1D, 2D, and reserved 3D contexts.")
+        normalized_limits = _normalize_3d_limits(limits, [_dbm_axis_bounds_3d(dbm) for dbm in dbms])  # type: ignore[arg-type]
+        dbm_geometries = []  # type: List[Union[PolyhedronGeometry3D, FaceGeometry3D, SegmentGeometry3D, PointGeometry3D]]
+        for dbm in dbms:
+            geometry = _extract_dbm_geometry_3d(dbm, normalized_limits)
+            if not isinstance(geometry, EmptyGeometry):
+                dbm_geometries.append(geometry)
+        if not dbm_geometries:
+            return EmptyGeometry(dimension=3)
+        return FederationGeometry3D(dbm_geometries=tuple(dbm_geometries), limits=normalized_limits)
+    raise ValueError("Visualization geometry currently supports only 1D, 2D, and 3D contexts.")
 
 
 def _require_matplotlib() -> Tuple[Any, Any, Any]:
@@ -1124,6 +1844,13 @@ def _require_matplotlib() -> Tuple[Any, Any, Any]:
     except ImportError as err:
         raise ImportError("matplotlib is required for visualization support. Install pyudbm[plot].") from err
     return pyplot, patches, path
+
+
+def _require_mplot3d() -> Any:
+    try:
+        return importlib.import_module("mpl_toolkits.mplot3d.art3d")
+    except ImportError as err:
+        raise ImportError("matplotlib is required for visualization support. Install pyudbm[plot].") from err
 
 
 def _auto_plot_axis_limits(bounds: Sequence[Tuple[Optional[float], Optional[float]]]) -> Tuple[float, float]:
@@ -1152,30 +1879,56 @@ def _auto_plot_axis_limits(bounds: Sequence[Tuple[Optional[float], Optional[floa
 
 def _auto_plot_limits_for_dbm(
         dbm: DBM,
-) -> Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]]:
+) -> Union[
+    Tuple[float, float],
+    Tuple[Tuple[float, float], Tuple[float, float]],
+    Tuple[Tuple[float, float], Tuple[float, float], Tuple[float, float]],
+]:
     user_dimension = dbm.dimension - 1
     if user_dimension == 1:
         lower, upper, _, _ = _dbm_axis_bounds_1d(dbm)
         return _auto_plot_axis_limits([(lower, upper)])
-    x_lower, x_upper, y_lower, y_upper = _dbm_axis_bounds_2d(dbm)
-    return _auto_plot_axis_limits([(x_lower, x_upper)]), _auto_plot_axis_limits([(y_lower, y_upper)])
+    if user_dimension == 2:
+        x_lower, x_upper, y_lower, y_upper = _dbm_axis_bounds_2d(dbm)
+        return _auto_plot_axis_limits([(x_lower, x_upper)]), _auto_plot_axis_limits([(y_lower, y_upper)])
+    x_lower, x_upper, y_lower, y_upper, z_lower, z_upper = _dbm_axis_bounds_3d(dbm)
+    return (
+        _auto_plot_axis_limits([(x_lower, x_upper)]),
+        _auto_plot_axis_limits([(y_lower, y_upper)]),
+        _auto_plot_axis_limits([(z_lower, z_upper)]),
+    )
 
 
 def _auto_plot_limits_for_federation(
         federation: Federation,
-) -> Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]]:
+) -> Union[
+    Tuple[float, float],
+    Tuple[Tuple[float, float], Tuple[float, float]],
+    Tuple[Tuple[float, float], Tuple[float, float], Tuple[float, float]],
+]:
     user_dimension = len(federation.context.clocks)
     dbms = federation.to_dbm_list()
     if user_dimension == 1:
         bounds = [_dbm_axis_bounds_1d(dbm)[:2] for dbm in dbms]
         return _auto_plot_axis_limits(bounds)
+    if user_dimension == 2:
+        x_bounds = []  # type: List[Tuple[Optional[float], Optional[float]]]
+        y_bounds = []  # type: List[Tuple[Optional[float], Optional[float]]]
+        for dbm in dbms:
+            x_lower, x_upper, y_lower, y_upper = _dbm_axis_bounds_2d(dbm)
+            x_bounds.append((x_lower, x_upper))
+            y_bounds.append((y_lower, y_upper))
+        return _auto_plot_axis_limits(x_bounds), _auto_plot_axis_limits(y_bounds)
+
     x_bounds = []  # type: List[Tuple[Optional[float], Optional[float]]]
     y_bounds = []  # type: List[Tuple[Optional[float], Optional[float]]]
+    z_bounds = []  # type: List[Tuple[Optional[float], Optional[float]]]
     for dbm in dbms:
-        x_lower, x_upper, y_lower, y_upper = _dbm_axis_bounds_2d(dbm)
+        x_lower, x_upper, y_lower, y_upper, z_lower, z_upper = _dbm_axis_bounds_3d(dbm)
         x_bounds.append((x_lower, x_upper))
         y_bounds.append((y_lower, y_upper))
-    return _auto_plot_axis_limits(x_bounds), _auto_plot_axis_limits(y_bounds)
+        z_bounds.append((z_lower, z_upper))
+    return _auto_plot_axis_limits(x_bounds), _auto_plot_axis_limits(y_bounds), _auto_plot_axis_limits(z_bounds)
 
 
 def _set_axis_clock_labels(ax: Any, clock_names: Sequence[str], dimension: int) -> None:
@@ -1183,17 +1936,27 @@ def _set_axis_clock_labels(ax: Any, clock_names: Sequence[str], dimension: int) 
         ax.set_xlabel(clock_names[0])
     if dimension >= 2 and len(clock_names) >= 2:
         ax.set_ylabel(clock_names[1])
+    if dimension >= 3 and len(clock_names) >= 3:
+        ax.set_zlabel(clock_names[2])
     elif dimension == 1:
         ax.set_ylabel("visual baseline")
 
 
 def _resolve_limits_from_geometry(
         geometry: Union[
-            EmptyGeometry, Interval1D, MultiInterval1D, PolygonGeometry2D, SegmentGeometry2D, PointGeometry2D, FederationGeometry2D]
-) -> Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]]:
+            EmptyGeometry, Interval1D, MultiInterval1D, PolygonGeometry2D, SegmentGeometry2D, PointGeometry2D,
+            FederationGeometry2D, PolyhedronGeometry3D, FaceGeometry3D, SegmentGeometry3D, PointGeometry3D,
+            FederationGeometry3D]
+) -> Union[
+    Tuple[float, float],
+    Tuple[Tuple[float, float], Tuple[float, float]],
+    Tuple[Tuple[float, float], Tuple[float, float], Tuple[float, float]],
+]:
     if isinstance(geometry, EmptyGeometry):
         if geometry.dimension == 1:
             return -1.0, 1.0
+        if geometry.dimension == 3:
+            return (-1.0, 1.0), (-1.0, 1.0), (-1.0, 1.0)
         return (-1.0, 1.0), (-1.0, 1.0)
 
     if isinstance(geometry, Interval1D):
@@ -1204,9 +1967,12 @@ def _resolve_limits_from_geometry(
         return -1.0, 1.0
     if isinstance(geometry, FederationGeometry2D):
         return geometry.limits
+    if isinstance(geometry, FederationGeometry3D):
+        return geometry.limits
 
     x_values = []  # type: List[float]
     y_values = []  # type: List[float]
+    z_values = []  # type: List[float]
     if isinstance(geometry, PolygonGeometry2D):
         x_values.extend(point.x for point in geometry.vertices)
         y_values.extend(point.y for point in geometry.vertices)
@@ -1216,6 +1982,40 @@ def _resolve_limits_from_geometry(
     elif isinstance(geometry, PointGeometry2D):
         x_values.append(geometry.point.x)
         y_values.append(geometry.point.y)
+    elif isinstance(geometry, PolyhedronGeometry3D):
+        x_values.extend(point.x for point in geometry.vertices)
+        y_values.extend(point.y for point in geometry.vertices)
+        z_values.extend(point.z for point in geometry.vertices)
+    elif isinstance(geometry, FaceGeometry3D):
+        x_values.extend(point.x for point in geometry.face.vertices)
+        y_values.extend(point.y for point in geometry.face.vertices)
+        z_values.extend(point.z for point in geometry.face.vertices)
+    elif isinstance(geometry, SegmentGeometry3D):
+        x_values.extend([geometry.segment.start.x, geometry.segment.end.x])
+        y_values.extend([geometry.segment.start.y, geometry.segment.end.y])
+        z_values.extend([geometry.segment.start.z, geometry.segment.end.z])
+    elif isinstance(geometry, PointGeometry3D):
+        x_values.append(geometry.point.x)
+        y_values.append(geometry.point.y)
+        z_values.append(geometry.point.z)
+
+    if z_values:
+        xmin = min(x_values)
+        xmax = max(x_values)
+        ymin = min(y_values)
+        ymax = max(y_values)
+        zmin = min(z_values)
+        zmax = max(z_values)
+        if _almost_equal(xmin, xmax):
+            xmin -= 1.0
+            xmax += 1.0
+        if _almost_equal(ymin, ymax):
+            ymin -= 1.0
+            ymax += 1.0
+        if _almost_equal(zmin, zmax):
+            zmin -= 1.0
+            zmax += 1.0
+        return (xmin, xmax), (ymin, ymax), (zmin, zmax)
 
     x_values = x_values or [-1.0, 1.0]
     y_values = y_values or [-1.0, 1.0]
@@ -1235,7 +2035,9 @@ def _resolve_limits_from_geometry(
 
 def _resolve_strict_epsilon(
         geometry: Union[
-            EmptyGeometry, Interval1D, MultiInterval1D, PolygonGeometry2D, SegmentGeometry2D, PointGeometry2D, FederationGeometry2D],
+            EmptyGeometry, Interval1D, MultiInterval1D, PolygonGeometry2D, SegmentGeometry2D, PointGeometry2D,
+            FederationGeometry2D, PolyhedronGeometry3D, FaceGeometry3D, SegmentGeometry3D, PointGeometry3D,
+            FederationGeometry3D],
         strict_epsilon: Optional[float],
 ) -> float:
     if strict_epsilon is not None:
@@ -1246,8 +2048,16 @@ def _resolve_strict_epsilon(
 
     limits = _resolve_limits_from_geometry(geometry)
     if isinstance(limits[0], tuple):
-        x_limits, y_limits = limits  # type: ignore[misc]
-        scale = min(float(x_limits[1]) - float(x_limits[0]), float(y_limits[1]) - float(y_limits[0]))
+        if len(limits) == 2:
+            x_limits, y_limits = limits  # type: ignore[misc]
+            scale = min(float(x_limits[1]) - float(x_limits[0]), float(y_limits[1]) - float(y_limits[0]))
+        else:
+            x_limits, y_limits, z_limits = limits  # type: ignore[misc]
+            scale = min(
+                float(x_limits[1]) - float(x_limits[0]),
+                float(y_limits[1]) - float(y_limits[0]),
+                float(z_limits[1]) - float(z_limits[0]),
+            )
     else:
         scale = float(limits[1]) - float(limits[0])  # type: ignore[index]
     return max(scale * 1e-4, 1e-7)
@@ -1301,23 +2111,40 @@ def _resolve_style(
 def _make_axes(pyplot: Any, ax: Optional[Any], dimension: int) -> Any:
     if ax is not None:
         return ax
-    _, new_ax = pyplot.subplots(subplot_kw=None if dimension != 2 else None)
+    if dimension == 3:
+        figure = pyplot.figure()
+        return figure.add_subplot(111, projection="3d")
+    _, new_ax = pyplot.subplots()
     return new_ax
 
 
 def _set_default_view(
         ax: Any,
         geometry: Union[
-            EmptyGeometry, Interval1D, MultiInterval1D, PolygonGeometry2D, SegmentGeometry2D, PointGeometry2D, FederationGeometry2D],
+            EmptyGeometry, Interval1D, MultiInterval1D, PolygonGeometry2D, SegmentGeometry2D, PointGeometry2D,
+            FederationGeometry2D, PolyhedronGeometry3D, FaceGeometry3D, SegmentGeometry3D, PointGeometry3D,
+            FederationGeometry3D],
         baseline: float,
-        view_limits: Optional[Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]]] = None,
+        view_limits: Optional[
+            Union[
+                Tuple[float, float],
+                Tuple[Tuple[float, float], Tuple[float, float]],
+                Tuple[Tuple[float, float], Tuple[float, float], Tuple[float, float]],
+            ]
+        ] = None,
 ) -> None:
     limits = view_limits if view_limits is not None else _resolve_limits_from_geometry(geometry)
     if isinstance(limits[0], tuple):
-        x_limits, y_limits = limits  # type: ignore[misc]
-        ax.set_xlim(*x_limits)
-        ax.set_ylim(*y_limits)
-        ax.set_aspect("equal", adjustable="box")
+        if len(limits) == 2:
+            x_limits, y_limits = limits  # type: ignore[misc]
+            ax.set_xlim(*x_limits)
+            ax.set_ylim(*y_limits)
+            ax.set_aspect("equal", adjustable="box")
+        else:
+            x_limits, y_limits, z_limits = limits  # type: ignore[misc]
+            ax.set_xlim(*x_limits)
+            ax.set_ylim(*y_limits)
+            ax.set_zlim(*z_limits)
     else:
         x_limits = limits  # type: ignore[assignment]
         ax.set_xlim(*x_limits)
@@ -1328,8 +2155,16 @@ def _merged_view_limits(
         ax: Any,
         dimension: int,
         baseline: float,
-        view_limits: Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]],
-) -> Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]]:
+        view_limits: Union[
+            Tuple[float, float],
+            Tuple[Tuple[float, float], Tuple[float, float]],
+            Tuple[Tuple[float, float], Tuple[float, float], Tuple[float, float]],
+        ],
+) -> Union[
+    Tuple[float, float],
+    Tuple[Tuple[float, float], Tuple[float, float]],
+    Tuple[Tuple[float, float], Tuple[float, float], Tuple[float, float]],
+]:
     del baseline
     if not ax.has_data():
         return view_limits
@@ -1338,6 +2173,17 @@ def _merged_view_limits(
         current_x = ax.get_xlim()
         new_x = view_limits  # type: ignore[assignment]
         return min(current_x[0], new_x[0]), max(current_x[1], new_x[1])
+
+    if dimension == 3:
+        current_x = ax.get_xlim()
+        current_y = ax.get_ylim()
+        current_z = ax.get_zlim()
+        new_x, new_y, new_z = view_limits  # type: ignore[misc]
+        return (
+            (min(current_x[0], new_x[0]), max(current_x[1], new_x[1])),
+            (min(current_y[0], new_y[0]), max(current_y[1], new_y[1])),
+            (min(current_z[0], new_z[0]), max(current_z[1], new_z[1])),
+        )
 
     current_x = ax.get_xlim()
     current_y = ax.get_ylim()
@@ -1370,9 +2216,9 @@ def _resolve_annotation_text(
     return False, None
 
 
-def _endpoint_marker_style(is_closed: bool, edgecolor: Any) -> Dict[str, Any]:
+def _endpoint_marker_style(is_closed: bool, edgecolor: Any, is_clipped: bool = False) -> Dict[str, Any]:
     return {
-        "marker": "o",
+        "marker": "s" if is_clipped else "o",
         "markersize": 6.0,
         "markeredgecolor": edgecolor,
         "markerfacecolor": edgecolor if is_closed else "none",
@@ -1404,9 +2250,9 @@ def _plot_interval(ax: Any, interval: Interval1D, baseline: float, epsilon: floa
         boundaries.append(line)
 
     lower_marker = ax.plot([interval.lower], [baseline], color=edgecolor, zorder=zorder,
-                           **_endpoint_marker_style(interval.lower_closed, edgecolor))[0]
+                           **_endpoint_marker_style(interval.lower_closed, edgecolor, interval.lower_clipped))[0]
     upper_marker = ax.plot([interval.upper], [baseline], color=edgecolor, zorder=zorder,
-                           **_endpoint_marker_style(interval.upper_closed, edgecolor))[0]
+                           **_endpoint_marker_style(interval.upper_closed, edgecolor, interval.upper_clipped))[0]
     markers.extend([lower_marker, upper_marker])
     return PlotResult(ax=ax, boundaries=tuple(boundaries), markers=tuple(markers))
 
@@ -1502,6 +2348,8 @@ def _polygon_fill_vertices(geometry: PolygonGeometry2D, epsilon: float) -> Tuple
 
 
 def _edge_linestyle(segment: BoundarySegment2D, default_linestyle: Any) -> Any:
+    if segment.is_clipped:
+        return ":" if not segment.is_closed else "-."
     if not segment.is_closed:
         return "--"
     return default_linestyle
@@ -1616,17 +2464,17 @@ def _plot_dbm_2d_geometry(
         boundaries.append(line)
         markers.append(
             ax.plot([geometry.segment.start.x], [geometry.segment.start.y], color=resolved_edgecolor, zorder=zorder,
-                    **_endpoint_marker_style(geometry.segment.is_closed, resolved_edgecolor))[0])
+                    **_endpoint_marker_style(geometry.segment.is_closed, resolved_edgecolor, geometry.segment.is_clipped))[0])
         markers.append(
             ax.plot([geometry.segment.end.x], [geometry.segment.end.y], color=resolved_edgecolor, zorder=zorder,
-                    **_endpoint_marker_style(geometry.segment.is_closed, resolved_edgecolor))[0])
+                    **_endpoint_marker_style(geometry.segment.is_closed, resolved_edgecolor, geometry.segment.is_clipped))[0])
         if annotate and annotation_text is not None:
             annotations.append(
                 ax.text(geometry.segment.midpoint.x, geometry.segment.midpoint.y, annotation_text, color=resolved_edgecolor))
 
     elif isinstance(geometry, PointGeometry2D):
         marker = ax.plot([geometry.point.x], [geometry.point.y], color=resolved_edgecolor, zorder=zorder, label=label,
-                         **_endpoint_marker_style(geometry.is_closed, resolved_edgecolor))[0]
+                         **_endpoint_marker_style(geometry.is_closed, resolved_edgecolor, geometry.is_clipped))[0]
         markers.append(marker)
         if annotate and annotation_text is not None:
             annotations.append(ax.text(geometry.point.x, geometry.point.y, annotation_text, color=resolved_edgecolor))
@@ -1751,7 +2599,7 @@ def _plot_federation_2d_geometry(
 
         for point in geometry.isolated_points:
             markers.append(ax.plot([point.x], [point.y], color=resolved_edgecolor, zorder=zorder,
-                                   **_endpoint_marker_style(True, resolved_edgecolor))[0])
+                                   **_endpoint_marker_style(True, resolved_edgecolor, False))[0])
 
         if annotate and annotation_text is not None:
             for face in geometry.faces:
@@ -1770,11 +2618,353 @@ def _plot_federation_2d_geometry(
     )
 
 
+def _plot_boundary_edge_3d(
+        ax: Any,
+        edge: BoundaryEdge3D,
+        edgecolor: Any,
+        linewidth: float,
+        linestyle: Any,
+        zorder: Optional[float],
+        label: Optional[str],
+) -> Any:
+    return ax.plot(
+        [edge.start.x, edge.end.x],
+        [edge.start.y, edge.end.y],
+        [edge.start.z, edge.end.z],
+        color=edgecolor,
+        linewidth=linewidth,
+        linestyle=_edge_linestyle(
+            BoundarySegment2D(Point2D(0.0, 0.0), Point2D(1.0, 0.0), edge.is_closed, edge.is_clipped),
+            linestyle,
+        ),
+        zorder=zorder,
+        label=label,
+    )[0]
+
+
+def _face_center_3d(face: Face3D) -> Point3D:
+    return Point3D(
+        sum(point.x for point in face.vertices) / float(len(face.vertices)),
+        sum(point.y for point in face.vertices) / float(len(face.vertices)),
+        sum(point.z for point in face.vertices) / float(len(face.vertices)),
+    )
+
+
+def _arrow_for_face_3d(ax: Any, face: Face3D, edgecolor: Any, linewidth: float, zorder: Optional[float]) -> Any:
+    center = _face_center_3d(face)
+    normal = _normalize3(face.normal)
+    arrow_length = max(
+        max(max(point.x for point in face.vertices) - min(point.x for point in face.vertices), 0.5),
+        max(max(point.y for point in face.vertices) - min(point.y for point in face.vertices), 0.5),
+        max(max(point.z for point in face.vertices) - min(point.z for point in face.vertices), 0.5),
+    ) * 0.15
+    return ax.quiver(
+        [center.x],
+        [center.y],
+        [center.z],
+        [normal.x],
+        [normal.y],
+        [normal.z],
+        length=arrow_length,
+        color=edgecolor,
+        linewidth=linewidth,
+        normalize=True,
+    )
+
+
+def _segment_arrow_direction_3d(halfspaces: Sequence[HalfSpace3D], point: Point3D) -> Point3D:
+    active = [halfspace for halfspace in _active_halfspaces_3d(point, halfspaces) if halfspace.is_clip]
+    if not active:
+        return Point3D(0.0, 0.0, 0.0)
+    direction = Point3D(
+        sum(halfspace.a for halfspace in active),
+        sum(halfspace.b for halfspace in active),
+        sum(halfspace.c for halfspace in active),
+    )
+    return _normalize3(direction)
+
+
+def _arrow_for_point_3d(
+        ax: Any,
+        point: Point3D,
+        direction: Point3D,
+        edgecolor: Any,
+        linewidth: float,
+        zorder: Optional[float],
+) -> Any:
+    if _norm3(direction) <= _GEOMETRY_EPSILON:
+        return None
+    return ax.quiver(
+        [point.x],
+        [point.y],
+        [point.z],
+        [direction.x],
+        [direction.y],
+        [direction.z],
+        length=0.2,
+        color=edgecolor,
+        linewidth=linewidth,
+        normalize=True,
+    )
+
+
+def _plot_face_geometry_3d(
+        face: Face3D,
+        ax: Any,
+        art3d: Any,
+        edgecolor: Any,
+        facecolor: Any,
+        alpha: float,
+        linewidth: float,
+        linestyle: Any,
+        zorder: Optional[float],
+        label: Optional[str],
+) -> PlotResult:
+    fills = []  # type: List[Any]
+    boundaries = []  # type: List[Any]
+    collection = art3d.Poly3DCollection(
+        [[(point.x, point.y, point.z) for point in face.vertices]],
+        facecolors=facecolor,
+        edgecolors="none",
+        alpha=alpha,
+    )
+    collection.set_label("_nolegend_")
+    if zorder is not None:
+        collection.set_zorder(zorder)
+    ax.add_collection3d(collection)
+    fills.append(collection)
+
+    for index, edge in enumerate(face.edges):
+        boundaries.append(
+            _plot_boundary_edge_3d(ax, edge, edgecolor, linewidth, linestyle, zorder, _line_label(label, index))
+        )
+    return PlotResult(ax=ax, fills=tuple(fills), boundaries=tuple(boundaries))
+
+
+def _plot_dbm_3d_geometry(
+        geometry: Union[EmptyGeometry, PolyhedronGeometry3D, FaceGeometry3D, SegmentGeometry3D, PointGeometry3D],
+        ax: Any,
+        show_unbounded: bool,
+        annotate: bool,
+        annotation_text: Optional[str],
+        facecolor: Optional[Any],
+        edgecolor: Optional[Any],
+        alpha: Optional[float],
+        linewidth: Optional[float],
+        linestyle: Optional[Any],
+        label: Optional[str],
+        zorder: Optional[float],
+) -> PlotResult:
+    art3d = _require_mplot3d()
+    resolved_facecolor, resolved_edgecolor, resolved_alpha, resolved_linewidth, resolved_linestyle = _resolve_style(
+        ax, facecolor, edgecolor, alpha, linewidth, linestyle
+    )
+
+    fills = []  # type: List[Any]
+    boundaries = []  # type: List[Any]
+    markers = []  # type: List[Any]
+    arrows = []  # type: List[Any]
+    annotations = []  # type: List[Any]
+
+    if isinstance(geometry, PolyhedronGeometry3D):
+        if geometry.faces:
+            collection = art3d.Poly3DCollection(
+                [[(point.x, point.y, point.z) for point in face.vertices] for face in geometry.faces],
+                facecolors=resolved_facecolor,
+                edgecolors="none",
+                alpha=resolved_alpha,
+            )
+            collection.set_label("_nolegend_")
+            if zorder is not None:
+                collection.set_zorder(zorder)
+            ax.add_collection3d(collection)
+            fills.append(collection)
+
+        for index, edge in enumerate(geometry.edges):
+            boundaries.append(
+                _plot_boundary_edge_3d(
+                    ax,
+                    edge,
+                    resolved_edgecolor,
+                    resolved_linewidth,
+                    resolved_linestyle,
+                    zorder,
+                    _line_label(label, index),
+                )
+            )
+
+        if show_unbounded:
+            for face in geometry.faces:
+                if face.is_clipped:
+                    arrow = _arrow_for_face_3d(ax, face, resolved_edgecolor, resolved_linewidth, zorder)
+                    arrows.append(arrow)
+        if annotate and annotation_text is not None and geometry.vertices:
+            center = Point3D(
+                sum(point.x for point in geometry.vertices) / float(len(geometry.vertices)),
+                sum(point.y for point in geometry.vertices) / float(len(geometry.vertices)),
+                sum(point.z for point in geometry.vertices) / float(len(geometry.vertices)),
+            )
+            annotations.append(ax.text(center.x, center.y, center.z, annotation_text, color=resolved_edgecolor))
+
+    elif isinstance(geometry, FaceGeometry3D):
+        face_result = _plot_face_geometry_3d(
+            geometry.face,
+            ax,
+            art3d,
+            resolved_edgecolor,
+            resolved_facecolor,
+            resolved_alpha,
+            resolved_linewidth,
+            resolved_linestyle,
+            zorder,
+            label,
+        )
+        fills.extend(face_result.fills)
+        boundaries.extend(face_result.boundaries)
+        if show_unbounded and geometry.face.is_clipped:
+            arrows.append(_arrow_for_face_3d(ax, geometry.face, resolved_edgecolor, resolved_linewidth, zorder))
+        if annotate and annotation_text is not None:
+            center = _face_center_3d(geometry.face)
+            annotations.append(ax.text(center.x, center.y, center.z, annotation_text, color=resolved_edgecolor))
+
+    elif isinstance(geometry, SegmentGeometry3D):
+        boundaries.append(
+            _plot_boundary_edge_3d(ax, geometry.segment, resolved_edgecolor, resolved_linewidth, resolved_linestyle, zorder, label)
+        )
+        markers.append(
+            ax.plot(
+                [geometry.segment.start.x],
+                [geometry.segment.start.y],
+                [geometry.segment.start.z],
+                color=resolved_edgecolor,
+                zorder=zorder,
+                **_endpoint_marker_style(geometry.segment.is_closed, resolved_edgecolor, geometry.segment.is_clipped)
+            )[0]
+        )
+        markers.append(
+            ax.plot(
+                [geometry.segment.end.x],
+                [geometry.segment.end.y],
+                [geometry.segment.end.z],
+                color=resolved_edgecolor,
+                zorder=zorder,
+                **_endpoint_marker_style(geometry.segment.is_closed, resolved_edgecolor, geometry.segment.is_clipped)
+            )[0]
+        )
+        if show_unbounded and geometry.segment.is_clipped:
+            direction = _segment_arrow_direction_3d(geometry.halfspaces, geometry.segment.midpoint)
+            arrow = _arrow_for_point_3d(ax, geometry.segment.midpoint, direction, resolved_edgecolor, resolved_linewidth, zorder)
+            if arrow is not None:
+                arrows.append(arrow)
+        if annotate and annotation_text is not None:
+            midpoint = geometry.segment.midpoint
+            annotations.append(ax.text(midpoint.x, midpoint.y, midpoint.z, annotation_text, color=resolved_edgecolor))
+
+    elif isinstance(geometry, PointGeometry3D):
+        marker = ax.plot(
+            [geometry.point.x],
+            [geometry.point.y],
+            [geometry.point.z],
+            color=resolved_edgecolor,
+            zorder=zorder,
+            label=label,
+            **_endpoint_marker_style(geometry.is_closed, resolved_edgecolor, geometry.is_clipped)
+        )[0]
+        markers.append(marker)
+        if show_unbounded and geometry.is_clipped:
+            direction = _segment_arrow_direction_3d(geometry.halfspaces, geometry.point)
+            arrow = _arrow_for_point_3d(ax, geometry.point, direction, resolved_edgecolor, resolved_linewidth, zorder)
+            if arrow is not None:
+                arrows.append(arrow)
+        if annotate and annotation_text is not None:
+            annotations.append(ax.text(geometry.point.x, geometry.point.y, geometry.point.z, annotation_text, color=resolved_edgecolor))
+
+    return PlotResult(
+        ax=ax,
+        fills=tuple(fills),
+        boundaries=tuple(boundaries),
+        markers=tuple(markers),
+        arrows=tuple(arrows),
+        annotations=tuple(annotations),
+    )
+
+
+def _plot_federation_3d_geometry(
+        geometry: Union[EmptyGeometry, FederationGeometry3D],
+        ax: Any,
+        show_unbounded: bool,
+        annotate: bool,
+        annotation_text: Optional[str],
+        color_mode: str,
+        facecolor: Optional[Any],
+        edgecolor: Optional[Any],
+        alpha: Optional[float],
+        linewidth: Optional[float],
+        linestyle: Optional[Any],
+        label: Optional[str],
+        zorder: Optional[float],
+) -> PlotResult:
+    if color_mode not in {"shared", "per_dbm"}:
+        raise ValueError("color_mode must be 'shared' or 'per_dbm'.")
+
+    fills = []  # type: List[Any]
+    boundaries = []  # type: List[Any]
+    markers = []  # type: List[Any]
+    arrows = []  # type: List[Any]
+    annotations = []  # type: List[Any]
+
+    if isinstance(geometry, FederationGeometry3D):
+        colors = _take_default_colors(ax, len(geometry.dbm_geometries)) if color_mode == "per_dbm" else tuple()
+        for index, dbm_geometry in enumerate(geometry.dbm_geometries):
+            current_facecolor = facecolor
+            current_edgecolor = edgecolor
+            current_alpha = alpha
+            if color_mode == "per_dbm":
+                current_facecolor = colors[index]
+                current_edgecolor = colors[index]
+                current_alpha = min(0.2, 0.25 if alpha is None else float(alpha))
+
+            dbm_result = _plot_dbm_3d_geometry(
+                dbm_geometry,
+                ax=ax,
+                show_unbounded=show_unbounded,
+                annotate=annotate,
+                annotation_text=annotation_text,
+                facecolor=current_facecolor,
+                edgecolor=current_edgecolor,
+                alpha=current_alpha,
+                linewidth=linewidth,
+                linestyle=linestyle,
+                label=_line_label(label, index),
+                zorder=zorder,
+            )
+            fills.extend(dbm_result.fills)
+            boundaries.extend(dbm_result.boundaries)
+            markers.extend(dbm_result.markers)
+            arrows.extend(dbm_result.arrows)
+            annotations.extend(dbm_result.annotations)
+
+    return PlotResult(
+        ax=ax,
+        fills=tuple(fills),
+        boundaries=tuple(boundaries),
+        markers=tuple(markers),
+        arrows=tuple(arrows),
+        annotations=tuple(annotations),
+    )
+
+
 def plot_dbm(
         dbm: DBM,
         ax: Optional[Any] = None,
         *,
-        limits: Optional[Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]]] = None,
+        limits: Optional[
+            Union[
+                Tuple[float, float],
+                Tuple[Tuple[float, float], Tuple[float, float]],
+                Tuple[Tuple[float, float], Tuple[float, float], Tuple[float, float]],
+            ]
+        ] = None,
         strict_epsilon: Optional[float] = None,
         show_unbounded: bool = True,
         annotate: bool = False,
@@ -1803,10 +2993,11 @@ def plot_dbm(
     :param ax: Optional matplotlib axes. When omitted, a new axes is created.
     :type ax: Optional[Any]
     :param limits: Optional explicit render limits. Use ``(xmin, xmax)`` for
-        1D and ``((xmin, xmax), (ymin, ymax))`` for 2D. When omitted, limits
-        are inferred from the DBM bounds and merged with existing axes limits
-        when plotting into a reused axes.
-    :type limits: Optional[Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]]]
+        1D, ``((xmin, xmax), (ymin, ymax))`` for 2D, and
+        ``((xmin, xmax), (ymin, ymax), (zmin, zmax))`` for 3D. When omitted,
+        limits are inferred from the DBM bounds and merged with existing axes
+        limits when plotting into a reused axes.
+    :type limits: Optional[Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]], Tuple[Tuple[float, float], Tuple[float, float], Tuple[float, float]]]]
     :param strict_epsilon: Optional positive epsilon used when shrinking fill
         interiors for strict inequalities.
     :type strict_epsilon: Optional[float]
@@ -1821,14 +3012,14 @@ def plot_dbm(
     :type annotate_text: Optional[str]
     :param baseline: Vertical baseline used by 1D plots.
     :type baseline: float
-    :param facecolor: Optional fill color for 2D regions. When both
+    :param facecolor: Optional fill color for 2D and 3D regions. When both
         ``facecolor`` and ``edgecolor`` are omitted, the next matplotlib
         default cycle color is used.
     :type facecolor: Optional[Any]
     :param edgecolor: Optional boundary color. When omitted, it follows the
         fill color or the current axes color cycle.
     :type edgecolor: Optional[Any]
-    :param alpha: Optional fill alpha for 2D regions.
+    :param alpha: Optional fill alpha for 2D and 3D regions.
     :type alpha: Optional[float]
     :param linewidth: Optional boundary line width.
     :type linewidth: Optional[float]
@@ -1841,13 +3032,13 @@ def plot_dbm(
     :return: Container of created matplotlib artists.
     :rtype: PlotResult
     :raises ImportError: If matplotlib is not installed.
-    :raises NotImplementedError: If the DBM is not 1D or 2D.
+    :raises NotImplementedError: If the DBM is outside the supported ``1..3`` user-clock range.
     :raises ValueError: If ``strict_epsilon`` is non-positive or if ``limits`` are malformed.
     """
 
     user_dimension = dbm.dimension - 1
-    if user_dimension not in {1, 2}:
-        raise NotImplementedError("Matplotlib plotting currently supports only 1D and 2D DBMs.")
+    if user_dimension not in {1, 2, 3}:
+        raise NotImplementedError("Matplotlib plotting currently supports only 1D, 2D, and 3D DBMs.")
 
     resolved_label = str(dbm) if label is None else label
     resolved_annotate, resolved_annotation_text = _resolve_annotation_text(annotate, annotate_text, resolved_label)
@@ -1877,10 +3068,25 @@ def plot_dbm(
             label=resolved_label,
             zorder=zorder,
         )
-    return _plot_dbm_2d_geometry(
+    if user_dimension == 2:
+        return _plot_dbm_2d_geometry(
+            geometry,  # type: ignore[arg-type]
+            ax=ax,
+            strict_epsilon=epsilon,
+            show_unbounded=show_unbounded,
+            annotate=resolved_annotate,
+            annotation_text=resolved_annotation_text,
+            facecolor=facecolor,
+            edgecolor=edgecolor,
+            alpha=alpha,
+            linewidth=linewidth,
+            linestyle=linestyle,
+            label=resolved_label,
+            zorder=zorder,
+        )
+    return _plot_dbm_3d_geometry(
         geometry,  # type: ignore[arg-type]
         ax=ax,
-        strict_epsilon=epsilon,
         show_unbounded=show_unbounded,
         annotate=resolved_annotate,
         annotation_text=resolved_annotation_text,
@@ -1898,7 +3104,13 @@ def plot_federation(
         federation: Federation,
         ax: Optional[Any] = None,
         *,
-        limits: Optional[Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]]] = None,
+        limits: Optional[
+            Union[
+                Tuple[float, float],
+                Tuple[Tuple[float, float], Tuple[float, float]],
+                Tuple[Tuple[float, float], Tuple[float, float], Tuple[float, float]],
+            ]
+        ] = None,
         strict_epsilon: Optional[float] = None,
         show_unbounded: bool = True,
         annotate: bool = False,
@@ -1918,7 +3130,8 @@ def plot_federation(
 
     For 1D federations this renders the exact interval union. For 2D
     federations this renders the exact clipped boundary extracted in the
-    geometry layer.
+    geometry layer. For 3D federations this renders the exact clipped geometry
+    of each constituent DBM.
 
     The default legend label and, when enabled, the default annotation text
     are both derived from ``str(federation)``.
@@ -1928,10 +3141,11 @@ def plot_federation(
     :param ax: Optional matplotlib axes. When omitted, a new axes is created.
     :type ax: Optional[Any]
     :param limits: Optional explicit render limits. Use ``(xmin, xmax)`` for
-        1D and ``((xmin, xmax), (ymin, ymax))`` for 2D. When omitted, limits
-        are inferred from the federation bounds and merged with existing axes
-        limits when plotting into a reused axes.
-    :type limits: Optional[Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]]]]
+        1D, ``((xmin, xmax), (ymin, ymax))`` for 2D, and
+        ``((xmin, xmax), (ymin, ymax), (zmin, zmax))`` for 3D. When omitted,
+        limits are inferred from the federation bounds and merged with
+        existing axes limits when plotting into a reused axes.
+    :type limits: Optional[Union[Tuple[float, float], Tuple[Tuple[float, float], Tuple[float, float]], Tuple[Tuple[float, float], Tuple[float, float], Tuple[float, float]]]]
     :param strict_epsilon: Optional positive epsilon used when shrinking fill
         interiors for strict inequalities.
     :type strict_epsilon: Optional[float]
@@ -1946,18 +3160,18 @@ def plot_federation(
     :type annotate_text: Optional[str]
     :param baseline: Vertical baseline used by 1D plots.
     :type baseline: float
-    :param color_mode: ``"shared"`` to render the exact union with one visual
-        style, or ``"per_dbm"`` to additionally show individual DBM pieces in
+    :param color_mode: ``"shared"`` to render federation pieces with one
+        visual style, or ``"per_dbm"`` to show individual DBM pieces in
         distinct colors.
     :type color_mode: str
-    :param facecolor: Optional fill color for 2D regions. When both
+    :param facecolor: Optional fill color for 2D and 3D regions. When both
         ``facecolor`` and ``edgecolor`` are omitted, the next matplotlib
         default cycle color is used.
     :type facecolor: Optional[Any]
     :param edgecolor: Optional boundary color. When omitted, it follows the
         fill color or the current axes color cycle.
     :type edgecolor: Optional[Any]
-    :param alpha: Optional fill alpha for 2D regions.
+    :param alpha: Optional fill alpha for 2D and 3D regions.
     :type alpha: Optional[float]
     :param linewidth: Optional boundary line width.
     :type linewidth: Optional[float]
@@ -1970,13 +3184,13 @@ def plot_federation(
     :return: Container of created matplotlib artists.
     :rtype: PlotResult
     :raises ImportError: If matplotlib is not installed.
-    :raises NotImplementedError: If the federation is not 1D or 2D.
+    :raises NotImplementedError: If the federation is outside the supported ``1..3`` user-clock range.
     :raises ValueError: If ``strict_epsilon`` is non-positive, if ``color_mode`` is invalid, or if ``limits`` are malformed.
     """
 
     user_dimension = len(federation.context.clocks)
-    if user_dimension not in {1, 2}:
-        raise NotImplementedError("Matplotlib plotting currently supports only 1D and 2D federations.")
+    if user_dimension not in {1, 2, 3}:
+        raise NotImplementedError("Matplotlib plotting currently supports only 1D, 2D, and 3D federations.")
 
     resolved_label = str(federation) if label is None else label
     resolved_annotate, resolved_annotation_text = _resolve_annotation_text(annotate, annotate_text, resolved_label)
@@ -2006,10 +3220,26 @@ def plot_federation(
             label=resolved_label,
             zorder=zorder,
         )
-    return _plot_federation_2d_geometry(
+    if user_dimension == 2:
+        return _plot_federation_2d_geometry(
+            geometry,  # type: ignore[arg-type]
+            ax=ax,
+            strict_epsilon=epsilon,
+            show_unbounded=show_unbounded,
+            annotate=resolved_annotate,
+            annotation_text=resolved_annotation_text,
+            color_mode=color_mode,
+            facecolor=facecolor,
+            edgecolor=edgecolor,
+            alpha=alpha,
+            linewidth=linewidth,
+            linestyle=linestyle,
+            label=resolved_label,
+            zorder=zorder,
+        )
+    return _plot_federation_3d_geometry(
         geometry,  # type: ignore[arg-type]
         ax=ax,
-        strict_epsilon=epsilon,
         show_unbounded=show_unbounded,
         annotate=resolved_annotate,
         annotation_text=resolved_annotation_text,

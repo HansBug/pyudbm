@@ -4,17 +4,26 @@ import pytest
 
 from pyudbm import Context, FloatValuation
 from pyudbm.binding.visual import (
+    BoundaryEdge3D,
     BoundaryLoop2D,
     BoundarySegment2D,
     EmptyGeometry,
+    Face3D,
     Face2D,
+    FaceGeometry3D,
+    FederationGeometry3D,
     FederationGeometry2D,
+    HalfSpace3D,
     HalfSpace2D,
     Interval1D,
     MultiInterval1D,
+    Point3D,
+    PointGeometry3D,
     Point2D,
     PointGeometry2D,
+    PolyhedronGeometry3D,
     PolygonGeometry2D,
+    SegmentGeometry3D,
     SegmentGeometry2D,
     extract_dbm_geometry,
     extract_federation_geometry,
@@ -96,6 +105,54 @@ def _geometry_contains_2d(geometry, x_value, y_value):
     raise TypeError("Unsupported 2D geometry: {0!r}".format(type(geometry).__name__))
 
 
+def _point_in_face_projection(point, vertices):
+    xs = [vertex.x for vertex in vertices]
+    ys = [vertex.y for vertex in vertices]
+    zs = [vertex.z for vertex in vertices]
+    x_span = max(xs) - min(xs)
+    y_span = max(ys) - min(ys)
+    z_span = max(zs) - min(zs)
+    if x_span <= y_span and x_span <= z_span:
+        projected_point = Point2D(point.y, point.z)
+        projected_vertices = tuple(Point2D(vertex.y, vertex.z) for vertex in vertices)
+    elif y_span <= x_span and y_span <= z_span:
+        projected_point = Point2D(point.x, point.z)
+        projected_vertices = tuple(Point2D(vertex.x, vertex.z) for vertex in vertices)
+    else:
+        projected_point = Point2D(point.x, point.y)
+        projected_vertices = tuple(Point2D(vertex.x, vertex.y) for vertex in vertices)
+    return _point_in_loop_interior(projected_point, type("Loop", (), {"vertices": projected_vertices})())
+
+
+def _geometry_contains_3d(geometry, x_value, y_value, z_value):
+    point = Point3D(float(x_value), float(y_value), float(z_value))
+    if isinstance(geometry, EmptyGeometry):
+        return False
+    if isinstance(geometry, PolyhedronGeometry3D):
+        return all(halfspace.contains(point, respect_strict=True) for halfspace in geometry.halfspaces)
+    if isinstance(geometry, FaceGeometry3D):
+        face = geometry.face
+        plane_value = (
+            (face.normal.x * (point.x - face.vertices[0].x))
+            + (face.normal.y * (point.y - face.vertices[0].y))
+            + (face.normal.z * (point.z - face.vertices[0].z))
+        )
+        if abs(plane_value) > 1e-8:
+            return False
+        return _point_in_face_projection(point, face.vertices) or any(
+            _point_on_segment_3d(point, edge) and edge.is_closed for edge in face.edges
+        )
+    if isinstance(geometry, SegmentGeometry3D):
+        return _point_on_segment_3d(point, geometry.segment) and geometry.segment.is_closed
+    if isinstance(geometry, PointGeometry3D):
+        return geometry.is_closed and math.isclose(point.x, geometry.point.x, abs_tol=1e-9) and math.isclose(
+            point.y, geometry.point.y, abs_tol=1e-9
+        ) and math.isclose(point.z, geometry.point.z, abs_tol=1e-9)
+    if isinstance(geometry, FederationGeometry3D):
+        return any(_geometry_contains_3d(item, x_value, y_value, z_value) for item in geometry.dbm_geometries)
+    raise TypeError("Unsupported 3D geometry: {0!r}".format(type(geometry).__name__))
+
+
 def _federation_contains_1d(federation, value):
     valuation = FloatValuation(federation.context)
     valuation[federation.context.clocks[0]] = float(value)
@@ -107,6 +164,35 @@ def _federation_contains_2d(federation, x_value, y_value):
     valuation[federation.context.clocks[0]] = float(x_value)
     valuation[federation.context.clocks[1]] = float(y_value)
     return federation.contains(valuation)
+
+
+def _federation_contains_3d(federation, x_value, y_value, z_value):
+    valuation = FloatValuation(federation.context)
+    valuation[federation.context.clocks[0]] = float(x_value)
+    valuation[federation.context.clocks[1]] = float(y_value)
+    valuation[federation.context.clocks[2]] = float(z_value)
+    return federation.contains(valuation)
+
+
+def _point_on_segment_3d(point, segment):
+    dx = segment.end.x - segment.start.x
+    dy = segment.end.y - segment.start.y
+    dz = segment.end.z - segment.start.z
+    tx = point.x - segment.start.x
+    ty = point.y - segment.start.y
+    tz = point.z - segment.start.z
+    cross_x = (dy * tz) - (dz * ty)
+    cross_y = (dz * tx) - (dx * tz)
+    cross_z = (dx * ty) - (dy * tx)
+    if math.sqrt((cross_x ** 2) + (cross_y ** 2) + (cross_z ** 2)) > 1e-8:
+        return False
+    dot = (tx * dx) + (ty * dy) + (tz * dz)
+    if dot < -1e-8:
+        return False
+    length_sq = (dx * dx) + (dy * dy) + (dz * dz)
+    if dot > length_sq + 1e-8:
+        return False
+    return True
 
 
 def _segment_probe_points(segment):
@@ -170,6 +256,20 @@ class TestVisualizationGeometry:
         face = Face2D(outer=loop, holes=(degenerate_loop,))
         assert face.outer is loop
         assert face.holes == (degenerate_loop,)
+
+        halfspace_3d = HalfSpace3D(1.0, 0.0, 0.0, 2.0, is_strict=True)
+        boundary_point_3d = Point3D(2.0, 0.0, 0.0)
+        inside_point_3d = Point3D(1.5, 0.0, 0.0)
+        assert halfspace_3d.evaluate(boundary_point_3d) == 0.0
+        assert halfspace_3d.contains(inside_point_3d)
+        assert not halfspace_3d.contains(boundary_point_3d)
+        assert halfspace_3d.contains(boundary_point_3d, respect_strict=False)
+        assert halfspace_3d.contains_on_closure(boundary_point_3d)
+        assert halfspace_3d.is_active(boundary_point_3d)
+
+        edge_3d = BoundaryEdge3D(Point3D(0.0, 0.0, 0.0), Point3D(1.0, 2.0, 2.0), True, False)
+        assert math.isclose(edge_3d.length, 3.0, abs_tol=1e-9)
+        assert edge_3d.midpoint == Point3D(0.5, 1.0, 1.0)
 
     def test_extract_dbm_geometry_1d_matches_contains(self):
         context = Context(["x"])
@@ -392,6 +492,40 @@ class TestVisualizationGeometry:
             for probe in _segment_probe_points(segment):
                 assert _geometry_contains_2d(geometry, probe.x, probe.y) == _federation_contains_2d(federation, probe.x, probe.y)
 
+    def test_extract_federation_geometry_2d_adjacent_open_and_closed_edges_stay_separate(self):
+        context = Context(["x", "y"])
+        closed_left = (context.x >= 0) & (context.x <= 1) & (context.y >= 0) & (context.y <= 1)
+        open_right = (context.x > 1) & (context.x < 2) & (context.y >= 0) & (context.y < 1)
+        federation = closed_left | open_right
+
+        geometry = extract_federation_geometry(federation, limits=((0, 3), (0, 2)))
+
+        assert isinstance(geometry, FederationGeometry2D)
+        assert len(geometry.boundary_segments) == 5
+
+        top_segments = [
+            segment for segment in geometry.boundary_segments
+            if math.isclose(segment.start.y, 1.0, abs_tol=1e-9) and math.isclose(segment.end.y, 1.0, abs_tol=1e-9)
+        ]
+        assert len(top_segments) == 2
+        assert sorted(
+            (
+                round(min(segment.start.x, segment.end.x), 6),
+                round(max(segment.start.x, segment.end.x), 6),
+                segment.is_closed,
+            )
+            for segment in top_segments
+        ) == [
+            (0.0, 1.0, True),
+            (1.0, 2.0, False),
+        ]
+
+        for x_value in [0.0, 0.5, 1.0, 1.5, 1.999]:
+            for y_value in [0.0, 0.5, 0.999, 1.0]:
+                assert _geometry_contains_2d(geometry, x_value, y_value) == _federation_contains_2d(
+                    federation, x_value, y_value
+                )
+
     def test_extract_federation_geometry_2d_with_hole_and_public_face_structure(self):
         context = Context(["x", "y"])
         parts = [
@@ -603,6 +737,112 @@ class TestVisualizationGeometry:
         for x_value, y_value in [(0.0, 0.0), (1.0, 1.0), (1.5, 1.0), (0.5, 2.0)]:
             assert _geometry_contains_2d(geometry, x_value, y_value) == _federation_contains_2d(federation, x_value, y_value)
 
+    def test_extract_dbm_geometry_3d_polyhedron_matches_contains(self):
+        context = Context(["x", "y", "z"])
+        federation = (
+            (context.x >= 0) & (context.x <= 2)
+            & (context.y >= 0) & (context.y <= 2)
+            & (context.z >= 0) & (context.z <= 2)
+            & (context.x - context.y < 1)
+            & (context.y - context.z <= 1)
+        )
+
+        geometry = extract_dbm_geometry(federation.to_dbm_list()[0], limits=((0, 2), (0, 2), (0, 2)))
+
+        assert isinstance(geometry, PolyhedronGeometry3D)
+        assert len(geometry.vertices) >= 4
+        assert len(geometry.faces) >= 4
+        assert len(geometry.edges) >= 6
+
+        sample_points = [
+            (0.0, 0.0, 0.0),
+            (0.5, 0.5, 0.5),
+            (1.5, 1.0, 0.5),
+            (2.0, 2.0, 2.0),
+            (2.0, 0.0, 0.0),
+            (1.5, 0.0, 2.0),
+        ]
+        for x_value, y_value, z_value in sample_points:
+            assert _geometry_contains_3d(geometry, x_value, y_value, z_value) == _federation_contains_3d(
+                federation, x_value, y_value, z_value
+            )
+
+    def test_extract_dbm_geometry_3d_face_segment_point_and_empty_cases(self):
+        context = Context(["x", "y", "z"])
+
+        face_geometry = extract_dbm_geometry(
+            ((context.x <= 1) & (context.y <= 1) & (context.z == 0)).to_dbm_list()[0],
+            limits=((0, 2), (0, 2), (0, 1)),
+        )
+        assert isinstance(face_geometry, FaceGeometry3D)
+        assert len(face_geometry.face.vertices) == 4
+
+        segment_geometry = extract_dbm_geometry(
+            ((context.x == 0) & (context.y == 0) & (context.z <= 1)).to_dbm_list()[0],
+            limits=((0, 1), (0, 1), (0, 2)),
+        )
+        assert isinstance(segment_geometry, SegmentGeometry3D)
+        assert math.isclose(segment_geometry.segment.start.z, 0.0, abs_tol=1e-9)
+        assert math.isclose(segment_geometry.segment.end.z, 1.0, abs_tol=1e-9)
+
+        point_geometry = extract_dbm_geometry(
+            ((context.x == 1) & (context.y == 1) & (context.z == 1)).to_dbm_list()[0],
+            limits=((0, 2), (0, 2), (0, 2)),
+        )
+        assert isinstance(point_geometry, PointGeometry3D)
+        assert point_geometry.point == Point3D(1.0, 1.0, 1.0)
+
+        empty_geometry = extract_federation_geometry(
+            (context.x < 0) & (context.x > 0) & (context.y == 0) & (context.z == 0),
+            limits=((0, 1), (0, 1), (0, 1)),
+        )
+        assert empty_geometry == EmptyGeometry(dimension=3)
+
+    def test_extract_dbm_geometry_3d_auto_limits_expand_single_point_and_clipped_empty_federation(self):
+        context = Context(["x", "y", "z"])
+
+        point_geometry = extract_dbm_geometry(
+            ((context.x == 1) & (context.y == 1) & (context.z == 1)).to_dbm_list()[0]
+        )
+        assert isinstance(point_geometry, PointGeometry3D)
+        assert point_geometry.point == Point3D(1.0, 1.0, 1.0)
+
+        clipped_empty = extract_federation_geometry(
+            ((context.x >= 10) & (context.x <= 11) & (context.y >= 10) & (context.y <= 11) & (context.z >= 10) & (context.z <= 11)),
+            limits=((0, 1), (0, 1), (0, 1)),
+        )
+        assert clipped_empty == EmptyGeometry(dimension=3)
+
+    def test_extract_federation_geometry_3d_matches_contains(self):
+        context = Context(["x", "y", "z"])
+        left = (
+            (context.x >= 0) & (context.x <= 1)
+            & (context.y >= 0) & (context.y <= 1)
+            & (context.z >= 0) & (context.z <= 1)
+        )
+        right = (
+            (context.x >= 2) & (context.x <= 3)
+            & (context.y >= 0) & (context.y <= 1)
+            & (context.z >= 0) & (context.z <= 1)
+        )
+        federation = left | right
+
+        geometry = extract_federation_geometry(federation, limits=((0, 3), (0, 1), (0, 1)))
+
+        assert isinstance(geometry, FederationGeometry3D)
+        assert len(geometry.dbm_geometries) == 2
+
+        sample_points = [
+            (0.5, 0.5, 0.5),
+            (2.5, 0.5, 0.5),
+            (1.5, 0.5, 0.5),
+            (3.0, 1.0, 1.0),
+        ]
+        for x_value, y_value, z_value in sample_points:
+            assert _geometry_contains_3d(geometry, x_value, y_value, z_value) == _federation_contains_3d(
+                federation, x_value, y_value, z_value
+            )
+
     def test_extract_geometry_invalid_inputs_and_invalid_limits(self):
         context_1d = Context(["x"])
         context_2d = Context(["x", "y"])
@@ -639,11 +879,34 @@ class TestVisualizationGeometry:
         with pytest.raises(ValueError):
             extract_federation_geometry(context_4d.a <= 1)
 
-    def test_extract_federation_geometry_rejects_reserved_3d(self):
+    def test_extract_federation_geometry_3d_invalid_and_high_dim_cases(self):
         context = Context(["x", "y", "z"])
         federation = (context.x <= 1) & (context.y <= 1) & (context.z <= 1)
+        context_4d = Context(["a", "b", "c", "d"])
 
-        with pytest.raises(NotImplementedError):
-            extract_dbm_geometry(federation.to_dbm_list()[0])
-        with pytest.raises(NotImplementedError):
-            extract_federation_geometry(federation)
+        geometry = extract_dbm_geometry(federation.to_dbm_list()[0])
+        federation_geometry = extract_federation_geometry(federation)
+        assert isinstance(geometry, PolyhedronGeometry3D)
+        assert isinstance(federation_geometry, FederationGeometry3D)
+
+        with pytest.raises(ValueError):
+            extract_dbm_geometry(federation.to_dbm_list()[0], limits=((0, 1), (0, 1)))
+        with pytest.raises(ValueError):
+            extract_dbm_geometry(federation.to_dbm_list()[0], limits=((0, 1), (0, 1), (1, 0)))
+        with pytest.raises(ValueError):
+            extract_dbm_geometry(federation.to_dbm_list()[0], limits=(0, 1, 2))
+        with pytest.raises(ValueError):
+            extract_dbm_geometry(federation.to_dbm_list()[0], limits=((0, 1, 2), (0, 1), (0, 1)))
+        with pytest.raises(ValueError):
+            extract_dbm_geometry(federation.to_dbm_list()[0], limits=((0, 1), (0, 1, 2), (0, 1)))
+        with pytest.raises(ValueError):
+            extract_dbm_geometry(federation.to_dbm_list()[0], limits=((0, 1), (0, 1), (0, 1, 2)))
+        with pytest.raises(ValueError):
+            extract_dbm_geometry(federation.to_dbm_list()[0], limits=((1, 0), (0, 1), (0, 1)))
+        with pytest.raises(ValueError):
+            extract_dbm_geometry(federation.to_dbm_list()[0], limits=((0, 1), (1, 0), (0, 1)))
+
+        with pytest.raises(ValueError):
+            extract_dbm_geometry((context_4d.a <= 1).to_dbm_list()[0])
+        with pytest.raises(ValueError):
+            extract_federation_geometry(context_4d.a <= 1)
