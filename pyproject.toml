@@ -17,7 +17,7 @@ skip = ["pp*", "cp31?t-*"] # Do not build for PyPy or free-threaded CPython
 archs = ['AMD64']
 before-build = [
     "choco install mingw -y",
-    "export MINGW_BIN=$(for d in /c/ProgramData/mingw64/mingw64/bin /c/mingw64/bin; do if [ -d \"$d\" ]; then echo \"$d\"; break; fi; done) && test -n \"$MINGW_BIN\" && export PATH=\"$MINGW_BIN:$PATH\" && export CC=\"$MINGW_BIN/gcc.exe\" && export CXX=\"$MINGW_BIN/g++.exe\" && export CMAKE_GENERATOR=Ninja && echo MINGW_BIN=$MINGW_BIN && \"$CC\" --version && \"$CXX\" --version",
+    "set \"MINGW_BIN=C:\\ProgramData\\mingw64\\mingw64\\bin\" && if not exist \"%MINGW_BIN%\\gcc.exe\" set \"MINGW_BIN=C:\\mingw64\\bin\" && if not exist \"%MINGW_BIN%\\gcc.exe\" exit /b 1 && set \"PATH=%MINGW_BIN%;%PATH%\" && set \"CC=%MINGW_BIN%\\gcc.exe\" && set \"CXX=%MINGW_BIN%\\g++.exe\" && set \"CMAKE_GENERATOR=Ninja\" && echo MINGW_BIN=%MINGW_BIN% && \"%CC%\" --version && \"%CXX%\" --version",
     "pip install -U ninja",
     "pip install pybind11[global]",
     "pip install -U \"cmake<4\"",

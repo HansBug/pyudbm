@@ -67,6 +67,27 @@ def _find_gnu_compiler(cxx: bool = False):
     return candidates[0]
 
 
+def _copy_windows_runtime_dlls(extdir: str, compiler_path: str):
+    if platform.system() != 'Windows':
+        return
+
+    compiler_dir = os.path.dirname(compiler_path)
+    runtime_dlls = [
+        'libwinpthread-1.dll',
+        'libgcc_s_seh-1.dll',
+        'libstdc++-6.dll',
+        'libssp-0.dll',
+    ]
+    for dll_name in runtime_dlls:
+        src = os.path.join(compiler_dir, dll_name)
+        dst = os.path.join(extdir, dll_name)
+        if not os.path.exists(src):
+            continue
+        if os.path.abspath(src) == os.path.abspath(dst):
+            continue
+        shutil.copy2(src, dst)
+
+
 class CMakeExtension(Extension):
     def __init__(self, name, sourcedir=''):
         Extension.__init__(self, name, sources=[])
@@ -133,6 +154,7 @@ class CMakeBuild(build_ext):
         b2_cmds = [shutil.which('cmake'), '--build', '.'] + build_args
         logging.info(f'Build with {b2_cmds!r} ...')
         subprocess.check_call(b2_cmds, cwd=self.build_temp, env=env)
+        _copy_windows_runtime_dlls(extdir, cc)
 
 
 setup(
@@ -158,6 +180,9 @@ setup(
     ],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
+    package_data={
+        'pyudbm.binding': ['*.dll'],
+    },
     install_requires=requirements,
     extras_require=group_requirements,
     classifiers=[
