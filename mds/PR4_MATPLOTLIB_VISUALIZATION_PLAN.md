@@ -1,133 +1,160 @@
-# Matplotlib Visualization Plan For DBM And Federation
+# DBM 与 Federation 的 Matplotlib 可视化实施方案
 
-## PR Reference
+## PR 关联
 
-This plan is tracked by GitHub pull request:
+本方案对应的 GitHub Pull Request：
 
 - PR #4: <https://github.com/HansBug/pyudbm/pull/4>
 
-## Purpose
+## 目的
 
-This document turns the current design discussion around DBM / federation visualization into a concrete implementation plan for `pyudbm`.
+这份文档用于把当前围绕 `DBM` / `Federation` 可视化的讨论，收敛成一份可执行的 `pyudbm` 实施方案。
 
-The immediate goal is not to implement the feature in this document, but to define:
+这份文档的目标不是直接实现功能，而是先明确下面几个问题：
 
-1. the user-facing API shape,
-2. the internal geometry pipeline,
-3. the exact boundary and unbounded-region semantics,
-4. the dependency and packaging strategy,
-5. the staged delivery plan and test strategy.
+1. 面向用户的 API 应该长什么样。
+2. 内部几何提取流水线应该怎么分层。
+3. 开区间、闭区间与无穷区域应该如何精确表达。
+4. matplotlib 的依赖和打包策略应该怎么处理。
+5. 功能应该如何分阶段落地，以及测试怎么设计。
 
-The plan is written against the current repository state:
+本方案建立在当前仓库状态之上：
 
-- high-level Python API in `pyudbm/binding/udbm.py`
-- immutable `DBM` snapshots via `Federation.to_dbm_list()`
-- DBM cell access through `raw()`, `bound()`, `is_strict()`, `is_infinity()`, and `to_matrix()`
+- 高层 Python API 位于 `pyudbm/binding/udbm.py`
+- `Federation.to_dbm_list()` 可以导出不可变的 `DBM` 快照
+- `DBM` 已经提供 `raw()`、`bound()`、`is_strict()`、`is_infinity()` 和 `to_matrix()` 等接口
 
-This is important because the visualization work should layer on top of the current wrapper instead of inventing a second semantic representation.
+这点很重要，因为可视化应当建立在现有包装层之上，而不是额外再发明一套新的语义表示。
 
-## Current Technical Baseline
+## 当前技术基线
 
-The current Python layer already exposes enough information to reconstruct exact zone geometry without touching the native submodules:
+现有 Python 层已经暴露出足够的信息，可以在不碰 native 子模块的前提下，恢复出精确的 zone 几何形状：
 
-- `Federation.to_dbm_list()` exports detached DBM snapshots.
-- `DBM.clock_names` gives the matrix headers.
-- `DBM.bound(i, j)` decodes DBM bounds.
-- `DBM.is_strict(i, j)` tells whether a bound is open.
-- `DBM.is_infinity(i, j)` tells whether a bound is unbounded.
-- `DBM.to_string(full=True)` already demonstrates that the Python layer sees the closed DBM, not just the syntactic source constraint set.
+- `Federation.to_dbm_list()` 可以导出脱离原联邦生命周期的 `DBM` 快照。
+- `DBM.clock_names` 给出了矩阵头部。
+- `DBM.bound(i, j)` 可以解码 DBM 上界。
+- `DBM.is_strict(i, j)` 可以判断边界是否严格。
+- `DBM.is_infinity(i, j)` 可以判断边界是否无穷。
+- `DBM.to_string(full=True)` 已经表明 Python 层拿到的是闭包后的 DBM，而不只是语法层面的原始约束。
 
-That means the visualization feature can be implemented entirely in safe wrapper-owned files under `pyudbm/` and `test/`, without modifying `UDBM/` or `UUtils/`.
+因此，这项功能可以完全实现在 `pyudbm/` 和 `test/` 这些 wrapper 所属目录内，不需要修改 `UDBM/` 或 `UUtils/`。
 
-## Scope
+## 范围
 
-### In scope
+### 范围内
 
-- Matplotlib-based plotting support for `DBM` and `Federation`
-- 1D, 2D, and 3D visualization only
-- explicit handling of:
-  - closed boundaries
-  - open boundaries
-  - bounded regions
-  - unbounded regions
-  - degenerate results such as points, segments, rays, faces, and empty sets
-- optional dependency design so matplotlib is not required for normal package use
-- artist-oriented integration compatible with the normal matplotlib workflow
+- 为 `DBM` 和 `Federation` 提供基于 matplotlib 的绘图支持
+- 仅支持 `1D`、`2D` 和 `3D`
+- 显式正确处理：
+  - 闭边界
+  - 开边界
+  - 有界区域
+  - 无界区域
+  - 点、线段、射线、面、空集等退化结果
+- matplotlib 作为可选依赖，而不是正常安装路径的强依赖
+- 与 matplotlib 现有工作流兼容，支持 `ax` 注入和 artist 级别的返回值
 
-### Out of scope
+### 范围外
 
-- visualization for dimensions above 3
-- automatic projection from high-dimensional zones into lower dimensions
-- interactive GUI tooling
-- animation API
-- non-matplotlib backends
-- changing UDBM semantics or adding new symbolic operations
+- 维度高于 3 的可视化
+- 从高维 zone 自动投影到低维
+- 交互式 GUI 工具
+- 动画 API
+- 非 matplotlib 后端
+- 修改 UDBM 语义，或顺手引入新的符号操作
 
-For any DBM or federation whose user-clock dimension is outside `1..3`, the plotting API should raise a clear exception rather than guessing.
+对于任何用户时钟维度不在 `1..3` 之间的 `DBM` 或 `Federation`，绘图 API 应该直接抛出清晰异常，而不是猜测该怎么画。
 
-## Design Principles
+## 设计原则
 
-### 1. Use exact geometry, not raster approximations
+### 1. 使用精确几何，而不是栅格近似
 
-The visualization pipeline should reconstruct half-spaces from DBM constraints and compute exact clipped geometric objects.
+可视化流水线应当从 DBM 约束恢复半空间，并计算精确裁剪后的几何对象。
 
-The implementation should not depend on:
+实现上不应依赖：
 
-- dense sampling over a grid
-- image masks
-- contour reconstruction from boolean membership
+- 稠密网格采样
+- 图像 mask
+- 基于 membership 布尔值的轮廓重建
 
-Those approaches would blur open versus closed boundaries, behave poorly for thin or degenerate regions, and make unbounded zones hard to explain.
+这些方法会模糊开闭边界的差异，对细长或退化区域表现不稳定，也很难正确表达无穷区域。
 
-### 2. Separate geometry extraction from rendering
+### 2. 将几何提取与渲染分层
 
-The implementation should be split into two layers:
+实现应拆成两层：
 
-- geometry layer:
-  - convert `DBM` or `Federation` into internal geometric primitives
-  - no matplotlib dependency in the core data transformation code
-- rendering layer:
-  - convert those primitives into matplotlib artists
-  - handle styling, axes integration, legends, and draw order
+- 几何层：
+  - 把 `DBM` 或 `Federation` 转成内部几何对象
+  - 核心数据转换逻辑不依赖 matplotlib
+- 渲染层：
+  - 把几何对象转成 matplotlib artists
+  - 负责样式、坐标轴集成、图例和绘制顺序
 
-This split keeps the code testable and avoids locking geometry logic to matplotlib internals.
+这样做的好处是：
 
-### 3. Preserve existing UDBM semantics
+- 几何逻辑更容易单测
+- 不会把核心语义代码绑死在 matplotlib 细节上
 
-The plotting layer must reflect the current symbolic meaning of the DBM or federation.
+### 3. 保持现有 UDBM 语义
 
-It must not silently:
+绘图层必须反映当前 `DBM` 或 `Federation` 的真实符号语义。
 
-- convexify a federation
-- reduce away DBMs unless the caller did so
-- reinterpret open boundaries as closed
-- truncate infinity without marking that truncation visually
+不能悄悄做这些事：
 
-### 4. Fit normal matplotlib usage
+- 自动把 federation 凸化
+- 在调用方没要求的情况下偷偷 reduce
+- 把开边界当成闭边界
+- 对 infinity 做截断但不在图上明显标识
 
-The plotting API should behave like normal matplotlib helpers:
+### 4. 贴合正常 matplotlib 用法
 
-- accept an existing `ax`
-- create one only when needed
-- return useful artists or an artist container
-- allow styling through familiar keyword arguments
-- not call `plt.show()`
+绘图 API 应尽量像常规 matplotlib helper：
 
-## Proposed Public API
+- 能接收已有的 `ax`
+- 只有在必要时才新建 figure / axes
+- 返回可继续操作的 artists 或 artist container
+- 允许通过熟悉的关键字参数自定义样式
+- 不调用 `plt.show()`
 
-### Module layout
+## 拟议的公开 API
 
-Add a dedicated plotting namespace instead of mixing matplotlib imports into the base package import path:
+### 模块布局
 
-- `pyudbm/plotting/__init__.py`
-- `pyudbm/plotting/_geometry.py`
-- `pyudbm/plotting/_matplotlib.py`
+建议不要单独再开一个新的 `pyudbm.plotting` 命名空间，而是把可视化实现放到现有 binding 层旁边，形成：
 
-Optional thin convenience hooks can later be added to `DBM` and `Federation`, but the first public contract should live in the plotting module.
+- `pyudbm/binding/visual.py`
 
-### Main entry points
+这样做的理由是：
 
-Recommended first-pass public functions:
+- 当前 `DBM` 和 `Federation` 本来就定义在 `pyudbm/binding/udbm.py`
+- 可视化语义本质上就是这些高层 binding 对象的扩展能力
+- 从代码组织上，`binding/visual.py` 比独立 plotting 包更贴近现有 API 层次
+- 后续给主要类加便捷方法时，也更自然
+
+这里仍然要避免在模块顶层直接互相 import 导致循环依赖。
+
+建议结构是：
+
+- `pyudbm/binding/visual.py`
+  - 放公共绘图入口
+  - 放几何提取和 matplotlib 渲染逻辑
+- `pyudbm/binding/udbm.py`
+  - 在主要类上增加薄薄的一层实例方法
+  - 方法内部再懒导入 `visual.py` 中的函数
+
+也就是说，推荐的调用链是：
+
+- 用户直接调对象方法，如 `dbm.plot(...)`、`fed.plot(...)`
+- 对象方法内部再 `from .visual import ...`
+- 不在 `udbm.py` 模块顶层预先导入 `visual.py`
+
+这样既方便用，也能避免循环 import。
+
+### 主要入口
+
+建议 `visual.py` 提供模块级函数，同时由主要类转发调用。
+
+模块级函数形态：
 
 ```python
 def plot_dbm(dbm, ax=None, **kwargs):
@@ -138,20 +165,47 @@ def plot_federation(federation, ax=None, **kwargs):
     ...
 ```
 
-Second-stage convenience methods may forward into these functions:
+然后在主要类上增加对象方法，至少包括：
 
 ```python
 DBM.plot(...)
 Federation.plot(...)
 ```
 
-Those methods should lazy-import matplotlib and raise an informative import error when the optional dependency is missing.
+如果后面认为 `Context` 上也需要便捷入口，可以再考虑：
 
-### Suggested keyword parameters
+```python
+Context.plot(...)
+```
 
-The first public API should stay small but cover the important control points.
+但这不应作为第一版硬要求，第一版核心目标仍是 `DBM` 和 `Federation`。
 
-Common parameters:
+这些对象方法不应在类定义时绑定外部模块对象，而应在方法体内部再导入 `visual.py` 中的函数。例如：
+
+```python
+def plot(self, ax=None, **kwargs):
+    from .visual import plot_dbm
+    return plot_dbm(self, ax=ax, **kwargs)
+```
+
+或 federation 对应版本：
+
+```python
+def plot(self, ax=None, **kwargs):
+    from .visual import plot_federation
+    return plot_federation(self, ax=ax, **kwargs)
+```
+
+这样可以同时满足两个目标：
+
+- 使用方式足够自然
+- 避免在模块初始化阶段产生循环 import
+
+### 建议的关键字参数
+
+第一版公开 API 应保持克制，但要覆盖关键控制点。
+
+通用参数：
 
 - `ax=None`
 - `facecolor=None`
@@ -162,41 +216,41 @@ Common parameters:
 - `label=None`
 - `zorder=None`
 
-Visualization-specific parameters:
+可视化特定参数：
 
 - `limits=None`
-  - render box or axis limits used for clipping unbounded regions
+  - 用于裁剪无界区域的 render box 或坐标轴边界
 - `strict_epsilon=None`
-  - rendering-only inward offset used to distinguish open boundaries from filled interiors
+  - 仅用于渲染的内缩量，用来区分开边界与填充内部
 - `show_unbounded=True`
-  - whether to add unbounded-region indicators such as arrows or boundary markers
+  - 是否给无界区域加箭头或其他明确提示
 - `color_mode="shared"`
-  - one style for the whole federation or per-DBM color cycling
+  - federation 内所有 DBM 共用一种样式，或为每个 DBM 循环颜色
 - `annotate=False`
-  - optional lightweight annotation of DBM index or textual summary
+  - 是否附带轻量注释，例如 DBM 编号或文本摘要
 
-Dimension-specific parameters:
+维度特定参数：
 
-- 1D:
+- 1D：
   - `baseline=0.0`
-- 2D:
-  - `xclock=None`, `yclock=None`
-- 3D:
-  - `xclock=None`, `yclock=None`, `zclock=None`
+- 2D：
+  - `xclock=None`、`yclock=None`
+- 3D：
+  - `xclock=None`、`yclock=None`、`zclock=None`
 
-The axis-selection parameters are optional for the initial implementation if we keep the simpler rule:
+如果第一版坚持更简单的规则，那么轴选择参数可以先不开放，直接约定：
 
-- dimension 1 means the only user clock is plotted on the x-axis
-- dimension 2 means the two user clocks define `(x, y)`
-- dimension 3 means the three user clocks define `(x, y, z)`
+- 1 维时，唯一用户时钟映射到 x 轴
+- 2 维时，两个用户时钟映射到 `(x, y)`
+- 3 维时，三个用户时钟映射到 `(x, y, z)`
 
-That is the simplest first version and best matches the current scope restriction.
+这是最简单的第一版，也最符合当前范围限制。
 
-### Return value
+### 返回值
 
-Do not return only `ax`. Return a small artist container object instead.
+不要只返回 `ax`。建议返回一个小型 artist container。
 
-Recommended shape:
+推荐形态：
 
 ```python
 class PlotResult:
@@ -207,57 +261,59 @@ class PlotResult:
     indicators: tuple
 ```
 
-This allows callers to post-process artists in the normal matplotlib way.
+这样调用方仍然可以按 matplotlib 的正常方式继续后处理。
 
-## Packaging And Dependency Plan
+## 打包与依赖策略
 
-Matplotlib should remain optional.
+matplotlib 应保持为可选依赖。
 
-### Dependency files
+### 依赖文件
 
-Add a new optional requirements file:
+新增一个可选 requirements 文件：
 
 - `requirements-plot.txt`
 
-Initial content should likely be:
+第一版内容大概率只需要：
 
 ```text
 matplotlib
 ```
 
-The current `setup.py` already turns `requirements-*.txt` into `extras_require`, so this file will automatically produce an install extra similar to:
+当前 `setup.py` 已经会把 `requirements-*.txt` 自动转成 `extras_require`，因此这个文件会自然形成类似下面的安装方式：
 
 ```bash
 pip install .[plot]
 ```
 
-### Import policy
+### 导入策略
 
-The base import path:
+基础导入路径：
 
 ```python
 import pyudbm
 ```
 
-must not import matplotlib.
+不应隐式导入 matplotlib。
 
-Only plotting-specific code paths should import matplotlib, preferably inside plotting functions or inside the plotting module itself.
+只有可视化相关代码路径才应该导入 matplotlib，最好在 `pyudbm/binding/visual.py` 内部，或者绘图函数内部再导入。
 
-### Error message policy
+同样，`pyudbm/binding/udbm.py` 中新增的对象方法也应只在方法体内部导入 `visual.py`，不要在模块顶部导入。
 
-When matplotlib is missing and the user calls plotting code, raise `ImportError` with a direct message such as:
+### 错误信息策略
+
+当 matplotlib 未安装而用户调用绘图功能时，应抛出直接清晰的 `ImportError`，例如：
 
 ```text
 Matplotlib plotting support is optional. Install pyudbm with the 'plot' extra or install matplotlib manually.
 ```
 
-## Internal Architecture
+## 内部架构
 
-### Geometry data model
+### 几何数据模型
 
-The geometry layer should define small explicit internal objects rather than passing raw tuples around everywhere.
+几何层不应到处传裸元组，建议定义小而明确的内部对象。
 
-Suggested internal shapes:
+可选的内部几何类型：
 
 - `Interval1D`
 - `Ray1D`
@@ -271,574 +327,568 @@ Suggested internal shapes:
 - `Point3D`
 - `EmptyGeometry`
 
-Each geometry object should carry enough metadata to preserve rendering semantics:
+每个几何对象都应携带足够的元信息，以保留渲染语义：
 
-- coordinates
-- per-boundary openness / closedness
-- whether a face or edge comes from clip-box truncation
-- whether a boundary is genuinely part of the zone
+- 坐标
+- 每条边界是开还是闭
+- 某条边或某个面是否仅仅来自 render box 裁剪
+- 某条边界是否真的是 zone 的数学边界
 
-This matters because the same plotted segment may mean very different things:
+这点很关键，因为同样是一条画出来的线段，它可能表示完全不同的东西：
 
-- a real closed zone boundary,
-- a real open zone boundary,
-- a synthetic clipping boundary introduced only for display.
+- 真正的闭边界
+- 真正的开边界
+- 仅仅因为显示裁剪才出现的边界
 
-### Geometry pipeline overview
+### 几何流水线总览
 
-The pipeline should look like this:
+建议流程如下：
 
-1. Normalize input:
-   - `DBM` stays as one convex zone
-   - `Federation` becomes a list of DBMs via `to_dbm_list()`
-2. Determine plotting dimension from context clock count
-3. Determine render box
-4. Convert DBM matrix cells into half-space inequalities
-5. Clip an initial bounding shape against all finite half-spaces
-6. Record strictness and truncation metadata
-7. Convert geometry into matplotlib artists
+1. 归一化输入：
+   - `DBM` 作为一个凸 zone
+   - `Federation` 通过 `to_dbm_list()` 转成 DBM 列表
+2. 根据 context 时钟数确定绘图维度
+3. 确定 render box
+4. 把 DBM 矩阵单元转换成半空间约束
+5. 从初始有界形状开始，逐步用有限半空间裁剪
+6. 记录 strictness 和 truncation 元信息
+7. 把几何对象转换成 matplotlib artists
 
-## Mapping DBM Constraints To Plot Half-Spaces
+## 从 DBM 约束到绘图半空间的映射
 
-For a DBM over user clocks `x1, ..., xn` with reference clock `x0 = 0`, the cell `(i, j)` means:
+对于用户时钟为 `x1, ..., xn`、参考时钟为 `x0 = 0` 的 DBM，矩阵单元 `(i, j)` 表示：
 
-`xi - xj < c` or `xi - xj <= c`
+`xi - xj < c` 或 `xi - xj <= c`
 
-with infinity meaning no finite upper bound.
+如果该值是 infinity，则表示没有这个有限上界。
 
-This directly yields affine half-spaces in `R^n`.
+这可以直接转换成 `R^n` 中的仿射半空间。
 
-Examples:
+例如：
 
-- `(x, 0) <= 5` becomes `x <= 5`
-- `(0, x) <= -2` becomes `x >= 2`
-- `(x, y) < 3` becomes `x - y < 3`
-- `(y, x) <= 7` becomes `y - x <= 7`
+- `(x, 0) <= 5` 对应 `x <= 5`
+- `(0, x) <= -2` 对应 `x >= 2`
+- `(x, y) < 3` 对应 `x - y < 3`
+- `(y, x) <= 7` 对应 `y - x <= 7`
 
-Only finite non-diagonal constraints need to contribute half-spaces.
+只有有限且非对角线的约束需要参与构造半空间。
 
-The geometry layer should therefore iterate over all `(i, j)` with:
+因此几何层应遍历所有满足下列条件的 `(i, j)`：
 
 - `i != j`
-- finite bound
+- bound 有限
 
-and translate them into affine constraints over the visible coordinates.
+并把它们转换成可见坐标空间中的仿射不等式。
 
-No dependence on `to_min_dbm()` is required for the first version.
+第一版不需要依赖 `to_min_dbm()`。
 
-That is a deliberate design choice:
+这是有意为之：
 
-- the closed DBM matrix is already exposed and easy to consume
-- the packed min-DBM export is harder to decode and not needed for correctness
-- redundant constraints are acceptable in a clipping pipeline
+- 闭包后的完整 DBM 矩阵已经暴露，使用简单
+- packed min-DBM 不太好直接消费
+- 对裁剪流水线来说，冗余约束不是正确性问题
 
-## Dimension-Specific Plan
+## 分维度实施方案
 
 ### 1D
 
-#### Semantics
+#### 语义
 
-A 1D DBM denotes one convex subset of the non-negative real line over a single clock.
+1D DBM 表示的是单时钟非负实数轴上的一个凸子集。
 
-Typical cases:
+典型情况：
 
-- closed interval: `0 <= x <= 5`
-- open interval: `1 < x < 4`
-- half-line: `x >= 0`, `x > 2`, `x <= 7`
-- point: `x == 3`
-- empty set
+- 闭区间：`0 <= x <= 5`
+- 开区间：`1 < x < 4`
+- 半直线：`x >= 0`、`x > 2`、`x <= 7`
+- 单点：`x == 3`
+- 空集
 
-#### Geometry extraction
+#### 几何提取
 
-Recover:
+直接恢复：
 
-- lower bound from `(0, x)`
-- upper bound from `(x, 0)`
+- 下界来自 `(0, x)`
+- 上界来自 `(x, 0)`
 
-Use strictness from the corresponding DBM cells.
+边界是否严格由对应 DBM 单元的 strictness 决定。
 
-If either side is infinite, interpret as a ray.
+如果某一侧是 infinity，则解释成射线。
 
-#### Rendering
+#### 渲染
 
-Recommended style:
+推荐风格：
 
-- interval interior:
-  - horizontal line segment or narrow filled strip
-- closed endpoint:
-  - filled marker
-- open endpoint:
-  - hollow marker
-- unbounded side:
-  - arrow pointing outward
+- 区间内部：
+  - 水平线段，或很窄的填充带
+- 闭端点：
+  - 实心点
+- 开端点：
+  - 空心点
+- 无界方向：
+  - 向外的箭头
 
-This is clearer than a pure filled rectangle and keeps open versus closed semantics visible.
+这种画法比纯矩形填充更容易表达开闭边界。
 
 ### 2D
 
-#### Semantics
+#### 语义
 
-A 2D DBM is a convex zone in the plane over two clocks.
+2D DBM 表示的是两个时钟构成平面中的一个凸 zone。
 
-The zone is the intersection of finitely many half-planes:
+该 zone 是有限个半平面的交：
 
-- axis-aligned bounds from `x` and `y`
-- diagonal bounds from `x - y` and `y - x`
+- 来自 `x` 和 `y` 的轴对齐边界
+- 来自 `x - y` 与 `y - x` 的对角线边界
 
-#### Geometry extraction
+#### 几何提取
 
-Start with a finite render box:
+先构造一个有限 render box：
 
-- either explicitly provided by `limits`
-- or inferred from finite DBM bounds plus padding
-- or fallback to a default box if the zone is heavily unbounded
+- 如果 `limits` 显式给出，就直接使用
+- 否则根据有限 DBM 边界推断，再加 padding
+- 如果某个方向完全无界，则退回到基于原点或已知有限结构的保守默认范围
 
-Represent the current candidate region as a convex polygon.
+当前候选区域可以表示为一个凸多边形。
 
-Apply polygon clipping sequentially for each finite DBM half-plane:
+然后按顺序对每个有限 DBM 半平面做裁剪：
 
-- weak inequality keeps the boundary as closed
-- strict inequality marks the supporting line as open
+- 非严格不等式保留为闭边界
+- 严格不等式把对应支撑线标记为开边界
 
-The clipping algorithm can be a half-plane version of Sutherland-Hodgman because the current polygon remains convex throughout.
+因为区域始终保持凸，所以可以使用半平面版本的 Sutherland-Hodgman 风格裁剪。
 
-#### Degenerate outputs
+#### 退化输出
 
-The result may collapse to:
+结果可能退化为：
 
-- polygon
-- segment
-- point
-- empty set
+- 多边形
+- 线段
+- 点
+- 空集
 
-The renderer must handle those explicitly instead of assuming positive area.
+渲染层必须显式处理这些情况，而不是默认假设一定有正面积。
 
-#### Rendering
+#### 渲染
 
-Use separate artists for:
+建议把这些视觉元素拆开画：
 
-- interior fill
-- true boundaries
-- synthetic clip-box edges
-- unbounded indicators
+- 内部填充
+- 真实边界
+- 仅由 clip box 引入的伪边界
+- 无界提示
 
-Recommended semantics:
+推荐语义：
 
-- true closed boundary:
-  - solid line
-- true open boundary:
-  - dashed line
-- synthetic clip-box boundary:
-  - very faint line or none
-- unbounded direction:
-  - arrow or hatched edge indicator attached to the clipped side
+- 真实闭边界：
+  - 实线
+- 真实开边界：
+  - 虚线
+- 仅由 clip box 引入的边：
+  - 很淡的线，或者干脆不强调
+- 无界方向：
+  - 在被裁剪边附近加向外箭头，或其他无界指示符
 
 ### 3D
 
-#### Semantics
+#### 语义
 
-A 3D DBM is a convex polyhedral zone over three clocks.
+3D DBM 表示的是三个时钟构成空间中的一个凸多面体 zone。
 
-#### Geometry extraction
+#### 几何提取
 
-Start from a finite axis-aligned render box in `R^3`.
+先从 `R^3` 中的一个有限轴对齐 render box 开始。
 
-Clip that box by each finite affine half-space derived from the DBM.
+再用 DBM 导出的每个有限仿射半空间逐个裁剪这个 box。
 
-Represent the current shape as:
+内部表示至少需要显式维护：
 
-- vertices
-- faces
-- face metadata
+- 顶点
+- 面
+- 每个面的元信息
 
-The initial implementation does not need a general-purpose computational-geometry package.
+第一版不需要引入通用计算几何依赖，但需要一个针对凸半空间裁剪的稳定实现。
 
-But it does need a robust internal convex-polyhedron clipping routine.
+可以按这个思路写：
 
-That can be written specifically for convex half-space clipping:
+1. 显式维护各个面
+2. 用平面逐个裁剪每个面多边形
+3. 收集裁剪过程中形成的交线
+4. 当平面真正切开多面体时，重建新的裁剪面
 
-1. keep explicit faces,
-2. clip each face polygon against the plane,
-3. accumulate intersection edges,
-4. reconstruct the new clipping face when a plane cuts the polyhedron.
+#### 渲染
 
-#### Rendering
+建议用 `mpl_toolkits.mplot3d.art3d.Poly3DCollection` 画面，用普通 line artists 强化边。
 
-Use `mpl_toolkits.mplot3d.art3d.Poly3DCollection` for filled faces and plain line artists for emphasized edges.
+第一版风格可以相对保守：
 
-Recommended initial rendering strategy:
+- 面使用较低 alpha
+- 真正的边界线更明显
+- 开面使用虚线边界
+- 对无界截断使用边缘标识或图例说明
 
-- low alpha faces
-- stronger visible boundary edges
-- dashed style for open faces
-- optional arrows or textual indicators for truncated unbounded directions
+3D 下开边界的视觉语义天然不如 1D / 2D 明显，因此文档和图例需要更明确地解释。
 
-3D open-boundary semantics are inherently less visually obvious than 1D and 2D, so explicit legends and documentation will matter.
+## 开边界与闭边界的语义处理
 
-## Open And Closed Boundary Semantics
+这是最核心的语义要求，必须显式设计。
 
-This is the most important semantic requirement and must be designed explicitly.
+### 问题
 
-### Problem
+只要用了 filled patch，视觉上就很容易让人误以为区域是闭的。
 
-A filled patch in matplotlib visually suggests a closed region, even when a DBM boundary is strict.
-
-For example:
+例如：
 
 - `x < 5`
 - `x - y < 3`
 
-should not look identical to:
+不能在视觉上与：
 
 - `x <= 5`
 - `x - y <= 3`
 
-### Proposed rule
+几乎没有区别。
 
-Use two separate mechanisms:
+### 拟议规则
 
-1. boundary styling
-2. rendering-only interior shrink for strict constraints
+同时使用两套机制：
 
-### Boundary styling
+1. 边界样式
+2. 严格不等式的渲染内缩
 
-- closed boundary:
-  - solid edge
-- open boundary:
-  - dashed edge
+### 边界样式
 
-This is the primary visible distinction.
+- 闭边界：
+  - 实线
+- 开边界：
+  - 虚线
 
-### Interior shrink
+这是第一层最直接的视觉区分。
 
-When a region is filled, the fill should be computed using a tiny inward offset for strict constraints:
+### 内部内缩
 
-- `a^T x < b` becomes `a^T x <= b - epsilon_render`
+当区域存在填充时，对严格约束应使用一个很小的向内偏移来生成“填充区域”：
 
-This epsilon is only for the rendered fill, not for semantic geometry reporting.
+- `a^T x < b` 在渲染填充时可视作 `a^T x <= b - epsilon_render`
 
-Benefits:
+这个 epsilon 只用于渲染 fill，不用于外部可见的语义几何。
 
-- the fill no longer visually includes the open boundary
-- the true boundary line can still be drawn at the real mathematical location
+这样做的好处是：
 
-The default `strict_epsilon` should be scale-aware, derived from axis span rather than fixed globally.
+- 填充不会看起来把开边界也“吃进去”
+- 真正的边界线仍可画在数学上正确的位置
 
-## Unbounded Region Semantics
+默认的 `strict_epsilon` 不应是全局固定常数，而应当与当前轴尺度相关。
 
-This is the second major semantic requirement.
+## 无界区域的语义处理
 
-### Problem
+这是第二个必须显式解决的问题。
 
-Matplotlib axes are finite, but zones may be unbounded.
+### 问题
 
-Examples:
+matplotlib 坐标轴是有限的，但 zone 可以是无界的。
+
+例如：
 
 - `x >= 0`
 - `x - y < 3`
 - `x >= 1 and y >= 1`
 
-If such a zone is simply clipped to current axis limits with no annotation, the user cannot tell whether:
+如果只是把区域裁到当前轴范围内，用户很难分辨：
 
-- the region is truly bounded, or
-- the picture is just cut off.
+- 这个区域本来就是有界的
+- 还是图只是被截断了
 
-### Proposed rule
+### 拟议规则
 
-All rendering should happen inside a finite render box, but truncation must be visually marked.
+所有绘图都在有限 render box 内完成，但所有截断都必须有明确视觉标识。
 
 ### Render box
 
-`limits` should support:
+`limits` 应支持：
 
-- 1D:
+- 1D：
   - `(xmin, xmax)`
-- 2D:
+- 2D：
   - `((xmin, xmax), (ymin, ymax))`
-- 3D:
+- 3D：
   - `((xmin, xmax), (ymin, ymax), (zmin, zmax))`
 
-If `limits` is omitted:
+当 `limits` 未提供时：
 
-- infer finite limits from visible finite DBM bounds when possible
-- add padding
-- if a direction is fully unbounded, use a conservative default span centered on known finite structure or the origin
+- 尽量根据有限 DBM 边界推断可见范围
+- 再加一定 padding
+- 对完全无界方向则使用保守默认跨度
 
-### Truncation metadata
+### 截断元信息
 
-During clipping, record whether a visible boundary segment or face lies on the render box only because the true zone extends farther.
+在裁剪过程中，应记录某条可见边或某个可见面是否只是因为 render box 被截出来，而真实 zone 还会继续延伸。
 
-### Visual indicators
+### 视觉提示
 
-Recommended first version:
+第一版建议：
 
-- 1D:
-  - arrowheads on unbounded side
-- 2D:
-  - arrows attached near the clipped edge midpoint and pointing outward
-- 3D:
-  - a lighter first version may use boundary-edge markers or a note in the legend, because arrow placement in 3D is harder to read
+- 1D：
+  - 在无界侧端点加箭头
+- 2D：
+  - 在被裁剪边的中点附近加向外箭头
+- 3D：
+  - 第一版可以先用边界标记或图例说明，因为 3D 箭头往往不够直观
 
-Synthetic clip-box edges should not use the same visual weight as true zone boundaries.
+仅由 clip box 引入的边界，不应使用和真实 zone 边界同等强度的视觉权重。
 
-## Federation Rendering Plan
+## Federation 的渲染方案
 
-`Federation` should be rendered as the exact union of its DBM components, not as a convex hull.
+`Federation` 应表示为各个 DBM 组成的精确并集，而不是自动做 convex hull。
 
-### Default behavior
+### 默认行为
 
-For `plot_federation(fed, ...)`:
+对 `plot_federation(fed, ...)`：
 
-1. obtain `dbms = fed.to_dbm_list()`
-2. render each DBM separately
-3. combine the artists into one `PlotResult`
+1. 先取 `dbms = fed.to_dbm_list()`
+2. 对每个 DBM 分别绘制
+3. 再把所有 artists 汇总成一个 `PlotResult`
 
-### Style policy
+### 样式策略
 
-Initial supported modes:
+第一版支持两种模式即可：
 
 - `color_mode="shared"`
-  - one face/edge style for all DBMs
+  - federation 内所有 DBM 共用一套 face / edge 样式
 - `color_mode="per_dbm"`
-  - cycle colors across DBMs
+  - 对不同 DBM 循环颜色
 
-The default should be `"shared"` because it better communicates “one federation, many convex pieces”.
+默认值建议用 `"shared"`，因为这更符合“一个 federation，由多个凸片段组成”的语义。
 
-### Overlap policy
+### 重叠策略
 
-Do not attempt geometric boolean union between DBMs in the first version.
+第一版不需要尝试对各个 DBM 做精确布尔并集。
 
-Reasons:
+原因：
 
-- federations are already the correct semantic union object
-- exact polygon / polyhedron union is a separate geometry problem
-- simply layering convex components with controlled alpha is enough for an initial exact and useful rendering
+- federation 本来就应该以 DBM 并集的形式存在
+- 精确 polygon / polyhedron union 是另一类几何问题
+- 使用适当 alpha 叠加多个凸片段，已经足够表达正确语义
 
-## Error Model
+## 错误模型
 
-The plotting layer should fail explicitly on unsupported or nonsensical inputs.
+绘图层对不支持或无意义的输入应明确失败。
 
-Recommended errors:
+建议的错误类型：
 
 - `ImportError`
-  - matplotlib not installed
+  - matplotlib 未安装
 - `TypeError`
-  - object is not `DBM` or `Federation`
+  - 输入对象不是 `DBM` 或 `Federation`
 - `ValueError`
-  - user-clock dimension not in `1..3`
+  - 用户时钟维度不在 `1..3`
 - `ValueError`
-  - malformed `limits`
+  - `limits` 结构非法
 - `RuntimeError`
-  - internal geometry clipping produced an inconsistent convex object
+  - 内部几何裁剪得到了不一致的凸对象
 
-Error messages should say whether the dimension count includes the implicit zero clock.
+错误信息应明确说明维度计数是“用户时钟数”，不是包含隐式零时钟在内的 DBM 矩阵维度。
 
-The user-facing rule should be documented as:
+## 建议的文件布局
 
-- supported visible dimensions are the number of user clocks, not DBM matrix size
+建议新增文件：
 
-## Proposed File Layout
-
-Recommended new files:
-
-- `pyudbm/plotting/__init__.py`
-- `pyudbm/plotting/_geometry.py`
-- `pyudbm/plotting/_matplotlib.py`
+- `pyudbm/binding/visual.py`
 - `test/plotting/__init__.py`
 - `test/plotting/test_geometry.py`
 - `test/plotting/test_matplotlib.py`
 - `requirements-plot.txt`
 
-Potential later edits:
+可能会跟着调整的已有文件：
 
-- `pyudbm/__init__.py`
 - `pyudbm/binding/__init__.py`
 - `pyudbm/binding/udbm.py`
 - `setup.py`
 
-The first version does not need to expose plotting from the root package if we want to keep the public surface narrower.
+如果第一版只想先走对象方法入口，那么也可以暂时不把 `plot_dbm` / `plot_federation` 额外从包根暴露出去。
 
-## Implementation Phases
+## 分阶段实施计划
 
-### Phase 1: geometry foundation
+### 第一阶段：几何基础层
 
-Goal:
+目标：
 
-- implement internal geometry extraction for 1D and 2D without matplotlib dependency
+- 先把 1D / 2D 的内部几何提取做出来，不依赖 matplotlib
 
-Tasks:
+任务：
 
-- define internal geometry classes
-- implement DBM-to-half-space extraction
-- implement render-box handling
-- implement 1D interval / ray extraction
-- implement 2D convex polygon clipping
-- preserve strictness and clip-origin metadata
+- 定义内部几何对象
+- 实现从 DBM 到半空间的提取
+- 实现 render box 处理
+- 实现 1D 区间 / 射线 / 点提取
+- 实现 2D 凸多边形裁剪
+- 保留 strictness 和 clip 来源元信息
 
-Success criteria:
+成功标准：
 
-- pure-Python tests can validate geometry objects from representative DBMs
+- 纯 Python 单元测试可以验证代表性 DBM 的几何输出
 
-### Phase 2: matplotlib rendering for 1D and 2D
+### 第二阶段：1D / 2D 的 matplotlib 渲染与对象方法接入
 
-Goal:
+目标：
 
-- expose stable user-facing plotting helpers for the most practical cases first
+- 先把最常用、最有价值的 1D / 2D 画通
 
-Tasks:
+任务：
 
-- add lazy matplotlib import path
-- render 1D intervals, rays, and points
-- render 2D polygons, segments, and points
-- add open / closed boundary styles
-- add unbounded indicators
-- return `PlotResult`
+- 在 `pyudbm/binding/visual.py` 中增加 lazy import matplotlib 的入口
+- 渲染 1D 区间、射线和点
+- 渲染 2D 多边形、线段和点
+- 支持开 / 闭边界样式
+- 支持无界提示
+- 返回 `PlotResult`
+- 在 `DBM` 和 `Federation` 上增加懒导入对象方法
 
-Success criteria:
+成功标准：
 
-- user can plot common zones and federations on provided axes
-- open / closed and bounded / unbounded distinctions are visible
+- 用户可以把常见 zone 和 federation 画到已有 `ax` 上
+- 开闭边界和有界 / 无界差异可以在图上清晰看出来
 
-### Phase 3: 3D geometry and rendering
+### 第三阶段：3D 几何与渲染
 
-Goal:
+目标：
 
-- extend the same semantics to 3D
+- 将同样的语义扩展到 3D
 
-Tasks:
+任务：
 
-- implement convex polyhedron clipping
-- render with `Poly3DCollection`
-- support degenerate 3D outputs
-- add unbounded truncation indication
+- 实现凸多面体裁剪
+- 用 `Poly3DCollection` 渲染
+- 支持 3D 下的退化输出
+- 支持无界截断提示
 
-Success criteria:
+成功标准：
 
-- basic 3-clock zones render correctly
-- unsupported dimensions above 3 still fail explicitly
+- 常见三时钟 zone 能正确显示
+- 高于 3 维的情况仍然显式报错
 
-### Phase 4: convenience API and polish
+### 第四阶段：打磨与扩展
 
-Goal:
+目标：
 
-- make the feature feel native inside `pyudbm`
+- 让这套能力更像 `pyudbm` 原生功能，而不是外接脚本
 
-Tasks:
+任务：
 
-- optional `DBM.plot()` and `Federation.plot()`
-- better defaults for color and legend behavior
-- docstring examples
-- package-level export decisions
+- 评估是否需要为 `Context` 增加额外便捷入口
+- 优化默认颜色、图例和 label 行为
+- 补充 docstring 示例
+- 决定是否要从 `binding/__init__.py` 或包级别导出模块级绘图函数
 
-## Test Strategy
+## 测试策略
 
-### Unit tests for geometry
+### 几何层单元测试
 
-The geometry layer should be tested independently from matplotlib.
+几何层应该独立于 matplotlib 做测试。
 
-Representative cases:
+代表性用例：
 
-- 1D:
+- 1D：
   - `x == 0`
   - `x < 5`
   - `x <= 5`
   - `x > 2`
   - `x >= 0`
-  - empty zone
-- 2D:
-  - bounded rectangle-like zone
-  - bounded diagonal zone
-  - unbounded wedge
-  - line segment from equality constraints
-  - point from `x == c and y == d`
-  - empty zone
-- 3D:
-  - bounded box-like zone
-  - diagonal-face bounded zone
-  - unbounded polyhedron clipped by render box
+  - 空集
+- 2D：
+  - 有界矩形状 zone
+  - 带对角线约束的有界 zone
+  - 无界楔形区域
+  - 由等式约束形成的线段
+  - `x == c and y == d` 形成的点
+  - 空集
+- 3D：
+  - 有界 box 状 zone
+  - 带对角平面约束的有界 zone
+  - 被 render box 截断的无界多面体
 
-Assertions should cover:
+断言重点：
 
-- coordinates
-- openness flags
-- truncation flags
-- degenerate-object classification
+- 坐标
+- 开闭标记
+- 截断标记
+- 退化对象分类
 
-### Rendering tests
+### 渲染测试
 
-Rendering tests should avoid brittle pixel-perfect image comparison in the first version.
+第一版渲染测试不建议依赖脆弱的像素级截图比对。
 
-Prefer asserting:
+更稳妥的是断言：
 
-- returned artist container types
-- number of artists created
-- linestyle choice for open vs closed boundaries
-- presence of indicators for unbounded regions
-- compatibility with caller-provided `ax`
+- 返回的 artist container 类型
+- 生成的 artists 数量
+- 开边界与闭边界对应的 linestyle
+- 无界区域是否存在提示元素
+- 是否能兼容调用方传入的 `ax`
 
-Image-based regression tests can be considered later if the repo wants them.
+后续如果仓库有需要，可以再考虑加入图像回归测试。
 
-## Documentation Plan
+## 文档计划
 
-When implementation begins, documentation should include:
+当功能开始实现时，文档至少应包括：
 
-- plotting API docstrings
-- one or two examples in a future public tutorial or README section
-- explicit explanation that:
-  - higher-than-3D plotting is unsupported
-  - matplotlib is optional
-  - unbounded regions are shown through clipping plus indicators
+- plotting API 的 docstring
+- 未来 README 或公开教程中的一两个示例
+- 对以下事实的明确说明：
+  - 高于 3 维不支持
+  - matplotlib 是可选依赖
+  - 无界区域通过“有限裁剪 + 明确提示”来表达
 
-The docs should not oversell 3D semantics. If the first 3D version has visual tradeoffs, that should be stated plainly.
+文档不应过度承诺 3D 语义。如果第一版 3D 可视化存在视觉权衡，应直接写清楚。
 
-## Risks And Tradeoffs
+## 风险与权衡
 
-### 1. Strict-boundary rendering is visually subtle
+### 1. 严格边界在视觉上天然不够显眼
 
-Dashed edges alone are not enough, especially with filled polygons.
+只靠虚线边并不够，尤其是在存在填充时。
 
-Mitigation:
+缓解方式：
 
-- keep separate fill and boundary artists
-- use inward render epsilon for strict fills
+- 填充与边界线分开绘制
+- 对严格约束的 fill 使用向内渲染 epsilon
 
-### 2. Unbounded-region inference depends on finite render limits
+### 2. 无界区域的可视化一定依赖有限 render limits
 
-Any finite figure necessarily clips infinity.
+任何有限图像本质上都要对 infinity 做裁剪。
 
-Mitigation:
+缓解方式：
 
-- make clipping explicit in API and visuals
-- record synthetic clip boundaries separately
+- 在 API 和视觉层面都显式承认裁剪
+- 将 clip box 引入的伪边界与真实边界区分开
 
-### 3. 3D implementation complexity is much higher than 2D
+### 3. 3D 的实现复杂度明显高于 2D
 
-Mitigation:
+缓解方式：
 
-- do not block 1D / 2D delivery on 3D
-- stage 3D after the 2D pipeline is stable
+- 不让 3D 阻塞 1D / 2D 落地
+- 先把 2D 路径做稳定，再上 3D
 
-### 4. Federation union rendering can look visually dense
+### 4. Federation 的并集叠加可能视觉上比较密
 
-Mitigation:
+缓解方式：
 
-- default to shared color with moderate alpha
-- do not attempt exact boolean union initially
+- 默认共用颜色并配中等 alpha
+- 第一版不尝试做精确几何并集
 
-## Recommended Immediate Next Step
+## 建议的直接下一步
 
-When implementation starts, begin with Phase 1 and Phase 2 only:
+如果要开始实现，建议先只做第一阶段和第二阶段：
 
-- geometry extraction
-- 1D plotting
-- 2D plotting
-- optional dependency plumbing
-- targeted tests
+- 几何提取
+- 1D 绘图
+- 2D 绘图
+- 可选依赖接入
+- 对应测试
 
-That yields the highest value with the lowest geometry complexity, and it validates the core semantic decisions about:
+这条路径价值最高、复杂度最低，而且能尽早验证几个最关键的语义决策：
 
-- open vs closed boundaries
-- exact vs truncated infinity
-- DBM vs federation layering
+- 开边界与闭边界怎么表示
+- infinity 截断后如何不误导用户
+- DBM 与 federation 的分层渲染语义
 
-3D should be treated as a separate follow-up milestone even if the API is designed from day one to reserve that capability.
+3D 应当从一开始就在 API 设计上预留，但实现上作为后续独立里程碑推进。

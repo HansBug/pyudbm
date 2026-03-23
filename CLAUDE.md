@@ -253,6 +253,16 @@ Important rules for `mds/` work:
 - Prefer stable descriptive filenames in uppercase snake case when the
   document is not tied to a pull request, for example
   `MATPLOTLIB_VISUALIZATION_PLAN.md`.
+- The writing language of an `mds/` plan / proposal / implementation-note
+  document should follow the current discussion language unless the user
+  explicitly asks for a different language.
+- In practice, keep the plan document language aligned with the active user
+  context:
+  - if the current discussion is in Chinese, write the plan in Chinese
+  - if the current discussion is in Japanese, write the plan in Japanese
+  - if the current discussion is in English, write the plan in English
+  - apply the same rule to other languages when the user clearly uses them as
+    the working language for the current discussion
 - When the user asks for a plan/design/proposal document to be committed,
   pushed, reviewed through GitHub, linked from a PR, or otherwise managed as a
   tracked branch artifact, treat that as a PR-managed `mds/` document and use
