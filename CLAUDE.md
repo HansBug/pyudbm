@@ -232,6 +232,53 @@ Treat these as generated or local-only artifacts:
 
 Do not commit generated binaries, coverage outputs, or environment-specific build products.
 
+## MDS Plan Docs Workflow
+
+The `mds/` directory is the repository's working area for engineering notes,
+implementation plans, migration checklists, and other project-level design
+documents that are not part of the public `docs/` tree.
+
+Use `mds/` when the task is primarily about planning, design discussion,
+implementation breakdown, compatibility tracking, or other internal
+decision-record style content.
+
+This is not just a storage suggestion. When the requested output is a
+repository-managed plan / proposal / implementation-note markdown file, `mds/`
+is the default home unless the user explicitly asks for some other location.
+
+Important rules for `mds/` work:
+
+- Keep `mds/` documents focused on concrete repository work rather than
+  general theory notes that belong under `papers/` or future public docs.
+- Prefer stable descriptive filenames in uppercase snake case when the
+  document is not tied to a pull request, for example
+  `MATPLOTLIB_VISUALIZATION_PLAN.md`.
+- When the user asks for a plan/design/proposal document to be committed,
+  pushed, reviewed through GitHub, linked from a PR, or otherwise managed as a
+  tracked branch artifact, treat that as a PR-managed `mds/` document and use
+  this workflow:
+  1. Draft the document under `mds/` with a temporary descriptive filename
+     that does not yet contain a PR number.
+  2. Commit and push that draft first.
+  3. Create the GitHub pull request.
+  4. After the PR number is known, rename the file so it starts with
+     `PR<num>_`, for example `PR4_MATPLOTLIB_VISUALIZATION_PLAN.md`.
+  5. Add the PR link back into the document itself.
+  6. Update the PR body so it points to the renamed `mds/` file.
+  7. Commit and push that rename/link update as a second follow-up commit.
+- Do not guess a PR number, reserve a fake placeholder such as `PRX_`, or
+  commit a final PR-prefixed filename before the real PR number exists.
+- In PR-managed `mds/` documents, keep the link relationship bidirectional:
+  the markdown file should mention the PR, and the PR body should point to the
+  markdown file.
+- If a temporary non-PR filename was used for the first commit, rename it
+  rather than copying it and leaving duplicate versions in `mds/`.
+- If the user mentions `AGENTS.md` while requesting this workflow, treat that
+  as a request to update the shared `AGENTS.md` / `CLAUDE.md` instruction file,
+  not as permission to edit both paths separately.
+- If `AGENTS.md` is mentioned in such a task, remember that `AGENTS.md` and
+  `CLAUDE.md` are the same file via symlink; edit only `CLAUDE.md`.
+
 ## Papers Workflow
 
 The `papers/` tree is a curated documentation and reference area with its own maintenance rules.
