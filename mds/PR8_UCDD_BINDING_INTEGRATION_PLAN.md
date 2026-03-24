@@ -665,6 +665,25 @@ API 层建议：
 - 纯 clock 场景可先用 UDBM 建模、后续再升级到混合 symbolic graph
 - 有利于写对照测试
 
+这里还需要进一步明确一条实现原则：
+
+- `Federation -> CDD` 的语义转换应优先复用 UCDD 自己的建模方式
+- 能通过 UCDD 现有 `cdd` / `cppext.cpp` 思路完成的，不要在 Python 层重新发明一套等价转换
+- 如果确实需要桥接辅助逻辑，也应尽量围绕 `dbm::fed_t`、`cdd(const raw_t*, dim)`、`cdd_reduce` 一类现成语义来组织
+
+换句话说，这个方向应当是：
+
+- 用 UDBM 原生 `fed_t` 表示 zone 联邦
+- 用 UCDD 原生 `cdd` 表示统一 DD 图
+- 在 C++ 层围绕这两者做最薄的桥接
+
+而不是：
+
+- 在 Python 层把 federation 先拆成一堆自定义矩阵协议
+- 再用我们自己的转换逻辑去“模拟” UCDD 的语义
+
+只要 UCDD/UDBM 已经提供了原生可表达的方法，就应优先调用它们，而不是自造新语义。
+
 ### 设计原则五：从 `CDD` 回到 `Federation` 也必须支持，但要明确条件
 
 `CDD.to_federation()` 不应当无条件成功。
@@ -683,6 +702,29 @@ API 层建议：
   - 可提供 `split_to_guarded_federations()` 之类的高级接口，后续再做
 
 这比悄悄丢失 BDD 条件安全得多。
+
+这部分同样应遵循“优先用原生方法”的约束：
+
+- `CDD -> Federation` 不应通过我们自己重新解释整棵图的内部节点结构来完成
+- 应优先基于 UCDD 已经提供的：
+  - `cdd_reduce`
+  - `cdd_remove_negative`
+  - `cdd_extract_bdd_and_dbm`
+  - `cdd_equiv`
+- 再把抽出的原生 DBM 分量交给 UDBM 原生 `fed_t` 去重建联邦
+
+这样做的好处是：
+
+- 转换逻辑与 UCDD 上游自己的操作套路一致
+- 我们不用自己重新实现一遍图遍历和 zone 解释
+- 后续定位 bug 时，更容易把问题归因到“桥接层”还是“上游语义”
+
+对于混合图，首选策略也不是强行压平成 `Federation`，而是：
+
+- 在条件允许时支持 `split_to_guarded_federations()` 一类的受控拆分接口
+- 让每个结果保留一个 UCDD BDD/guard 部分和一个 UDBM federation/zone 部分
+
+这样能最大程度保留原语义，而不是为了迁就现有 API 悄悄丢信息。
 
 ### 设计原则六：`extract_bdd_and_dbm` 应成为两套模型的标准接口
 
@@ -920,6 +962,30 @@ pyudbm/binding/
 2. pybind11 暴露层
 3. 轻量桥接 helper 层
 
+除此之外，还建议增加一条更上位的组织原则：
+
+- `_udbm.cpp` 与 `_ucdd.cpp` 不应通过“导入对方 Python 扩展模块”的方式联动
+- 更合理的方式是共享一层内部 C++ core 或 helper
+- 也就是说，联动应发生在：
+  - 共享的 C++ 包装层
+  - UDBM/UCDD 原生库类型
+  - Python 高层对象包装层
+
+而不应发生在“一个 pybind11 扩展在 C++ 里再去 import 另一个 pybind11 扩展”的层面
+
+原因是：
+
+- C++ 扩展之间的 Python 级 import 会引入初始化顺序耦合
+- 会让 native 层依赖 Python 模块路径和命名细节
+- 一旦扩展名、导入路径或包结构调整，native 联动就会变脆
+- 也不利于单独测试 `_udbm` 或 `_ucdd`
+
+对本仓库来说，更推荐的结构是：
+
+- `_udbm.cpp` 和 `_ucdd.cpp` 都依赖同一套底层 UDBM/UCDD 库
+- 如有必要，再共享一层仓库内自有的 C++ helper/core
+- Python 层只负责把两边已经成型的 native 值对象重新包装成高层 API
+
 #### 1. native 资源包装层
 
 这层建议定义若干 C++ 小包装类，例如：
@@ -936,6 +1002,18 @@ pyudbm/binding/
 - 管理抽取结果里的 DBM 内存
 - 管理 `bdd_arrays` 的数组释放
 - 隔离 pybind11 与底层 UCDD 结构的直接耦合
+
+如果后续需要让 `_udbm.cpp` 与 `_ucdd.cpp` 共享 native 包装能力，推荐做法是：
+
+- 把共享部分下沉到单独的内部 C++ 头文件或 core 文件
+- 例如让 `NativeDBM` / `NativeFederation` 这类与 pybind11 无关的包装逻辑独立出来
+- 然后由 `_udbm.cpp` 和 `_ucdd.cpp` 共同包含或链接
+
+这样可实现的目标是：
+
+- `_ucdd.cpp` 能直接拿到现有 UDBM 包装能力
+- 但不会形成“_ucdd.cpp 在运行时 import _udbm 模块”的耦合
+- 联动仍然是 C++ 层的静态依赖，而不是 Python 模块级动态依赖
 
 #### 2. pybind11 暴露层
 
@@ -957,6 +1035,17 @@ pyudbm/binding/
 - 从现有 DBM 快照中提取原始矩阵用于 `cdd_from_dbm`
 
 如果这部分逻辑过多，应该抽成静态 helper 函数，不要散落在 `.def(...)` 里。
+
+不过桥接层的优先原则仍然是：
+
+- 能直接围绕 UCDD/UDBM 原生方法完成的，优先直接调用原生方法
+- helper 层的任务是“把原生方法接进来并托管资源”，不是“替代原生方法重做语义转换”
+
+特别是 `Federation <-> CDD` 这条桥接，建议在 helper 层中坚持：
+
+- `fed -> cdd` 优先按 UCDD `cppext.cpp` 的既有思路组织
+- `cdd -> fed` 优先按 `extract_bdd_and_dbm` 的既有套路组织
+- 不去自行解析 `cddnode_` / `bddnode_` 内部结构来实现转换
 
 ### 二、建议首批在 `_ucdd.cpp` 中直接实现的类
 
@@ -1011,11 +1100,42 @@ pyudbm/binding/
 ### 三、推荐不要在 `_ucdd.cpp` 里做的事情
 
 - 不要直接 import Python 的 `Context` / `Federation` 类并拼对象
+- 不要在 C++ 层通过 Python import 去依赖 `_udbm` 扩展
 - 不要在 C++ 层直接做复杂 clock name 决策
 - 不要在 C++ 层做“是否应该自动 reduce”这类高层便利策略
 - 不要在 C++ 层尝试承接整套用户 DSL
 
 这些都属于 Python 层更合适。
+
+## 编译与拆分配套要求
+
+本方案允许后续把 `_udbm` / `_ucdd` 以及共享 helper 继续拆分成多个文件，但拆分本身不是目的，配套维护才是重点。
+
+需要明确的要求是：
+
+- 允许拆分文件
+- 但每次拆分都必须同步维护构建配置
+- 不能出现“代码拆开了，但 `CMakeLists.txt`、目标链接关系、测试导入路径没有一起更新”的状态
+
+具体要求包括：
+
+- 新增或重命名源文件时，同步调整 `CMakeLists.txt`
+- 如果引入共享 core / helper 源文件，需要明确它们是：
+  - 被 `_udbm` 和 `_ucdd` 分别编译引用
+  - 还是先组成一个内部静态库再被两个扩展链接
+- 若拆出头文件和实现文件，需要保证包含路径、编译顺序和导出边界明确
+- `_udbm` 和 `_ucdd` 的测试必须在拆分后仍能独立导入和运行
+
+这里尤其要避免两种情况：
+
+- 为了省事，把越来越多不相关代码重新塞回单一扩展
+- 只拆源文件，不同步维护构建和测试，导致联动在编译阶段或加载阶段失稳
+
+因此，本文档里的总体建议是：
+
+- 可以拆分
+- 但拆分必须伴随构建、链接、导入路径和测试的同步维护
+- 任何结构调整都应保证 `_udbm` / `_ucdd` 联通顺畅，同时仍能各自独立构建和定位问题
 
 ## `_binding` 重命名为 `_udbm` 的具体建议
 
