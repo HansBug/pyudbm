@@ -47,6 +47,159 @@
 
 本文档的目标不是立即改代码，而是先把后续接入工作的技术边界、对象模型和阶段计划讲清楚。
 
+## 概念澄清：CDD、DBM、Federation 分别是什么
+
+在进入对象设计和接口分层之前，需要先把一个容易混淆的问题说清楚：
+
+- `CDD` 不是 `Federation` 的别名
+- 但在纯 clock 场景下，二者经常可以表达相同的语义集合
+- 一旦把 bool 变量纳入同一个符号对象，`CDD` 的表达范围就明显超过 `Federation`
+
+### 一、先看现有 `DBM` / `Federation` 语义
+
+当前仓库中的高层 UDBM API 可以先理解成两层：
+
+- `DBM`：一个凸的 clock zone
+- `Federation`：有限个 `DBM` 的并集
+
+例如：
+
+```python
+from pyudbm import Context
+
+c = Context(["x", "y"], name="c")
+
+z1 = (c.x <= 3) & (c.y <= 2)
+z2 = (c.x >= 8) & (c.x - c.y < 4)
+fed = z1 | z2
+```
+
+这里可以直观理解为：
+
+- `z1` 是时钟空间里的一块凸区域
+- `z2` 是另一块凸区域
+- `fed` 是这两块区域的并集
+
+因此，`Federation` 擅长表达的是：
+
+- 纯时钟约束
+- 非凸 zone
+- zone 的并、交、差、`up`、`down`、`predt` 等操作
+
+但它的语义边界也很明确：
+
+- 它表达的是 clock valuation 的集合
+- 它不直接表达布尔变量赋值
+- 它也不直接表达“离散条件 + zone”统一混合后的符号图
+
+### 二、CDD 不是“另一种 Federation”，而是“统一决策图表示”
+
+相比之下，UCDD 中的 `cdd`/`CDD` 更适合从“统一决策图对象”来理解，而不是“多个 DBM 的另一种容器”。
+
+可以先用一个不太严格但直观的比喻理解：
+
+- `DBM` 像一块凸多边形
+- `Federation` 像若干块凸多边形的并集
+- `CDD` 像一张压缩后的判定图，沿着图上的判断分支决定某个状态是否属于该集合
+
+这张图中的判断节点既可以是：
+
+- 布尔变量判断
+- clock-difference 约束判断
+
+因此 `CDD` 的核心不是“显式列出若干 DBM”，而是：
+
+- 用图结构共享公共子结构
+- 用统一节点体系同时表示纯 BDD、纯 CDD、以及混合 BCDD
+- 面向后续 symbolic analysis 继续做 `delay`、`past`、`predt`、`transition` 等运算
+
+### 三、纯 clock 场景下，CDD 与 Federation 的关系
+
+在不引入 bool 变量时，可以把关系理解成：
+
+- `Federation` 更接近“显式的 zone 并集”
+- `CDD` 更接近“用决策图压缩组织出来的 zone 表示”
+
+所以在纯 clock 场景下：
+
+- 两者经常可以表示相同的语义集合
+- 两者应当可以互转
+- 但它们的内部结构和适合承载的后续分析流程并不相同
+
+例如：
+
+```python
+from pyudbm import Context
+
+c = Context(["x", "y"], name="c")
+fed = ((c.x <= 10) & (c.x - c.y < 3)) | ((c.y <= 2) & (c.x >= 8))
+```
+
+这个 `fed` 表示的是纯时钟语义下的非凸状态集合。
+
+按本文档推荐方向，后续应允许：
+
+```python
+cdd = CDD.from_federation(fed)
+fed2 = cdd.to_federation(require_pure=True)
+```
+
+这体现的不是“`CDD` 和 `Federation` 完全一样”，而是：
+
+- 对纯 clock 集合来说，二者应能在语义上对齐
+- `CDD` 可以作为 `Federation` 的增强表示层继续承接后续符号运算
+
+### 四、为什么一引入 bool，CDD 就不再等价于 Federation
+
+关键差别在于：`Federation` 只覆盖时钟空间，而 `CDD` 目标是覆盖“离散条件 + 时钟条件”的统一符号状态。
+
+例如，考虑下面这个状态集合：
+
+```text
+(door_open ∧ x <= 5) ∨ (!door_open ∧ x <= 2)
+```
+
+它的直观含义是：
+
+- 门开着时，允许 `x <= 5`
+- 门关着时，只允许 `x <= 2`
+
+在 Python 高层理想接口里，这会更像：
+
+```python
+safe = (ctx.door_open & (ctx.x <= 5)) | (~ctx.door_open & (ctx.x <= 2))
+```
+
+这里包含了两类信息：
+
+- 布尔离散状态：`door_open`
+- 连续时间状态：`x <= 5`、`x <= 2`
+
+这时：
+
+- `Federation` 无法原生表达 `door_open`
+- `CDD` 则可以把它作为同一张图中的一类判断节点
+
+因此，一旦进入 mixed bool/clock 场景，`CDD` 就不是“换一种写法的 Federation”，而是语义域真正扩大了。
+
+### 五、项目设计上为什么必须把这层关系讲清楚
+
+这直接决定后续 Python API 应该怎么设计。
+
+如果把 `CDD` 误解成“另一个 Federation 容器”，就容易走到错误方向：
+
+- 只做一个新的 native helper 层
+- 继续只覆盖 pure zone 语义
+- 忽略 bool 与 clock 的统一建模价值
+- 最终把 API 变成两套彼此平行、但都不完整的体系
+
+而本文档所采取的方向是：
+
+- 保留 `Federation` 作为纯 zone 工作流的一等对象
+- 让 `CDD` 成为更强的统一符号图对象
+- 在纯 clock 场景下支持 `Federation <-> CDD` 互转
+- 在 mixed bool/clock 场景下，让 `CDD` 承接 `Federation` 无法直接覆盖的语义能力
+
 ## 现有仓库基线
 
 ### 已有 DBM binding 能力
