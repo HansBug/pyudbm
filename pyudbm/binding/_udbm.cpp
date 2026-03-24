@@ -290,7 +290,7 @@ namespace
     };
 }  // namespace
 
-PYBIND11_MODULE(_binding, m)
+PYBIND11_MODULE(_udbm, m)
 {
     m.doc() = "Thin pybind11 bindings for the legacy-style pyudbm federation API.";
 

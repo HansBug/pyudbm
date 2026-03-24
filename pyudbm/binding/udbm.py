@@ -43,7 +43,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Iterable, List, Mapping, Optional, Tuple, Union
 
-from ._binding import _NativeConstraint, _NativeDBM, _NativeFederation
+from ._udbm import _NativeConstraint, _NativeDBM, _NativeFederation
 
 __all__ = [
     "DBM",

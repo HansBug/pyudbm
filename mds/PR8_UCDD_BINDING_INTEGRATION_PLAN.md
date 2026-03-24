@@ -1670,37 +1670,37 @@ state.to_dot("state.dot", push_negate=True)
 
 实施清单：
 
-- [ ] 将 `pyudbm/binding/_binding.cpp` 重命名为 `pyudbm/binding/_udbm.cpp`
-- [ ] 将 pybind11 模块名从 `_binding` 调整为 `_udbm`
-- [ ] 调整 `pyudbm/binding/udbm.py` 对 native 模块的导入路径
-- [ ] 调整 `CMakeLists.txt` 里的源文件路径、目标名和输出模块名
-- [ ] 检查是否有测试或辅助代码仍直接引用 `_binding`
-- [ ] 新增 `pyudbm/binding/_ucdd.cpp`
-- [ ] 在 `_ucdd.cpp` 中接入 runtime 包装
-- [ ] 在 `_ucdd.cpp` 中接入 `NativeCDD`
-- [ ] 在 `_ucdd.cpp` 中接入 `NativeCDDLevelInfo`
-- [ ] 在 `_ucdd.cpp` 中接入 `NativeCDDExtraction`
-- [ ] 在 `_ucdd.cpp` 中接入 `NativeBDDTraceSet`
-- [ ] 暴露基础构造与集合代数接口
-- [ ] 暴露 `reduce` / `equiv`
-- [ ] 暴露 `delay` / `past` / `predt`
-- [ ] 暴露 `extract_*` 与 `bdd_to_array`
-- [ ] 暴露 `transition` / `transition_back` / `transition_back_past`
+- [x] 将 `pyudbm/binding/_binding.cpp` 重命名为 `pyudbm/binding/_udbm.cpp`
+- [x] 将 pybind11 模块名从 `_binding` 调整为 `_udbm`
+- [x] 调整 `pyudbm/binding/udbm.py` 对 native 模块的导入路径
+- [x] 调整 `CMakeLists.txt` 里的源文件路径、目标名和输出模块名
+- [x] 检查是否有测试或辅助代码仍直接引用 `_binding`
+- [x] 新增 `pyudbm/binding/_ucdd.cpp`
+- [x] 在 `_ucdd.cpp` 中接入 runtime 包装
+- [x] 在 `_ucdd.cpp` 中接入 `NativeCDD`
+- [x] 在 `_ucdd.cpp` 中接入 `NativeCDDLevelInfo`
+- [x] 在 `_ucdd.cpp` 中接入 `NativeCDDExtraction`
+- [x] 在 `_ucdd.cpp` 中接入 `NativeBDDTraceSet`
+- [x] 暴露基础构造与集合代数接口
+- [x] 暴露 `reduce` / `equiv`
+- [x] 暴露 `delay` / `past` / `predt`
+- [x] 暴露 `extract_*` 与 `bdd_to_array`
+- [x] 暴露 `transition` / `transition_back` / `transition_back_past`
 
 本 phase 产物：
 
-- [ ] 可导入的 `_udbm` 扩展
-- [ ] 可导入的 `_ucdd` 扩展
-- [ ] `test/binding/test_ucdd_native.py`
+- [x] 可导入的 `_udbm` 扩展
+- [x] 可导入的 `_ucdd` 扩展
+- [x] `test/binding/test_ucdd_native.py`
 
 完成后检查清单：
 
-- [ ] `python -c "import pyudbm.binding._udbm"` 可成功执行
-- [ ] `python -c "import pyudbm.binding._ucdd"` 可成功执行
-- [ ] 现有 UDBM 高层 API 在 `_binding -> _udbm` 重命名后仍能正常导入
-- [ ] 不依赖 Python 高层包装也能通过测试调用 UCDD 核心 native 接口
-- [ ] `_ucdd` 相关对象不存在裸指针泄漏和明显生命周期错误
-- [ ] 已完成一次完整编译后的回归测试，而不只是 `_ucdd` 定向 smoke test
+- [x] `python -c "import pyudbm.binding._udbm"` 可成功执行
+- [x] `python -c "import pyudbm.binding._ucdd"` 可成功执行
+- [x] 现有 UDBM 高层 API 在 `_binding -> _udbm` 重命名后仍能正常导入
+- [x] 不依赖 Python 高层包装也能通过测试调用 UCDD 核心 native 接口
+- [x] `_ucdd` 相关对象不存在裸指针泄漏和明显生命周期错误
+- [x] 已完成一次完整编译后的回归测试，而不只是 `_ucdd` 定向 smoke test
 
 ### Phase 2：Python 高层包装与现有 DBM 联动
 
