@@ -1,0 +1,19 @@
+digraph bdd_basics_zh {
+    rankdir=LR;
+    graph [pad="0.2", nodesep="0.7", ranksep="0.42", splines=true];
+    node [shape=circle, style="filled", fillcolor="#f7f7f7", color="#666666"];
+    edge [color="#666666"];
+
+    a [label="a"];
+    b [label="b"];
+    c [label="c", fillcolor="#eef4ff", color="#5c7fb8"];
+    t [shape=box, label="真", fillcolor="#eef8ee", color="#5b8a5b"];
+    f [shape=box, label="假", fillcolor="#fff1f1", color="#aa5555"];
+
+    a -> c [label="1"];
+    a -> b [label="0", style=dashed];
+    b -> c [label="1"];
+    b -> f [label="0", style=dashed];
+    c -> t [label="1"];
+    c -> f [label="0", style=dashed];
+}

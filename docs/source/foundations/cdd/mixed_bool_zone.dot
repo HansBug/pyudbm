@@ -1,0 +1,37 @@
+digraph mixed_bool_zone {
+    rankdir=TB;
+    graph [pad="0.2", nodesep="0.45", ranksep="0.6", splines=true];
+    node [shape=box, style="rounded,filled", fillcolor="#f7f7f7", color="#666666", fontname="Helvetica", fontsize=10];
+    edge [color="#666666", fontname="Helvetica", fontsize=10];
+
+    b [label="door_open", fillcolor="#fff3de", color="#c97a1f"];
+    x [label="x", fillcolor="#eaf3ff", color="#4c78a8"];
+    y [label="y", fillcolor="#eaf3ff", color="#4c78a8"];
+    t [label="True", fillcolor="#eef8ee", color="#5b8a5b"];
+    f [label="False", fillcolor="#fff1f1", color="#aa5555"];
+
+    subgraph cluster_bdd {
+        label="boolean layer";
+        color="#f0d9ab";
+        style="rounded,dashed";
+        b;
+    }
+
+    subgraph cluster_cdd {
+        label="continuous layer";
+        color="#b9cde5";
+        style="rounded,dashed";
+        {
+            rank=same;
+            x;
+            y;
+        }
+    }
+
+    b -> x [label="true"];
+    b -> y [label="false"];
+    x -> t [label="[0, 5]"];
+    x -> f [label="otherwise"];
+    y -> t [label="[0, 2]"];
+    y -> f [label="otherwise"];
+}

@@ -1,0 +1,54 @@
+digraph explicit_vs_shared {
+    rankdir=LR;
+    graph [pad="0.2", nodesep="0.45", ranksep="0.75", splines=true];
+    node [shape=box, style="rounded,filled", fillcolor="#f7f7f7", color="#666666", fontname="Helvetica", fontsize=10];
+    edge [color="#666666", fontname="Helvetica", fontsize=10];
+
+    subgraph cluster_left {
+        label="Explicit federation / DBM list";
+        color="#cfcfcf";
+        style="rounded,dashed";
+
+        l0 [label="D1\n0<=x-y<=2\n0<=x<=1\n0<=y<=2"];
+        l1 [label="D2\n0<=x-y<=2\n4<=x<=5\n0<=y<=2"];
+        l2 [label="D3\n4<=x-y<=6\n0<=x<=1\n0<=y<=2"];
+        l3 [label="D4\n4<=x-y<=6\n4<=x<=5\n0<=y<=2"];
+        lu [label="Same non-convex set\nD1 U D2 U D3 U D4", fillcolor="#eef8ee", color="#5b8a5b", width=1.8];
+
+        l0 -> lu;
+        l1 -> lu;
+        l2 -> lu;
+        l3 -> lu;
+    }
+
+    subgraph cluster_right {
+        label="Shared CDD";
+        color="#cfcfcf";
+        style="rounded,dashed";
+
+        r0 [label="x - y"];
+        r1 [label="x"];
+        r2 [label="y", fillcolor="#eef4ff", color="#5c7fb8"];
+        rt [label="True", fillcolor="#eef8ee", color="#5b8a5b"];
+        rf [label="False", fillcolor="#fff1f1", color="#aa5555"];
+
+        subgraph cluster_suffix {
+            label="shared suffix";
+            color="#b9cde5";
+            style="rounded,dashed";
+
+            r2;
+            rt;
+            rf;
+        }
+
+        r0 -> r1 [label="[0, 2]"];
+        r0 -> r1 [label="[4, 6]"];
+        r0 -> rf [label="otherwise"];
+        r1 -> r2 [label="[0, 1]"];
+        r1 -> r2 [label="[4, 5]"];
+        r1 -> rf [label="otherwise"];
+        r2 -> rt [label="[0, 2]"];
+        r2 -> rf [label="otherwise"];
+    }
+}

@@ -117,6 +117,21 @@ extensions = [
     'sphinxcontrib.rsvgconverter',
 ]
 
+mathjax3_config = {
+    'tex': {
+        'macros': {
+            'llbracket': ['\\unicode{x27E6}'],
+            'rrbracket': ['\\unicode{x27E7}'],
+        },
+    },
+}
+
+latex_elements = {
+    'preamble': r'''
+\usepackage{stmaryrd}
+''',
+}
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 

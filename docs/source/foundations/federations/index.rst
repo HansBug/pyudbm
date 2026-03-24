@@ -721,10 +721,10 @@ Several distinctions matter a lot in practice:
 Next
 ~~~~
 
-The next natural topic after federations is the planned ``cdd/`` page: once
-finite unions of zones become first-class, the next question is whether an
-explicit list of DBMs is always the best representation, or whether shared
-diagram structures sometimes compress the same symbolic set better.
+The next natural topic after federations is :doc:`../cdd/index`: once finite
+unions of zones become first-class, the next question is whether an explicit
+list of DBMs is always the best representation, or whether shared diagram
+structures sometimes compress the same symbolic set better.
 
 References
 ~~~~~~~~~~
