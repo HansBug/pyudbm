@@ -9,6 +9,10 @@ from pyudbm import Context
 from pyudbm.binding import BDDTraceSet, CDD, CDDContext, CDDExtraction, CDDBool, CDDClock, DBM
 
 
+def _raw_matrix_signature(dbm):
+    return tuple(tuple(row) for row in dbm.to_matrix(mode="raw"))
+
+
 @pytest.fixture(autouse=True)
 def collect_garbage():
     gc.collect()
@@ -353,6 +357,18 @@ class TestUcddApi:
         assert prev_state.to_federation() == (base.x <= 2)
         assert prev_state_past.to_federation() == (base.x <= 2)
 
+    def test_pure_clock_reference_semantics_match_federation(self):
+        base = Context(["x"], name="c")
+        ctx = base.to_cdd_context()
+        federation = ((base.x >= 2) & (base.x <= 4)) | ((base.x >= 6) & (base.x <= 7))
+        forbidden = base.x == 5
+        cdd = federation.to_cdd(cdd_context=ctx)
+        forbidden_cdd = forbidden.to_cdd(cdd_context=ctx)
+
+        assert cdd.delay().to_federation() == federation.up()
+        assert cdd.past().to_federation() == federation.down()
+        assert cdd.predt(forbidden_cdd).to_federation() == federation.predt(forbidden)
+
     def test_mixed_clock_bool_resets_and_guarded_extraction(self):
         base = Context(["x"], name="c")
         ctx = base.to_cdd_context(bools=["door_open", "alarm"])
@@ -371,3 +387,49 @@ class TestUcddApi:
 
         with pytest.raises(ValueError, match="mixed bool/clock CDD"):
             next_state.to_federation()
+
+    def test_extract_bdd_and_dbm_iteration_is_stable(self):
+        base = Context(["x"], name="c")
+        ctx = base.to_cdd_context(bools=["door_open"])
+        state = ((ctx.x <= 1) & ctx.door_open) | ((ctx.x >= 3) & ~ctx.door_open)
+
+        pending = state
+        fragments = []
+        while not pending.is_false():
+            extraction = pending.extract_bdd_and_dbm()
+            fragments.append(
+                (
+                    tuple(sorted(extraction.bdd_part.bdd_traces().to_dicts(sparse=False)[0].items())),
+                    _raw_matrix_signature(extraction.dbm),
+                )
+            )
+            pending = extraction.remainder
+
+        assert len(fragments) == 2
+        assert {
+            (("door_open", True),),
+            (("door_open", False),),
+        } == {guard for guard, _ in fragments}
+        assert {
+            _raw_matrix_signature(((base.x <= 1).to_dbm_list()[0])),
+            _raw_matrix_signature(((base.x >= 3).to_dbm_list()[0])),
+        } == {matrix for _, matrix in fragments}
+
+    def test_mixed_transition_workflow_keeps_bool_traces_stable(self):
+        base = Context(["x"], name="c")
+        ctx = base.to_cdd_context(bools=["door_open", "alarm"])
+        source = (ctx.x <= 3) & ctx.door_open & ~ctx.alarm
+        guard = ctx.x <= 3
+
+        transitioned = source.transition(
+            guard=guard,
+            clock_resets={"x": 0},
+            bool_resets={"door_open": False, "alarm": True},
+        ).reduce()
+        extracted = transitioned.extract_bdd_and_dbm()
+
+        assert extracted.remainder.is_false()
+        assert extracted.bdd_part.bdd_traces().to_dicts(sparse=False) == [
+            {"door_open": False, "alarm": True}
+        ]
+        assert extracted.dbm.to_cdd().to_federation() == (base.x == 0)

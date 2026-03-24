@@ -52,6 +52,15 @@ class TestUcddNative:
         assert ucdd_module.OP_AND == OP_AND
         assert ucdd_module.OP_XOR == OP_XOR
 
+    def test_udbm_module_rename_regression_surface(self):
+        public_udbm = importlib.import_module("pyudbm.binding.udbm")
+        native_udbm = importlib.import_module("pyudbm.binding._udbm")
+
+        assert public_udbm._NativeDBM is native_udbm._NativeDBM
+        assert public_udbm._NativeFederation is native_udbm._NativeFederation
+        with pytest.raises(ModuleNotFoundError):
+            importlib.import_module("pyudbm.binding._binding")
+
     def test_runtime_metadata_and_level_info(self):
         _NativeCDDRuntime.ensure_running()
         _NativeCDDRuntime.add_clocks(2)
@@ -241,3 +250,29 @@ class TestUcddNative:
 
         with pytest.raises(ValueError, match="Boolean reset levels and values must have the same length"):
             state.apply_reset([], [], [level], [])
+
+    def test_runtime_can_shutdown_and_restart_after_releasing_handles(self):
+        context = Context(["x"])
+        dbm, raw_dbm = _raw_dbm((context.x >= 1) & (context.x <= 2))
+
+        _NativeCDDRuntime.ensure_running()
+        _NativeCDDRuntime.add_clocks(dbm.dimension)
+        level = _NativeCDDRuntime.add_bddvars(1)
+
+        handles = [
+            _NativeCDD.from_dbm(raw_dbm, dbm.dimension),
+            _NativeCDD.from_dbm(raw_dbm, dbm.dimension).and_op(_NativeCDD.bddvar(level)).reduce(),
+            _NativeCDD.bddnvar(level),
+        ]
+        assert _NativeCDDRuntime.is_running()
+        assert _NativeCDDRuntime.getclocks() == dbm.dimension
+
+        del handles
+        gc.collect()
+
+        _NativeCDDRuntime.done()
+        assert not _NativeCDDRuntime.is_running()
+
+        _NativeCDDRuntime.ensure_running()
+        _NativeCDDRuntime.add_clocks(dbm.dimension)
+        assert _NativeCDDRuntime.getclocks() == dbm.dimension

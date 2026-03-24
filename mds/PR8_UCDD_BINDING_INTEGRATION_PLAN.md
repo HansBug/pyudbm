@@ -1765,8 +1765,7 @@ state.to_dot("state.dot", push_negate=True)
 本 phase 产物：
 
 - [x] `pyudbm/binding/ucdd.py`
-- [x] `test/binding/test_ucdd_api.py`
-- [x] `test/binding/test_ucdd_interop.py`
+- [x] `test/binding/test_ucdd.py`
 
 完成后检查清单：
 
@@ -1800,7 +1799,7 @@ state.to_dot("state.dot", push_negate=True)
 本 phase 产物：
 
 - [x] 用户可直接编写 mixed bool/clock symbolic expression
-- [x] `test/binding/test_ucdd_api.py` 中覆盖 DSL 和 transition/reset 用例
+- [x] `test/binding/test_ucdd.py` 中覆盖 DSL 和 transition/reset 用例
 
 完成后检查清单：
 
@@ -1808,6 +1807,54 @@ state.to_dot("state.dot", push_negate=True)
 - [x] 不需要用户手工拼并行数组即可完成 reset / transition 操作
 - [x] bool 与 clock 的命名、打印和上下文归属清晰一致
 - [x] 已完成一次完整编译后的回归测试，并覆盖 mixed bool/clock DSL 与 transition/reset 工作流
+
+## 当前公开用法示例
+
+下面给出当前仓库中已经实现并通过测试的典型用法，作为后续文档和回归验证的对照基线。
+
+### 一、纯 clock Federation 与 CDD 互转
+
+```python
+from pyudbm import Context
+
+base = Context(["x", "y"], name="c")
+fed = ((base.x <= 3) & (base.y <= 2)) | (base.x - base.y <= 1)
+
+cdd = fed.to_cdd()
+relaxed = cdd.delay()
+fed_back = relaxed.to_federation()
+```
+
+这个例子体现的是：
+
+- 现有 `Federation` 可以直接提升为 `CDD`
+- `CDD.delay()` 可以继续进行时间推进
+- 在结果仍为纯 clock 语义时，可以再安全回落成 `Federation`
+
+### 二、mixed bool/clock 工作流
+
+```python
+from pyudbm import Context
+
+ctx = Context(["x", "y"], name="c").to_cdd_context(bools=["door_open", "alarm"])
+
+state = ((ctx.x <= 5) & ctx.door_open) | ((ctx.x == 0) & ~ctx.door_open)
+step = state.transition(
+    guard=ctx.x <= 5,
+    clock_resets={"x": 0},
+    bool_resets={"door_open": False, "alarm": True},
+)
+extraction = step.extract_bdd_and_dbm()
+```
+
+这个例子体现的是：
+
+- bool 与 clock 条件可以在同一个 `CDD` 中自然组合
+- `transition(...)` 支持 Python 友好的 reset 参数格式
+- `extract_bdd_and_dbm()` 可以把 mixed symbolic state 拆成：
+  - 继续待处理的 remainder
+  - 当前片段上的 bool guard
+  - 可直接复用现有 `DBM` API 的 DBM 片段
 
 ### Phase 4：文档、测试与对照验证
 
@@ -1819,33 +1866,33 @@ state.to_dot("state.dot", push_negate=True)
 
 实施清单：
 
-- [ ] 为 UCDD 高层 API 增补文档字符串和使用示例
-- [ ] 在仓库文档或 `mds/` 中补充 UCDD 与 DBM 联动示例
-- [ ] 新增纯 clock 对照测试
-- [ ] 新增 mixed bool/clock 工作流测试
-- [ ] 新增 `extract_bdd_and_dbm()` 稳定性测试
-- [ ] 新增内存安全和生命周期回归测试
-- [ ] 新增 `_udbm` 重命名后的回归测试
+- [x] 为 UCDD 高层 API 增补文档字符串和使用示例
+- [x] 在仓库文档或 `mds/` 中补充 UCDD 与 DBM 联动示例
+- [x] 新增纯 clock 对照测试
+- [x] 新增 mixed bool/clock 工作流测试
+- [x] 新增 `extract_bdd_and_dbm()` 稳定性测试
+- [x] 新增内存安全和生命周期回归测试
+- [x] 新增 `_udbm` 重命名后的回归测试
 
 建议优先完成的对照测试：
 
-- [ ] `Federation.up()` 与 `CDD.from_federation(f).delay().to_federation()` 对照
-- [ ] `Federation.down()` 与 `CDD.from_federation(f).past().to_federation()` 对照
-- [ ] `predt` 与现有 Federation `predt` 的纯 clock 语义对照
-- [ ] `extract_bdd_and_dbm()` 的稳定性与内存安全
+- [x] `Federation.up()` 与 `CDD.from_federation(f).delay().to_federation()` 对照
+- [x] `Federation.down()` 与 `CDD.from_federation(f).past().to_federation()` 对照
+- [x] `predt` 与现有 Federation `predt` 的纯 clock 语义对照
+- [x] `extract_bdd_and_dbm()` 的稳定性与内存安全
 
 本 phase 产物：
 
-- [ ] 完整的 UCDD 高层 API 测试集
-- [ ] 关键纯 clock 对照测试集
-- [ ] 文档化的使用示例
+- [x] 完整的 UCDD 高层 API 测试集
+- [x] 关键纯 clock 对照测试集
+- [x] 文档化的使用示例
 
 完成后检查清单：
 
-- [ ] 纯 clock 场景下，UCDD 与现有 Federation 关键语义可对照验证
-- [ ] mixed bool/clock 场景下，核心流程有稳定测试覆盖
-- [ ] 文档中的主要示例代码能与当前 API 保持一致
-- [ ] 已完成一次完整编译后的回归测试，并确认新增文档示例与当前实现一致
+- [x] 纯 clock 场景下，UCDD 与现有 Federation 关键语义可对照验证
+- [x] mixed bool/clock 场景下，核心流程有稳定测试覆盖
+- [x] 文档中的主要示例代码能与当前 API 保持一致
+- [x] 已完成一次完整编译后的回归测试，并确认新增文档示例与当前实现一致
 
 ### Phase 5：状态收尾与文档回填
 
@@ -1855,19 +1902,44 @@ state.to_dot("state.dot", push_negate=True)
 
 实施清单：
 
-- [ ] 完成一个 phase 后立即回到本文档勾选 checklist
-- [ ] 若实现过程中拆分 phase 或增加新任务，先更新本文档再继续开发
-- [ ] 在 PR 讨论中引用本文档中对应 phase 的完成状态
+- [x] 完成一个 phase 后立即回到本文档勾选 checklist
+- [x] 若实现过程中拆分 phase 或增加新任务，先更新本文档再继续开发
+- [x] 在 PR 讨论中引用本文档中对应 phase 的完成状态
 
 本 phase 产物：
 
-- [ ] 本文档中的 checklist 与实际实现状态一致
+- [x] 本文档中的 checklist 与实际实现状态一致
 
 完成后检查清单：
 
-- [ ] 不存在“代码已完成但文档 checklist 未更新”的偏差
-- [ ] 后续读者仅查看本文档即可知道目前推进到哪个 phase
-- [ ] 各个已完成 phase 的完整编译与回归验证结果已在实现记录或 PR 讨论中可追溯
+- [x] 不存在“代码已完成但文档 checklist 未更新”的偏差
+- [x] 后续读者仅查看本文档即可知道目前推进到哪个 phase
+- [x] 各个已完成 phase 的完整编译与回归验证结果已在实现记录或 PR 讨论中可追溯
+
+## 实现与验证记录
+
+为满足“每个 phase 结束后执行完整编译与完整回归”的要求，后续每次实际收尾都应至少能追溯到：
+
+- `make bin`
+- `make build`
+- `make unittest`
+
+对于 UCDD 相关补充验证，还应能追溯到：
+
+- `pytest -q test/binding/test_ucdd.py`
+- `pytest -q test/binding/test_ucdd_native.py`
+- `pytest -q test/binding`
+
+本轮 Phase 4 / Phase 5 收尾验证记录（2026-03-24）：
+
+- `pytest -q test/binding/test_ucdd.py` 通过，`12 passed`
+- `pytest -q test/binding/test_ucdd_native.py` 通过，`9 passed`
+- 文档示例脚本顺序执行通过
+- `pytest -q test/binding` 通过，`117 passed`
+- `make bin` 通过，`UUtils` / `UDBM` / `UCDD` 原生 `ctest` 全通过
+- `make build` 通过
+- `make unittest` 通过，`118 passed`
+- PR 讨论记录：<https://github.com/HansBug/pyudbm/pull/8#issuecomment-4115550359>
 
 ## 首批不建议进入公开承诺的内容
 
