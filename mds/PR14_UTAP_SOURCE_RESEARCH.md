@@ -14,6 +14,15 @@
 
 本文是仓库内的内部研究笔记，不代表最终设计结论。
 
+## PR 信息
+
+- Pull Request: <https://github.com/HansBug/pyudbm/pull/14>
+- 当前文件路径：`mds/PR14_UTAP_SOURCE_RESEARCH.md`
+
+## 后续计划说明
+
+基于本轮调研，后续我计划继续评估如何将 `UTAP` 以内置依赖、紧耦合前端组件或其他适合本仓库构建/发布模型的方式纳入 `pyudbm`，以便更直接地支持官方 UPPAAL 模型导入，同时仍然把最终工作流落到 `pyudbm` 的 Python-first 建模与符号分析接口上。
+
 ## 调研对象与快照
 
 - 上游仓库：<https://github.com/UPPAALModelChecker/utap>
