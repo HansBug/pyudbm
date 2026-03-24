@@ -33,7 +33,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict, Iterable, Iterator, List, Mapping, Optional, Sequence, Tuple, Union
 
-from ._ucdd import OP_AND, OP_XOR, TYPE_BDD, TYPE_CDD, _NativeCDD, _NativeCDDRuntime
+from ._ucdd import (
+    OP_AND as _ORIGIN_OP_AND,
+    OP_XOR as _ORIGIN_OP_XOR,
+    TYPE_BDD as _ORIGIN_TYPE_BDD,
+    TYPE_CDD as _ORIGIN_TYPE_CDD,
+    _NativeCDD,
+    _NativeCDDRuntime,
+)
 from ._udbm import _NativeDBM, _NativeFederation
 from .udbm import DBM, Clock, Context, Federation, VariableDifference
 
@@ -50,6 +57,35 @@ __all__ = [
     "TYPE_BDD",
     "TYPE_CDD",
 ]
+
+#: Native UCDD binary-operation code for logical conjunction / symbolic
+#: intersection.
+#:
+#: This constant is primarily used with :meth:`CDD.apply` and
+#: :meth:`CDD.apply_reduce` when the caller wants to select the native
+#: conjunction operator explicitly instead of using ``left & right``.
+OP_AND: int = _ORIGIN_OP_AND
+
+#: Native UCDD binary-operation code for logical exclusive-or.
+#:
+#: This constant is primarily used with :meth:`CDD.apply` and
+#: :meth:`CDD.apply_reduce` when the caller wants to select the native XOR
+#: operator explicitly instead of using ``left ^ right``.
+OP_XOR: int = _ORIGIN_OP_XOR
+
+#: Native level-type tag identifying one boolean-decision level in the global
+#: UCDD runtime.
+#:
+#: Values of this kind appear in :class:`CDDLevelInfo` and let callers
+#: distinguish pure BDD levels from clock-difference levels.
+TYPE_BDD: int = _ORIGIN_TYPE_BDD
+
+#: Native level-type tag identifying one clock-difference level in the global
+#: UCDD runtime.
+#:
+#: Values of this kind appear in :class:`CDDLevelInfo` and let callers
+#: distinguish clock-difference levels from pure boolean-decision levels.
+TYPE_CDD: int = _ORIGIN_TYPE_CDD
 
 
 @dataclass(frozen=True)
