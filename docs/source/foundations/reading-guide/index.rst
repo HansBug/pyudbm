@@ -42,7 +42,7 @@ If you already know timed automata, but symbolic states and zones still feel abs
 
 If you already know zones and DBMs, but do not yet see why non-convex symbolic sets matter:
     Skim :doc:`../what-is-uppaal/index`, then continue to
-    :doc:`../federations/index` and the planned ``cdd/`` page.
+    :doc:`../federations/index` and :doc:`../cdd/index`.
 
 If your main concern is the future Python-facing architecture of this repository:
     **Read** :doc:`../what-is-uppaal/index` **first**, because it explains the
@@ -58,6 +58,7 @@ Current Coverage
 * :doc:`../symbolic-states/index`
 * :doc:`../dbm-basics/index`
 * :doc:`../federations/index`
+* :doc:`../cdd/index`
 
 Planned Sequence
 ----------------

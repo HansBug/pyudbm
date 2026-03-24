@@ -1,0 +1,66 @@
+digraph runtime_layout {
+    rankdir=TB;
+    graph [pad="0.25", nodesep="0.4", ranksep="0.6", splines=true];
+    node [shape=box, style="rounded,filled", fillcolor="#f7f7f7", color="#666666", fontname="Helvetica"];
+    edge [color="#666666", fontname="Helvetica"];
+
+    ctx [label="CDDContext"];
+    base [label="base Context\nclock names / order", fillcolor="#eef4ff", color="#5c7fb8"];
+    bools [label="boolean declarations", fillcolor="#fff8e8", color="#c97a1f"];
+    runtime [label="global UCDD runtime", fillcolor="#eef8ee", color="#5b8a5b"];
+    bdd [label="BDD levels\nTYPE_BDD", fillcolor="#fff3de", color="#c97a1f"];
+    cdd [label="clock-difference levels\nTYPE_CDD", fillcolor="#eaf3ff", color="#4c78a8"];
+    mixed [label="mixed CDD\nbool + clock", fillcolor="#f6eff7", color="#8c6bb1"];
+    extract [label="extract_bdd_and_dbm()", fillcolor="#f7f7f7"];
+    dbm [label="BDD guard + DBM fragment", fillcolor="#eef4ff", color="#5c7fb8"];
+    fed [label="Federation\n(pure-clock only)", fillcolor="#eef8ee", color="#5b8a5b"];
+
+    subgraph cluster_decl {
+        label="context declarations";
+        color="#cfcfcf";
+        style="rounded,dashed";
+
+        {
+            rank=same;
+            base;
+            bools;
+        }
+    }
+
+    subgraph cluster_runtime {
+        label="runtime layers";
+        color="#cfcfcf";
+        style="rounded,dashed";
+
+        {
+            rank=same;
+            bdd;
+            cdd;
+        }
+    }
+
+    subgraph cluster_result {
+        label="extracted results";
+        color="#cfcfcf";
+        style="rounded,dashed";
+
+        {
+            rank=same;
+            extract;
+            dbm;
+            fed;
+        }
+    }
+
+    ctx -> base;
+    ctx -> bools;
+    base -> runtime [label="cdd_add_clocks"];
+    bools -> runtime [label="cdd_add_bddvar"];
+    runtime -> bdd;
+    runtime -> cdd;
+    bdd -> mixed;
+    cdd -> mixed;
+    mixed -> extract;
+    extract -> dbm;
+    dbm -> fed [label="if BDD guard = True"];
+}

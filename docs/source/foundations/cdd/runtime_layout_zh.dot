@@ -1,0 +1,66 @@
+digraph runtime_layout_zh {
+    rankdir=TB;
+    graph [pad="0.25", nodesep="0.4", ranksep="0.6", splines=true];
+    node [shape=box, style="rounded,filled", fillcolor="#f7f7f7", color="#666666"];
+    edge [color="#666666"];
+
+    ctx [label="CDDContext"];
+    base [label="base Context\n时钟名与顺序", fillcolor="#eef4ff", color="#5c7fb8"];
+    bools [label="布尔变量声明", fillcolor="#fff8e8", color="#c97a1f"];
+    runtime [label="全局 UCDD runtime", fillcolor="#eef8ee", color="#5b8a5b"];
+    bdd [label="BDD levels\nTYPE_BDD", fillcolor="#fff3de", color="#c97a1f"];
+    cdd [label="时钟差 levels\nTYPE_CDD", fillcolor="#eaf3ff", color="#4c78a8"];
+    mixed [label="混合 CDD\n布尔 + 时钟", fillcolor="#f6eff7", color="#8c6bb1"];
+    extract [label="extract_bdd_and_dbm()", fillcolor="#f7f7f7"];
+    dbm [label="BDD guard + DBM 片段", fillcolor="#eef4ff", color="#5c7fb8"];
+    fed [label="Federation\n(仅纯时钟)", fillcolor="#eef8ee", color="#5b8a5b"];
+
+    subgraph cluster_decl {
+        label="上下文声明";
+        color="#cfcfcf";
+        style="rounded,dashed";
+
+        {
+            rank=same;
+            base;
+            bools;
+        }
+    }
+
+    subgraph cluster_runtime {
+        label="运行时层级";
+        color="#cfcfcf";
+        style="rounded,dashed";
+
+        {
+            rank=same;
+            bdd;
+            cdd;
+        }
+    }
+
+    subgraph cluster_result {
+        label="拆解结果";
+        color="#cfcfcf";
+        style="rounded,dashed";
+
+        {
+            rank=same;
+            extract;
+            dbm;
+            fed;
+        }
+    }
+
+    ctx -> base;
+    ctx -> bools;
+    base -> runtime [label="cdd_add_clocks"];
+    bools -> runtime [label="cdd_add_bddvar"];
+    runtime -> bdd;
+    runtime -> cdd;
+    bdd -> mixed;
+    cdd -> mixed;
+    mixed -> extract;
+    extract -> dbm;
+    dbm -> fed [label="若 BDD guard = True"];
+}
