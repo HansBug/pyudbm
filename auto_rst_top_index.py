@@ -51,7 +51,7 @@ def generate_rst_index(input_dir, output_file, title):
         print(f'-------------------------', file=f)
         print(f'', file=f)
         print(f'.. toctree::', file=f)
-        print(f'    :maxdepth: 2', file=f)
+        print(f'    :maxdepth: 3', file=f)
         print(f'    :caption: {title}', file=f)
         print(f'    :hidden:', file=f)
         print(f'', file=f)

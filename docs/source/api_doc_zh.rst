@@ -2,7 +2,7 @@ API 文档
 -------------------------
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 3
     :caption: API 文档
     :hidden:
 
@@ -11,4 +11,3 @@ API 文档
 
 * :doc:`api_doc/binding/index`
 * :doc:`api_doc/config/index`
-

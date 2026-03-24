@@ -57,7 +57,7 @@
 ----
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 3
     :caption: 教程
     :hidden:
 
@@ -69,7 +69,7 @@
 --------
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 3
     :caption: 概念基础
     :hidden:
 

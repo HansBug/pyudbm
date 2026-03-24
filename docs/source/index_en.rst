@@ -60,7 +60,7 @@ Tutorials
 ---------
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 3
     :caption: Tutorials
     :hidden:
 
@@ -72,7 +72,7 @@ Concept Foundations
 -------------------
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 3
     :caption: Foundations
     :hidden:
 

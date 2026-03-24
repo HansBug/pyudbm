@@ -2,7 +2,7 @@ API Documentation
 -------------------------
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 3
     :caption: API Documentation
     :hidden:
 
@@ -11,4 +11,3 @@ API Documentation
 
 * :doc:`api_doc/binding/index`
 * :doc:`api_doc/config/index`
-
