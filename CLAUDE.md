@@ -4,7 +4,26 @@
 
 ## Project Identity
 
-`pyudbm` is intended to become a Python wrapper around the UPPAAL DBM library, not a reimplementation of DBM algorithms inside this repository.
+`pyudbm` should no longer be understood as merely a Python wrapper around the
+UPPAAL DBM library.
+
+The repository is evolving toward a Python-first UPPAAL workflow platform:
+
+- Python should be the primary user-facing language for modeling, properties,
+  scripting, and automation.
+- High-level DSLs should be preferred over XML as the primary authoring
+  interface.
+- The repository should eventually cover much more than bare DBM exposure,
+  including symbolic state manipulation, timed-automata-oriented workflows, and
+  verification-facing Python APIs.
+
+Important boundary:
+
+- This does **not** mean reimplementing the core DBM / CDD algorithms in pure
+  Python inside this repository.
+- The preferred approach is to keep using upstream native cores such as
+  `UDBM` and `UCDD`, while building a richer Python-facing modeling and
+  verification workflow on top of them.
 
 Relevant upstream context:
 
@@ -19,16 +38,23 @@ Relevant upstream context:
 Current status:
 
 - This repository is still unfinished.
-- The Python wrapper layer is still work in progress.
+- The Python-facing workflow layer is still work in progress.
 - Do not assume the existing `pyudbm/` code is a complete, stable, final public API.
 
-The core job of this repository is to gradually expose, package, test, and document Python bindings for upstream functionality while keeping the wrapper thin and faithful to upstream behavior.
+The core job of this repository is to gradually expose, package, test, and
+document upstream functionality in a Python-first form while keeping the native
+semantic layer thin and faithful to upstream behavior.
 
 There is also a more specific product direction:
 
 - Recreate the historical UDBM Python binding on top of the current technology stack.
 - Use the old binding as the behavioral reference first, then extend it.
 - Modernize the implementation and packaging without casually changing the core model.
+- From that compatibility-oriented starting point, grow toward a Python DSL and
+  workflow that can cover a substantial subset of what users traditionally do
+  with UPPAAL.
+- Treat XML as a compatibility / interchange format rather than the ideal
+  long-term authoring interface.
 
 Short-term repository direction:
 
@@ -36,6 +62,8 @@ Short-term repository direction:
 - Restore the historical `Context` / `Clock` / `Federation` programming model on top of the current stack.
 - Prioritize natural expression syntax, core federation operations, valuations, and containment semantics.
 - Do not treat “low-level DBM helper bindings only” as an acceptable end state.
+- Keep `CDD` and timed-symbolic workflows in scope so the repository does not
+  ossify around a UDBM-only mental model.
 
 ## Current Repository Reality
 
@@ -46,24 +74,27 @@ As the repository currently stands:
   - `UUtils`
   - `UDBM`
   - `UCDD`
-- The root `CMakeLists.txt` builds one pybind11 extension module from:
-  - `pyudbm/binding/_binding.cpp`
+- The root `CMakeLists.txt` now builds multiple pybind11 extension modules,
+  including the `UDBM` and `UCDD` native binding layers.
 - The currently visible Python-side code mostly lives in:
   - `pyudbm/binding/udbm.py`
+  - `pyudbm/binding/ucdd.py`
   - `pyudbm/binding/__init__.py`
   - `pyudbm/config/meta.py`
 - The package root re-exports the high-level binding API from `pyudbm.binding`.
-- Test coverage is currently centered on:
-  - `test/binding/test_api.py`
-  - `test/config/test_meta.py`
+- Test coverage now includes both UDBM-side and UCDD-side public API testing.
 
 Important current boundary:
 
-- `pyudbm` is still primarily a Python wrapper around `UDBM`.
-- `UCDD` is currently integrated as a vendored native dependency for build / packaging / CI consistency.
-- Do not assume `UCDD` is already exposed as a stable Python public API surface in this repository.
+- `pyudbm` should not be treated as “just a UDBM binding repo” anymore.
+- `UCDD` is already part of the repository's intended Python-facing direction,
+  not just a hidden native build dependency.
+- Even so, the repository is still unfinished, and the broader Python modeling /
+  property / verification workflow above the symbolic core is not complete yet.
 
-That means the repository has already moved back to a compatibility-oriented high-level API, but the wrapper is still unfinished and should continue to follow the long-term legacy-parity direction instead of ossifying around temporary implementation details.
+That means the repository has already moved beyond a UDBM-only wrapper mindset,
+but it should continue to follow a compatibility-aware and upstream-grounded
+direction instead of ossifying around temporary implementation details.
 
 ## Support Targets
 
@@ -186,7 +217,9 @@ When behavior is unclear, inspect `srcpy2/udbm.py` and `srcpy2/test.py` before i
 
 ## Compatibility Direction
 
-The current repository already contains low-level binding-oriented code under `pyudbm/`, but the historical reference point is a richer high-level Python DSL.
+The current repository already contains binding-oriented code under `pyudbm/`,
+but the historical reference point is a richer high-level Python DSL, and the
+longer-term direction should go beyond restoring the old UDBM surface alone.
 
 Therefore:
 
@@ -194,6 +227,11 @@ Therefore:
 - A complete direction for this project should include a modern equivalent of the old high-level federation API.
 - Legacy parity should be established before adding project-specific extensions, unless there is a strong reason to diverge.
 - Extensions should preferably layer on top of, or coexist with, a compatibility-minded core API rather than replace it outright.
+- The long-term public surface should move toward Python-native modeling and
+  property DSLs rather than centering XML as the main interface.
+- The repository should aim to cover a broader UPPAAL-style workflow in Python,
+  but should continue to reuse upstream native symbolic engines instead of
+  reimplementing them locally.
 
 ## Hard Boundary: Submodules
 
