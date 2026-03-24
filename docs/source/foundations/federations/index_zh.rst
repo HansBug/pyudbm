@@ -347,10 +347,17 @@ UDBM 里的联邦到底是什么
 
    fed = ((x >= 1) & (x <= 2) & (y >= 1) & (y <= 3)) | ((x >= 4) & (x <= 5) & (y >= 2) & (y <= 4))
    pieces = fed.to_dbm_list()
+   piece_texts = sorted(dbm.to_string() for dbm in pieces)
 
    assert len(pieces) == 2
+   assert piece_texts == [
+       "(1<=x & 1<=y & x<=2 & y<=3)",  # D1
+       "(4<=x & 2<=y & x<=5 & y<=4)",  # D2
+   ]
 
 这里得到的是一个 **精确表示快照**，不是近似，不是采样，也不是重新求凸包。
+这个例子里，字符串已经把两个片段各自的约束写清楚了：``D1`` 是左边矩形，``D2`` 是右边矩形。
+之所以先排序，只是为了让示例不依赖底层返回顺序。
 
 .. _fed-zh-get-size:
 
@@ -379,20 +386,26 @@ UDBM 里的联邦到底是什么
    :align: center
    :alt: 三联图，展示 reduce 前、reduce 后，以及 intern 后的联邦表示。
 
-``reduce()`` 会尽量把 DBM 列表收紧，但语义上应该保持集合不变。图中左边是两个重叠 DBM 的表示，中间是规约之后的结果：
+``reduce()`` 的典型价值，就是把一个表示上别扭的联邦压缩得更简单，但几何区域不变。这里用一个很短的例子：
+``x <= 1 | x >= 1`` 在左图里还是两个 DBM，中图里则被规约成了一个更简单的表示：
 
 .. code-block:: python
 
-   reduced = fed.copy().reduce()
-   assert reduced == fed
+   complex_fed = (x <= 1) | (x >= 1)
+   assert complex_fed.get_size() == 2
 
-``intern()`` 则更进一步，它根本不是几何变换，也不是集合变换。它只是请求 UDBM 在内部对相同的规范 DBM 做共享：
+   complex_fed.reduce()
+   assert complex_fed.get_size() == 1
+   assert complex_fed == (x >= 0)
+
+``intern()`` 则更进一步，它根本不是几何变换，也不是集合变换。它只是请求 UDBM 在内部对相同的规范 DBM 做共享，
+所以右图几何上看起来不会再变化：
 
 .. code-block:: python
 
-   before = fed.copy()
-   fed.intern()
-   assert fed == before
+   complex_fed.intern()
+   assert complex_fed.get_size() == 1
+   assert complex_fed == (x >= 0)
 
 因此更好的理解方式是：
 
@@ -421,6 +434,9 @@ UDBM 里的联邦到底是什么
    right = (x >= 3) & (x <= 5) & (y >= 2) & (y <= 5)
    exact_intersection = left & right
 
+前两个面板里已经把另一个操作数的轮廓叠了进去，因此在看结果之前就能直观看到重叠区域。
+最后一个面板再把原本的 ``A``、``B`` 作为虚线参考叠在结果上，填充部分才是精确的 ``A & B``。
+
 它的结果通常仍然足够凸，因此常常能落回一个 DBM。
 
 .. _fed-zh-or:
@@ -430,9 +446,16 @@ UDBM 里的联邦到底是什么
 
 精确并会保留所有片段，也保留所有空隙：
 
+.. image:: fed_or.plot.py.svg
+   :width: 92%
+   :align: center
+   :alt: 三联图，展示两个凸片段以及它们的精确并。
+
 .. code-block:: python
 
    exact = a | b
+
+结果面板里两块区域仍然是分开的，中间的空隙没有被补上，这正是联邦层在表达上的关键价值。
 
 这正是联邦层最自然的构造方式：分支、减法或路径分裂之后，把多个精确凸片段用并连接起来。
 
@@ -702,7 +725,15 @@ UDBM 里的联邦到底是什么
 ``==``、``!=``、``<=``、``>=``、``<``、``>``：集合关系
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-性质图里的 ``A \subset B`` 面板，就是六个关系运算的几何原型：
+这六个比较运算最好直接分开看：
+
+.. image:: fed_relations.plot.py.svg
+   :width: 94%
+   :align: center
+   :alt: 一个 2 行 3 列的关系图，分别展示 ==、!=、<=、>=、<、> 的代表性集合关系。
+
+图里每个面板都给了一个代表性例子。对于非严格关系 ``<=`` 和 ``>=``，相等当然也算成立，
+这里只是故意画成了真包含，这样几何上更直观。
 
 * ``A == B`` 表示两个联邦是同一个符号集合
 * ``A != B`` 表示两个联邦不是同一个符号集合

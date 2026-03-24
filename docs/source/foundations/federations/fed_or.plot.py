@@ -1,5 +1,5 @@
 """
-Render the federation intersection figure.
+Render the federation exact-union figure.
 """
 
 from matplotlib import pyplot as plt
@@ -7,17 +7,19 @@ from matplotlib import pyplot as plt
 from pyudbm import Context
 
 from dbm_plot import plot_region, save_figure, style_axes
-from fed_plot import VIEWPORT, parser_and_output
+from fed_plot import parser_and_output
 
+
+VIEWPORT = (0.0, 6.0, 0.0, 5.0)
+DASH = (0, (4, 3))
 
 context = Context(["x", "y"])
 x = context.x
 y = context.y
 
-LEFT = (x >= 1) & (x <= 4) & (y >= 1) & (y <= 4)
-RIGHT = (x >= 3) & (x <= 5) & (y >= 2) & (y <= 5)
-INTERSECTION = LEFT & RIGHT
-DASH = (0, (4, 3))
+A = (x >= 1) & (x <= 2) & (y >= 1) & (y <= 4)
+B = (x >= 4) & (x <= 5) & (y >= 1) & (y <= 4)
+EXACT = A | B
 
 
 def build_figure():
@@ -25,7 +27,7 @@ def build_figure():
 
     plot_region(
         axes[0],
-        RIGHT,
+        B,
         VIEWPORT,
         facecolor="none",
         edgecolor="#c26d1f",
@@ -37,7 +39,47 @@ def build_figure():
     )
     plot_region(
         axes[0],
-        LEFT,
+        A,
+        VIEWPORT,
+        facecolor="#9ecae1",
+        edgecolor="#2b6cb0",
+        alpha=0.45,
+        linewidth=2.0,
+        zorder=3,
+        show_unbounded=False,
+    )
+    style_axes(axes[0], VIEWPORT)
+    axes[0].set_title(r"$A$", fontsize=12, pad=6)
+
+    plot_region(
+        axes[1],
+        A,
+        VIEWPORT,
+        facecolor="none",
+        edgecolor="#2b6cb0",
+        alpha=1.0,
+        linewidth=1.4,
+        linestyle=DASH,
+        zorder=1,
+        show_unbounded=False,
+    )
+    plot_region(
+        axes[1],
+        B,
+        VIEWPORT,
+        facecolor="#fdd49e",
+        edgecolor="#c26d1f",
+        alpha=0.48,
+        linewidth=2.0,
+        zorder=3,
+        show_unbounded=False,
+    )
+    style_axes(axes[1], VIEWPORT)
+    axes[1].set_title(r"$B$", fontsize=12, pad=6)
+
+    plot_region(
+        axes[2],
+        A,
         VIEWPORT,
         facecolor="#9ecae1",
         edgecolor="#2b6cb0",
@@ -47,34 +89,8 @@ def build_figure():
         show_unbounded=False,
     )
     plot_region(
-        axes[0],
-        INTERSECTION,
-        VIEWPORT,
-        facecolor="#a1d99b",
-        edgecolor="#2f855a",
-        alpha=0.58,
-        linewidth=1.6,
-        zorder=3,
-        show_unbounded=False,
-    )
-    style_axes(axes[0], VIEWPORT)
-    axes[0].set_title(r"$A$", fontsize=12, pad=6)
-
-    plot_region(
-        axes[1],
-        LEFT,
-        VIEWPORT,
-        facecolor="none",
-        edgecolor="#2b6cb0",
-        alpha=1.0,
-        linewidth=1.4,
-        linestyle=DASH,
-        zorder=1,
-        show_unbounded=False,
-    )
-    plot_region(
-        axes[1],
-        RIGHT,
+        axes[2],
+        B,
         VIEWPORT,
         facecolor="#fdd49e",
         edgecolor="#c26d1f",
@@ -84,48 +100,42 @@ def build_figure():
         show_unbounded=False,
     )
     plot_region(
-        axes[1],
-        INTERSECTION,
+        axes[2],
+        A,
         VIEWPORT,
-        facecolor="#a1d99b",
-        edgecolor="#2f855a",
-        alpha=0.58,
-        linewidth=1.6,
-        zorder=3,
+        facecolor="none",
+        edgecolor="#2b6cb0",
+        alpha=1.0,
+        linewidth=1.4,
+        linestyle=DASH,
+        zorder=4,
         show_unbounded=False,
     )
-    style_axes(axes[1], VIEWPORT)
-    axes[1].set_title(r"$B$", fontsize=12, pad=6)
-
-    for region, color in [
-        (LEFT, "#2b6cb0"),
-        (RIGHT, "#c26d1f"),
-    ]:
-        plot_region(
-            axes[2],
-            region,
-            VIEWPORT,
-            facecolor="none",
-            edgecolor=color,
-            alpha=1.0,
-            linewidth=1.4,
-            linestyle=DASH,
-            zorder=1,
-            show_unbounded=False,
-        )
     plot_region(
         axes[2],
-        INTERSECTION,
+        B,
         VIEWPORT,
-        facecolor="#a1d99b",
-        edgecolor="#2f855a",
-        alpha=0.58,
+        facecolor="none",
+        edgecolor="#c26d1f",
+        alpha=1.0,
+        linewidth=1.4,
+        linestyle=DASH,
+        zorder=4,
+        show_unbounded=False,
+    )
+    plot_region(
+        axes[2],
+        EXACT,
+        VIEWPORT,
+        facecolor="none",
+        edgecolor="#333333",
+        alpha=1.0,
         linewidth=2.0,
-        zorder=3,
+        zorder=5,
         show_unbounded=False,
     )
     style_axes(axes[2], VIEWPORT)
-    axes[2].set_title(r"$A \cap B$", fontsize=12, pad=6)
+    axes[2].set_title(r"$A \mid B$", fontsize=12, pad=6)
 
     return fig
 
