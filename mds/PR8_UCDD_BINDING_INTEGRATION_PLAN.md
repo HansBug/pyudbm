@@ -1622,6 +1622,12 @@ state.to_dot("state.dot", push_negate=True)
   - 该 phase 的实施清单
   - 该 phase 的产物清单
   - 该 phase 的完成后检查清单
+- 每个 phase 完成后，都应执行一次基于当前仓库真实构建链路的完整回归验证，而不是只跑局部 smoke test
+- 这里的“完整回归验证”至少应覆盖：
+  - native 依赖可重新编译
+  - Python 扩展可重新编译并成功导入
+  - 现有测试集与该 phase 新增测试可一起运行
+  - 若某个 phase 影响 `_udbm` / `_ucdd` 命名、导入路径、互操作或运行时生命周期，则应优先执行完整测试而不是只做定向测试
 - 如果实现过程中出现拆分或调整，应优先更新本节 checklist，再开始继续开发
 
 ### Phase 0：设计与文档
@@ -1652,6 +1658,7 @@ state.to_dot("state.dot", push_negate=True)
 - [x] 文档已包含对象模型、路径结构、阶段计划和最终用法示例
 - [x] 文档已说明哪些内容是首批公开承诺，哪些不是
 - [x] 文档已明确后续 phase 需要继续在本文档中打勾维护
+- [x] 文档已明确要求后续每个 phase 结束后执行一次完整编译与回归验证
 
 ### Phase 1：命名整理与 native 薄绑定
 
@@ -1693,6 +1700,7 @@ state.to_dot("state.dot", push_negate=True)
 - [ ] 现有 UDBM 高层 API 在 `_binding -> _udbm` 重命名后仍能正常导入
 - [ ] 不依赖 Python 高层包装也能通过测试调用 UCDD 核心 native 接口
 - [ ] `_ucdd` 相关对象不存在裸指针泄漏和明显生命周期错误
+- [ ] 已完成一次完整编译后的回归测试，而不只是 `_ucdd` 定向 smoke test
 
 ### Phase 2：Python 高层包装与现有 DBM 联动
 
@@ -1735,6 +1743,7 @@ state.to_dot("state.dot", push_negate=True)
 - [ ] 纯 CDD 结果能在满足条件时回落成 `Federation`
 - [ ] 抽取出的 DBM 可以直接复用现有 `DBM` 方法与表示
 - [ ] 纯 clock 场景下的 UCDD 互操作不引入新的命名或维度歧义
+- [ ] 已完成一次完整编译后的回归测试，并覆盖 `_udbm`、`_ucdd` 与高层 Python API 联动
 
 ### Phase 3：高层 DSL 与易用接口
 
@@ -1767,6 +1776,7 @@ state.to_dot("state.dot", push_negate=True)
 - [ ] 用户可以用 Python 友好方式表达 guard / update / mixed symbolic state
 - [ ] 不需要用户手工拼并行数组即可完成 reset / transition 操作
 - [ ] bool 与 clock 的命名、打印和上下文归属清晰一致
+- [ ] 已完成一次完整编译后的回归测试，并覆盖 mixed bool/clock DSL 与 transition/reset 工作流
 
 ### Phase 4：文档、测试与对照验证
 
@@ -1804,6 +1814,7 @@ state.to_dot("state.dot", push_negate=True)
 - [ ] 纯 clock 场景下，UCDD 与现有 Federation 关键语义可对照验证
 - [ ] mixed bool/clock 场景下，核心流程有稳定测试覆盖
 - [ ] 文档中的主要示例代码能与当前 API 保持一致
+- [ ] 已完成一次完整编译后的回归测试，并确认新增文档示例与当前实现一致
 
 ### Phase 5：状态收尾与文档回填
 
@@ -1825,6 +1836,7 @@ state.to_dot("state.dot", push_negate=True)
 
 - [ ] 不存在“代码已完成但文档 checklist 未更新”的偏差
 - [ ] 后续读者仅查看本文档即可知道目前推进到哪个 phase
+- [ ] 各个已完成 phase 的完整编译与回归验证结果已在实现记录或 PR 讨论中可追溯
 
 ## 首批不建议进入公开承诺的内容
 
