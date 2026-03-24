@@ -22,7 +22,7 @@ DBM
 -----------------------------------------------------
 
 .. autoclass:: DBM
-    :members: __init__,dimension,shape,clock_names,to_string,raw,bound,is_strict,is_infinity,to_matrix,format_matrix,to_min_dbm,__str__,__repr__,plot
+    :members: __init__,to_cdd,dimension,shape,clock_names,to_string,raw,bound,is_strict,is_infinity,to_matrix,format_matrix,to_min_dbm,__str__,__repr__,plot
 
 
 Clock
@@ -71,13 +71,13 @@ Federation
 -----------------------------------------------------
 
 .. autoclass:: Federation
-    :members: __init__,__str__,copy,plot,to_dbm_list,__and__,__iand__,__or__,__ior__,__add__,__iadd__,__sub__,__isub__,up,down,reduce,free_clock,set_zero,has_zero,set_init,convex_hull,__eq__,__ne__,__le__,__ge__,__lt__,__gt__,intern,predt,contains,update_value,reset_value,get_size,extrapolate_max_bounds,is_zero,is_empty,__hash__,hash
+    :members: __init__,__str__,copy,plot,to_dbm_list,to_cdd,__and__,__iand__,__or__,__ior__,__add__,__iadd__,__sub__,__isub__,up,down,reduce,free_clock,set_zero,has_zero,set_init,convex_hull,__eq__,__ne__,__le__,__ge__,__lt__,__gt__,intern,predt,contains,update_value,reset_value,get_size,extrapolate_max_bounds,is_zero,is_empty,__hash__,hash
 
 
 Context
 -----------------------------------------------------
 
 .. autoclass:: Context
-    :members: __init__,set_name,__getitem__,get_zero_federation
+    :members: __init__,set_name,__getitem__,get_zero_federation,to_cdd_context
 
 

@@ -9,6 +9,7 @@ pyudbm.binding
 .. toctree::
     :maxdepth: 3
 
+    ucdd
     udbm
     visual
 

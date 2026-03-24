@@ -19,17 +19,25 @@ Example::
 """
 
 from .udbm import DBM, Clock, Constraint, Context, Federation, FloatValuation, IntValuation, Valuation, VariableDifference
+from .ucdd import BDDTraceSet, CDD, CDDContext, CDDExtraction, CDDBool, CDDClock, CDDLevelInfo
 from .visual import PlotResult, plot_dbm, plot_federation
 
 __all__ = [
     "DBM",
     "Clock",
     "Constraint",
+    "CDDBool",
+    "CDD",
+    "CDDClock",
+    "CDDContext",
+    "CDDExtraction",
+    "CDDLevelInfo",
     "Context",
     "Federation",
     "FloatValuation",
     "IntValuation",
     "PlotResult",
+    "BDDTraceSet",
     "Valuation",
     "VariableDifference",
     "plot_dbm",
