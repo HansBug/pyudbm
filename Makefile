@@ -1,13 +1,49 @@
 .PHONY: help info build clean clean_x package zip test unittest \
 	uutils_build uutils_test uutils_install uutils_clean uutils uutils_notest \
 	udbm_build udbm_test udbm_install udbm_clean udbm udbm_notest \
+	ucdd_build ucdd_test ucdd_install ucdd_clean ucdd ucdd_notest \
 	bin_clean bin bin_notest docs docs_en docs_zh pdocs rst_auto uversion
 
 PYTHON := $(shell which python)
-CC     ?= $(shell which gcc)
-CXX    ?= $(shell which g++)
+UNAME_S := $(shell uname -s 2>/dev/null || echo unknown)
+
+GNU_GCC_CANDIDATES := gcc-9 gcc-10 gcc-11 gcc-12 gcc-13 gcc-14 gcc
+GNU_GXX_CANDIDATES := g++-9 g++-10 g++-11 g++-12 g++-13 g++-14 g++
+DETECTED_GCC       := $(shell bash -lc 'for cmd in $(GNU_GCC_CANDIDATES); do if command -v $$cmd >/dev/null 2>&1 && $$cmd -v 2>&1 | grep -qi "gcc version"; then echo $$cmd; exit 0; fi; done')
+DETECTED_GXX       := $(shell bash -lc 'for cmd in $(GNU_GXX_CANDIDATES); do if command -v $$cmd >/dev/null 2>&1 && $$cmd -v 2>&1 | grep -qi "gcc version"; then echo $$cmd; exit 0; fi; done')
+DETECTED_CLANG     := $(shell bash -lc 'if command -v xcrun >/dev/null 2>&1; then xcrun --find clang 2>/dev/null && exit 0; fi; command -v clang 2>/dev/null')
+DETECTED_CLANGXX   := $(shell bash -lc 'if command -v xcrun >/dev/null 2>&1; then xcrun --find clang++ 2>/dev/null && exit 0; fi; command -v clang++ 2>/dev/null')
+
+ifeq ($(UNAME_S),Darwin)
+DEFAULT_CC := $(if $(DETECTED_CLANG),$(DETECTED_CLANG),clang)
+DEFAULT_CXX := $(if $(DETECTED_CLANGXX),$(DETECTED_CLANGXX),clang++)
+else
+DEFAULT_CC := $(if $(DETECTED_GCC),$(DETECTED_GCC),gcc)
+DEFAULT_CXX := $(if $(DETECTED_GXX),$(DETECTED_GXX),g++)
+endif
+
+ifeq ($(origin CC), default)
+CC := $(DEFAULT_CC)
+else ifeq ($(origin CC), undefined)
+CC := $(DEFAULT_CC)
+endif
+
+ifeq ($(origin CXX), default)
+CXX := $(DEFAULT_CXX)
+else ifeq ($(origin CXX), undefined)
+CXX := $(DEFAULT_CXX)
+endif
+
+ifeq ($(OS),Windows_NT)
+IS_WINDOWS := 1
+else ifneq ($(filter MINGW% MSYS% CYGWIN%,$(UNAME_S)),)
+IS_WINDOWS := 1
+else
+IS_WINDOWS := 0
+endif
 
 PS     ?= $(shell ${PYTHON} -c "import os; print(os.pathsep)")
+CC_BINDIR := $(shell bash -lc 'p=$$(command -v "$(CC)" 2>/dev/null); if [ -n "$$p" ]; then dirname "$$p"; fi')
 
 PROJ_DIR       := .
 DOC_DIR        := ${PROJ_DIR}/docs
@@ -24,6 +60,8 @@ UUTILS_DIR       := ${PROJ_DIR}/UUtils
 UUTILS_BUILD_DIR := ${PROJ_DIR}/UUtils_build
 UDBM_DIR         := ${PROJ_DIR}/UDBM
 UDBM_BUILD_DIR   := ${PROJ_DIR}/UDBM_build
+UCDD_DIR         := ${PROJ_DIR}/UCDD
+UCDD_BUILD_DIR   := ${PROJ_DIR}/UCDD_build
 
 RANGE_DIR       ?= .
 RANGE_TEST_DIR  := ${TEST_DIR}/${RANGE_DIR}
@@ -46,6 +84,16 @@ CMAKE_EI ?= -DCMAKE_INCLUDE_PATH="${BINSTALL_INCLUDE_DIR}${PS}${CMAKE_INCLUDE_PA
 CMAKE_E  ?= ${CMAKE_EP} ${CMAKE_EL} ${CMAKE_EI}
 
 CTEST_CFG ?= Release
+CMAKE_GENERATOR ?= Ninja
+CMAKE_GNU_RUNTIME_ARGS :=
+ifeq ($(IS_WINDOWS),1)
+CMAKE_GNU_RUNTIME_ARGS += -DCMAKE_C_FLAGS="-static-libgcc"
+CMAKE_GNU_RUNTIME_ARGS += -DCMAKE_CXX_FLAGS="-static-libgcc -static-libstdc++"
+CMAKE_GNU_RUNTIME_ARGS += -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++"
+CMAKE_GNU_RUNTIME_ARGS += -DCMAKE_SHARED_LINKER_FLAGS="-static-libgcc -static-libstdc++"
+endif
+CMAKE_TOOLCHAIN_ARGS := -G "${CMAKE_GENERATOR}" -DCMAKE_C_COMPILER="${CC}" -DCMAKE_CXX_COMPILER="${CXX}" ${CMAKE_GNU_RUNTIME_ARGS}
+CTEST_ENV := $(if $(CC_BINDIR),PATH="$(CC_BINDIR)${PS}$$PATH",)
 
 COV_TYPES ?= xml term-missing
 
@@ -84,10 +132,17 @@ help:
 	@echo "  make udbm           - Build, test, and install UDBM"
 	@echo "  make udbm_notest    - Build and install UDBM without running tests"
 	@echo ""
+	@echo "  make ucdd_build     - Configure and build UCDD"
+	@echo "  make ucdd_test      - Run UCDD tests"
+	@echo "  make ucdd_install   - Install UCDD into the local prefix"
+	@echo "  make ucdd_clean     - Remove the UCDD build directory"
+	@echo "  make ucdd           - Build, test, and install UCDD"
+	@echo "  make ucdd_notest    - Build and install UCDD without running tests"
+	@echo ""
 	@echo "Combined Dependency Pipeline:"
-	@echo "  make bin          - Build, test, and install UUtils and UDBM"
-	@echo "  make bin_notest   - Build and install UUtils and UDBM without tests"
-	@echo "  make bin_clean    - Remove UUtils, UDBM, and local prefix build outputs"
+	@echo "  make bin          - Build, test, and install UUtils, UDBM, and UCDD"
+	@echo "  make bin_notest   - Build and install UUtils, UDBM, and UCDD without tests"
+	@echo "  make bin_clean    - Remove UUtils, UDBM, UCDD, and local prefix build outputs"
 	@echo ""
 	@echo "Documentation:"
 	@echo "  make docs         - Build documentation (auto-detects language)"
@@ -100,7 +155,8 @@ help:
 	@echo "  make info         - Print current path and CMake environment values"
 	@echo ""
 	@echo "Common Variables:"
-	@echo "  BINSTALL_DIR=<dir> - Local install prefix for UUtils/UDBM"
+	@echo "  BINSTALL_DIR=<dir> - Local install prefix for UUtils/UDBM/UCDD"
+	@echo "  CMAKE_GENERATOR    - CMake generator (default: Ninja)"
 	@echo "  CTEST_CFG=<cfg>    - CMake/CTest build configuration (default: Release)"
 	@echo "  RANGE_DIR=<dir>    - Limit pytest coverage and test scope (default: .)"
 	@echo "  COV_TYPES=<types>  - Coverage report types (default: xml term-missing)"
@@ -109,7 +165,7 @@ help:
 	@echo ""
 
 build:
-	BINSTALL_DIR="${BINSTALL_DIR}" $(PYTHON) setup.py build_ext --inplace
+	$(if $(CC_BINDIR),PATH="${CC_BINDIR}${PS}$$PATH",) CC="${CC}" CXX="${CXX}" CMAKE_GENERATOR="${CMAKE_GENERATOR}" BINSTALL_DIR="${BINSTALL_DIR}" $(PYTHON) setup.py build_ext --inplace
 uversion:
 	$(PYTHON) -m tools.udbm_version -i "${UDBM_DIR}" -o "${SRC_DIR}/config/meta.py"
 clean:
@@ -135,10 +191,10 @@ unittest:
 		$(if ${WORKERS},-n ${WORKERS},)
 
 uutils_build:
-	cmake -S ${UUTILS_DIR} -B "${UUTILS_BUILD_DIR}" $(if ${CTEST_CFG},-DCMAKE_BUILD_TYPE=${CTEST_CFG},)
+	cmake -S ${UUTILS_DIR} -B "${UUTILS_BUILD_DIR}" ${CMAKE_TOOLCHAIN_ARGS} $(if ${CTEST_CFG},-DCMAKE_BUILD_TYPE=${CTEST_CFG},)
 	cmake --build "${UUTILS_BUILD_DIR}" $(if ${CTEST_CFG},--config ${CTEST_CFG},)
 uutils_test:
-	ctest --test-dir "${UUTILS_BUILD_DIR}" --output-on-failure $(if ${CTEST_CFG},-C ${CTEST_CFG},)
+	${CTEST_ENV} ctest --test-dir "${UUTILS_BUILD_DIR}" --output-on-failure $(if ${CTEST_CFG},-C ${CTEST_CFG},)
 uutils_install:
 	cmake --install "${UUTILS_BUILD_DIR}" --prefix "${BINSTALL_DIR}" $(if ${CTEST_CFG},--config ${CTEST_CFG},)
 uutils_clean:
@@ -147,11 +203,11 @@ uutils: uutils_build uutils_test uutils_install
 uutils_notest: uutils_build uutils_install
 
 udbm_build:
-	cmake -S ${UDBM_DIR} -B "${UDBM_BUILD_DIR}" $(if ${CTEST_CFG},-DCMAKE_BUILD_TYPE=${CTEST_CFG},) \
+	cmake -S ${UDBM_DIR} -B "${UDBM_BUILD_DIR}" ${CMAKE_TOOLCHAIN_ARGS} $(if ${CTEST_CFG},-DCMAKE_BUILD_TYPE=${CTEST_CFG},) \
 		-DUUtils_DIR="$(shell readlink -f ${BINSTALL_DIR}/lib*/cmake/UUtils)"
 	cmake --build "${UDBM_BUILD_DIR}" $(if ${CTEST_CFG},--config ${CTEST_CFG},)
 udbm_test:
-	ctest --test-dir "${UDBM_BUILD_DIR}" --output-on-failure $(if ${CTEST_CFG},-C ${CTEST_CFG},)
+	${CTEST_ENV} ctest --test-dir "${UDBM_BUILD_DIR}" --output-on-failure $(if ${CTEST_CFG},-C ${CTEST_CFG},)
 udbm_install:
 	cmake --install "${UDBM_BUILD_DIR}" --prefix "${BINSTALL_DIR}" $(if ${CTEST_CFG},--config ${CTEST_CFG},)
 udbm_clean:
@@ -159,10 +215,26 @@ udbm_clean:
 udbm: udbm_build udbm_test udbm_install
 udbm_notest: udbm_build udbm_install
 
-bin_clean: uutils_clean udbm_clean
+ucdd_build:
+	cmake -S ${UCDD_DIR} -B "${UCDD_BUILD_DIR}" ${CMAKE_TOOLCHAIN_ARGS} $(if ${CTEST_CFG},-DCMAKE_BUILD_TYPE=${CTEST_CFG},) \
+		-DCMAKE_PREFIX_PATH="$(shell readlink -f ${BINSTALL_DIR})" \
+		-DUUtils_DIR="$(shell readlink -f ${BINSTALL_DIR}/lib*/cmake/UUtils)" \
+		-DUDBM_DIR="$(shell readlink -f ${BINSTALL_DIR}/lib*/cmake/UDBM)" \
+		-DFIND_FATAL=OFF
+	cmake --build "${UCDD_BUILD_DIR}" $(if ${CTEST_CFG},--config ${CTEST_CFG},)
+ucdd_test:
+	${CTEST_ENV} ctest --test-dir "${UCDD_BUILD_DIR}" --output-on-failure $(if ${CTEST_CFG},-C ${CTEST_CFG},)
+ucdd_install:
+	cmake --install "${UCDD_BUILD_DIR}" --prefix "${BINSTALL_DIR}" $(if ${CTEST_CFG},--config ${CTEST_CFG},)
+ucdd_clean:
+	rm -rf "${UCDD_BUILD_DIR}"
+ucdd: udbm ucdd_build ucdd_test ucdd_install
+ucdd_notest: udbm_notest ucdd_build ucdd_install
+
+bin_clean: uutils_clean udbm_clean ucdd_clean
 	rm -rf "${BINSTALL_DIR}"
-bin: uutils udbm
-bin_notest: uutils_notest udbm_notest
+bin: uutils udbm ucdd
+bin_notest: uutils_notest udbm_notest ucdd_notest
 
 docs: bin_notest build
 	$(MAKE) -C "${DOC_DIR}" build
@@ -190,4 +262,9 @@ ${RST_DOC_DIR}/index.rst: ${PYTHON_CODE_DIR}/__init__.py auto_rst.py Makefile
 
 info:
 	echo "PS: ${PS}"
+	echo "CC: ${CC}"
+	echo "CXX: ${CXX}"
+	echo "CC_BINDIR: ${CC_BINDIR}"
+	echo "IS_WINDOWS: ${IS_WINDOWS}"
+	echo "CMAKE_GENERATOR: ${CMAKE_GENERATOR}"
 	echo "CMAKE_E: ${CMAKE_E}"

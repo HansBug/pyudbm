@@ -80,21 +80,35 @@ jobs:
         shell: bash
         run: |
           brew install tree cloc wget curl make
-          brew install git ninja make gcc
+          brew install git ninja make
+          echo "CC=$(xcrun --find clang)" >> "$GITHUB_ENV"
+          echo "CXX=$(xcrun --find clang++)" >> "$GITHUB_ENV"
       - name: Set up python ${{ matrix.python-version }}
         uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Resolve MinGW toolchain on Windows
+        if: ${{ env.OS_NAME == 'Windows' }}
+        shell: bash
+        run: |
+          MINGW_BIN_WIN="$(python -m tools.windows_mingw --bin-dir)"
+          MINGW_BIN_POSIX="$(cygpath -u "$MINGW_BIN_WIN")"
+          MINGW_BIN_MIXED="$(cygpath -m "$MINGW_BIN_WIN")"
+          echo "$MINGW_BIN_MIXED" >> "$GITHUB_PATH"
+          echo "MINGW_BIN=$MINGW_BIN_POSIX" >> "$GITHUB_ENV"
+          echo "CC=$MINGW_BIN_POSIX/gcc.exe" >> "$GITHUB_ENV"
+          echo "CXX=$MINGW_BIN_POSIX/g++.exe" >> "$GITHUB_ENV"
       - name: Set up build tools
         shell: bash
         run: |
           python -m pip install setuptools wheel
+          python -m pip install ninja
           python -m pip install "pybind11[global]"
           python -m pip install -U 'cmake<4'
       - name: Build native dependencies
         shell: bash
         run: |
-          CC=gcc CXX=g++ CTEST_CFG=Release make bin
+          CTEST_CFG=Release make bin
       - name: Prepare Python env
         shell: bash
         run: |

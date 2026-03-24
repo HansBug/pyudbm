@@ -4,3 +4,6 @@
 [submodule "UUtils"]
 	path = UUtils
 	url = https://github.com/HansBug/UUtils.git
+[submodule "UCDD"]
+	path = UCDD
+	url = https://github.com/UPPAALModelChecker/UCDD.git

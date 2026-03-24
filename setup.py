@@ -10,6 +10,7 @@ from codecs import open
 from setuptools import Extension
 from setuptools import find_packages, setup
 from setuptools.command.build_ext import build_ext
+from tools.windows_mingw import find_mingw_bin
 
 _package_name = "pyudbm"
 
@@ -40,6 +41,75 @@ def _parse_version_tuple(version: str):
     return tuple(int(part) for part in version.split('.'))
 
 
+def _find_gnu_compiler(cxx: bool = False):
+    executable = 'g++.exe' if cxx else 'gcc.exe'
+    if platform.system() == 'Windows':
+        try:
+            bindir = find_mingw_bin()
+        except RuntimeError:
+            bindir = None
+        if bindir:
+            compiler = os.path.join(bindir, executable)
+            if os.path.exists(compiler):
+                return compiler
+
+    candidates = (
+        ['g++-9', 'g++-10', 'g++-11', 'g++-12', 'g++-13', 'g++-14', 'g++']
+        if cxx else
+        ['gcc-9', 'gcc-10', 'gcc-11', 'gcc-12', 'gcc-13', 'gcc-14', 'gcc']
+    )
+    for candidate in candidates:
+        compiler = shutil.which(candidate)
+        if not compiler:
+            continue
+        try:
+            out = subprocess.check_output([compiler, '-v'], stderr=subprocess.STDOUT).decode()
+        except (OSError, subprocess.CalledProcessError):
+            continue
+        if 'gcc version' in out.lower():
+            return compiler
+
+    return candidates[0]
+
+
+def _find_macos_compiler(cxx: bool = False):
+    tool = 'clang++' if cxx else 'clang'
+
+    xcrun = shutil.which('xcrun')
+    if xcrun:
+        try:
+            return subprocess.check_output([xcrun, '--find', tool]).decode().strip()
+        except (OSError, subprocess.CalledProcessError):
+            pass
+
+    compiler = shutil.which(tool)
+    if compiler:
+        return compiler
+
+    return tool
+
+
+def _copy_windows_runtime_dlls(extdir: str, compiler_path: str):
+    if platform.system() != 'Windows':
+        return
+
+    compiler_dir = os.path.dirname(compiler_path)
+    runtime_dlls = [
+        'libwinpthread-1.dll',
+        'libgcc_s_seh-1.dll',
+        'libstdc++-6.dll',
+        'libssp-0.dll',
+    ]
+    for dll_name in runtime_dlls:
+        src = os.path.join(compiler_dir, dll_name)
+        dst = os.path.join(extdir, dll_name)
+        if not os.path.exists(src):
+            continue
+        if os.path.abspath(src) == os.path.abspath(dst):
+            continue
+        shutil.copy2(src, dst)
+
+
 class CMakeExtension(Extension):
     def __init__(self, name, sourcedir=''):
         Extension.__init__(self, name, sources=[])
@@ -66,26 +136,37 @@ class CMakeBuild(build_ext):
         logging.basicConfig(level=logging.INFO)
 
         extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
+        cfg = os.environ.get('CTEST_CFG') or ('Debug' if self.debug else 'Release')
+        generator = os.environ.get('CMAKE_GENERATOR', 'Ninja')
+        if platform.system() == 'Darwin':
+            cc = os.environ.get('CC') or _find_macos_compiler(False)
+            cxx = os.environ.get('CXX') or _find_macos_compiler(True)
+        else:
+            cc = os.environ.get('CC') or _find_gnu_compiler(False)
+            cxx = os.environ.get('CXX') or _find_gnu_compiler(True)
         cmake_args = ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + extdir,
                       '-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=' + extdir,
-                      '-DPYTHON_EXECUTABLE=' + sys.executable]
+                      '-DPYTHON_EXECUTABLE=' + sys.executable,
+                      '-G', generator,
+                      '-DCMAKE_BUILD_TYPE=' + cfg,
+                      '-DCMAKE_C_COMPILER=' + cc,
+                      '-DCMAKE_CXX_COMPILER=' + cxx]
+        if platform.system() == 'Windows':
+            cmake_args += [
+                '-DCMAKE_C_FLAGS=-static-libgcc',
+                '-DCMAKE_CXX_FLAGS=-static-libgcc -static-libstdc++',
+                '-DCMAKE_EXE_LINKER_FLAGS=-static-libgcc -static-libstdc++',
+                '-DCMAKE_SHARED_LINKER_FLAGS=-static-libgcc -static-libstdc++',
+            ]
 
-        cfg = os.environ.get('CTEST_CFG') or 'Debug' if self.debug else 'Release'
-        build_args = ['--config', cfg]
-
-        if platform.system() == "Windows":
-            cmake_args += ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), extdir)]
-            cmake_args += ['-DCMAKE_RUNTIME_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), extdir)]
-            if sys.maxsize > 2 ** 32:
-                cmake_args += ['-A', 'x64']
-            else:
-                cmake_args += ['-A', 'Win32']
-            build_args += ['--', '/m']
-        else:
-            cmake_args += ['-DCMAKE_BUILD_TYPE=' + cfg]
-            build_args += ['--', '-j2']
+        build_args = ['--config', cfg, '--', '-j2']
 
         env = os.environ.copy()
+        env['CC'] = cc
+        env['CXX'] = cxx
+        compiler_dir = os.path.dirname(cc)
+        if compiler_dir:
+            env['PATH'] = compiler_dir + os.pathsep + env.get('PATH', '')
         env['CXXFLAGS'] = '{} -DVERSION_INFO=\\"{}\\"'.format(env.get('CXXFLAGS', ''),
                                                               self.distribution.get_version())
         if not os.path.exists(self.build_temp):
@@ -98,7 +179,8 @@ class CMakeBuild(build_ext):
 
         b2_cmds = [shutil.which('cmake'), '--build', '.'] + build_args
         logging.info(f'Build with {b2_cmds!r} ...')
-        subprocess.check_call(b2_cmds, cwd=self.build_temp)
+        subprocess.check_call(b2_cmds, cwd=self.build_temp, env=env)
+        _copy_windows_runtime_dlls(extdir, cc)
 
 
 setup(
@@ -124,6 +206,9 @@ setup(
     ],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
+    package_data={
+        'pyudbm.binding': ['*.dll'],
+    },
     install_requires=requirements,
     extras_require=group_requirements,
     classifiers=[
