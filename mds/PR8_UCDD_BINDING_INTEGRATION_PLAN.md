@@ -200,6 +200,138 @@ safe = (ctx.door_open & (ctx.x <= 5)) | (~ctx.door_open & (ctx.x <= 2))
 - 在纯 clock 场景下支持 `Federation <-> CDD` 互转
 - 在 mixed bool/clock 场景下，让 `CDD` 承接 `Federation` 无法直接覆盖的语义能力
 
+## 与经典时间自动机文献的对应关系
+
+上面关于“统一符号状态”的理解，并不是凭空发明出来的，而是和 timed automata
+文献中的经典 symbolic semantics 可以对齐。
+
+### 一、经典写法通常是 `(l, Z)` 或 `(l, ν, Z)`
+
+在经典 timed automata / UPPAAL 语境下，一个符号状态通常不会只写成一个 zone，
+而更常被理解成：
+
+- `(l, Z)`：离散位置 `l` 加一个 zone `Z`
+- `(l, ν, Z)`：若再引入离散变量赋值，则是离散位置 `l`、离散赋值 `ν` 与 zone `Z`
+
+这也是为什么“只讨论 DBM / Federation 的 zone 部分”在形式上不够完整：
+
+- `Z` 只覆盖时钟约束
+- `l` 与 `ν` 仍然需要被表示
+
+相关经典出处包括：
+
+- UPPAAL / SPIN 相关论文 *Unification & Sharing in Timed Automata Verification*：
+  其中直接把 `(l, Z)` 描述为 symbolic states
+  - <https://uppaal.org/texts/spin03.pdf>
+- UPPAAL 教程与综述材料中常见的 `<l, z>` 写法：
+  其中 `z` 是 zone，通常以 DBM 表示
+  - <https://uppaal.org/texts/mm-master.pdf>
+- UPPAAL 官方文档关于 symbolic traces 的说明：
+  其中也明确 symbolic state 里，active locations 和 discrete variables
+  对该状态中的 concrete states 是一致的
+  - <https://docs.uppaal.org/gui-reference/symbolic-simulator/symbolic-traces/>
+
+换句话说，经典文献本来就在说：
+
+- 真正的 symbolic state 不是“只有 zone”
+- 而是“离散控制部分 + 时间约束部分”
+
+### 二、脚本示例里的 bool 编码，是对经典语义的工程映射
+
+需要明确一点：
+
+- 经典文献通常直接写 `(l, Z)` 或 `(l, ν, Z)`
+- 不会逐字写成“用若干 bool 变量来编码 location”
+
+而本项目在 Python / UCDD 层采用的方式是：
+
+- 用 BDD 部分承载 `l` 和 `ν` 这类离散信息
+- 用 CDD / DBM 部分承载 `Z` 这类时钟约束
+
+因此，像下面这样的写法：
+
+```python
+state = location_open & (ctx.x <= 5)
+```
+
+本质上是在做一个工程映射：
+
+- `location_open` 对应经典语义里的 `l`
+- `(ctx.x <= 5)` 对应经典语义里的 `Z`
+
+所以应当把它理解成：
+
+- 不是“论文原句就这么写”
+- 而是“把经典 timed automata symbolic state 映射到 UCDD 混合 BDD/CDD 表示”
+
+这层映射之所以成立，是因为 UCDD 的实际实现本来就支持：
+
+- 纯 BDD
+- 纯 CDD
+- 混合 BCDD
+- `delay` / `past` / `predt`
+- `transition` / `transition_back` / `transition_back_past`
+
+### 三、有了 CDD 后，离时间自动机形式化验证还差多远
+
+这个问题需要分层回答。
+
+#### 1. 若只问“核心 symbolic engine 是否基本具备”
+
+答案是：**已经非常接近。**
+
+只要具备下面这些能力，就已经足以搭出一个时间自动机 reachability /
+safety checking 的原型引擎：
+
+- 统一表示 symbolic state：离散部分 + zone
+- 时间推进：`delay` / `delay_invariant` / `past`
+- 离散迁移：`transition`
+- 反向算子：`transition_back` / `transition_back_past` / `predt`
+- 片段抽取：`extract_bdd_and_dbm`
+
+从这个意义上说，有了 CDD 之后，确实已经拿到了“时间自动机符号验证器的
+核心状态表示与主要算子底座”。
+
+#### 2. 若问“是否已经等于完整 model checker”
+
+答案是：**还没有。**
+
+在一个完整的 timed automata 形式化验证工具里，除了 CDD 这种统一符号状态
+表示与算子层之外，通常还需要：
+
+- 自动机/网络层数据结构
+- 多模板并发组合与同步语义
+- urgent / committed / broadcast / priority 等系统语义
+- zone abstraction / extrapolation / subsumption
+- passed / waiting 探索框架
+- 查询语言，例如 `A[]`、`E<>`
+- 诊断轨迹与反例生成
+- 更完整的离散数据变量语义
+
+所以更准确的判断应当是：
+
+- 有了 `CDD`，已经基本拿到了“形式化验证器的核心 symbolic engine”
+- 但还没有自动得到“完整的时间自动机 model checker”
+
+### 四、这对本项目的直接含义
+
+这也解释了为什么本项目引入 UCDD 后，下一阶段工作重点不应只是“再补几个
+native helper”。
+
+更合理的演进路径应该是：
+
+1. 先把 `CDD` 作为统一 symbolic state 对象打磨稳定
+2. 在纯 clock 场景下与现有 `Federation` 做好语义对照
+3. 在 mixed bool/clock 场景下，把 location / discrete control / zone
+   的统一建模方式讲清楚
+4. 在此基础上，再往“自动机语义层”和“验证算法层”推进
+
+这也是为什么根目录示例脚本更适合写成“时间自动机控制器”的原因：
+
+- 它能直接展示 `CDD` 不只是另一个 zone 表示
+- 它更接近 timed automata symbolic state 的真实使用方式
+- 也更接近后续可达性分析、前驱分析、模型检查等工作的真实落地方向
+
 ## 现有仓库基线
 
 ### 已有 DBM binding 能力
