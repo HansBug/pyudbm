@@ -20,6 +20,7 @@
 - 不要把 license key 烘焙进镜像层
 - 只在首次激活时通过环境变量传入 `UPPAAL_LICENSE_KEY`
 - 把 `/home/uppaal/.config` 挂到 Docker 命名卷
+- 首次激活前，先对该命名卷做一次属主初始化
 - 以后所有新容器都复用同一个命名卷
 
 这样做的效果是：
@@ -189,6 +190,30 @@ docker volume create "$UPPAAL_CONFIG_VOLUME"
 
 `verifyta` 的 lease 和配置会写到这里，后续新容器只要继续挂这个 volume，就能继续复用。
 
+### 第 4.1 步：初始化 volume 权限
+
+这是一个真实踩坑点，不能省略。
+
+由于镜像里的 `uppaal` 用户不是 `root`，而 Docker named volume 初始通常归 `root` 所有，所以首次激活前要先把 volume 的属主改成镜像里 `uppaal` 用户的 UID/GID。
+
+先查询镜像内用户的 UID/GID：
+
+```bash
+export UPPAAL_UID="$(docker run --rm --entrypoint /usr/bin/id "$UPPAAL_IMAGE" -u)"
+export UPPAAL_GID="$(docker run --rm --entrypoint /usr/bin/id "$UPPAAL_IMAGE" -g)"
+```
+
+然后初始化 volume：
+
+```bash
+docker run --rm \
+  -v "$UPPAAL_CONFIG_VOLUME:/cfg" \
+  ubuntu:24.04 \
+  bash -lc "mkdir -p /cfg/uppaal && chown -R ${UPPAAL_UID}:${UPPAAL_GID} /cfg"
+```
+
+执行完成后，首次激活才不会在 `/home/uppaal/.config/uppaal` 这里报 `Permission denied`。
+
 ## 第 5 步：首次激活
 
 先在当前 shell 里设置你的 key：
@@ -261,31 +286,214 @@ docker run --rm \
   > "$PWD/models/my_verifyta_output.txt" 2>&1
 ```
 
-## 第 8 步：最小 smoke test
+## 第 8 步：完整验通示例
 
-为了先确认整条链路是通的，可以直接跑官方 demo。
+下面这个例子不是“显然满足”的玩具例子，而是一个**故意包含 deadline bug 的时间自动机**，用来验证 Docker + `verifyta` 链路能否真正发现问题。
 
-先创建一个简单查询文件：
+### 8.1 示例意图
+
+这个模型包含两个模板：
+
+- `worker`
+  - 收到 `start?` 后开始工作
+  - 必须在 `x <= 5` 时收到 `finish?` 才能到 `Done`
+  - 一旦 `x > 5` 仍未完成，就会进入 `Error`
+- `env`
+  - 收到 `start!` 后开始计时
+  - 只会在 `t >= 7` 时才发送 `finish!`
+
+这代表一个真实缺陷：
+
+- 环境只会在第 `7` 个时间单位之后发完成信号
+- 但工作者的 deadline 是 `5`
+- 所以 `worker.Error` 一定可达
+
+要验证的性质是：
+
+```text
+A[] not worker.Error
+```
+
+这个性质应该失败，`verifyta` 应该返回 `Formula is NOT satisfied.`
+
+### 8.2 输入文件
+
+创建目录：
 
 ```bash
 mkdir -p "$PWD/tmp_verifyta_demo"
-printf 'A[] not deadlock\n' > "$PWD/tmp_verifyta_demo/train.q"
 ```
 
-然后运行：
+写入模型文件 `buggy_deadline.xml`：
+
+```bash
+cat > "$PWD/tmp_verifyta_demo/buggy_deadline.xml" <<'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC "-//Uppaal Team//DTD Flat System 1.6//EN" "http://www.it.uu.se/research/group/darts/uppaal/flat-1_6.dtd">
+<nta>
+  <declaration>clock x, t;
+chan start, finish;
+</declaration>
+  <template>
+    <name x="5" y="5">Worker</name>
+    <declaration></declaration>
+    <location id="worker_idle" x="0" y="0">
+      <name x="-16" y="-24">Idle</name>
+    </location>
+    <location id="worker_busy" x="200" y="0">
+      <name x="184" y="-24">Busy</name>
+      <label kind="invariant" x="168" y="24">x &lt;= 10</label>
+    </location>
+    <location id="worker_done" x="400" y="-80">
+      <name x="388" y="-104">Done</name>
+    </location>
+    <location id="worker_error" x="400" y="80">
+      <name x="384" y="104">Error</name>
+    </location>
+    <init ref="worker_idle"/>
+    <transition>
+      <source ref="worker_idle"/>
+      <target ref="worker_busy"/>
+      <label kind="synchronisation" x="72" y="-32">start?</label>
+      <label kind="assignment" x="72" y="-8">x = 0</label>
+    </transition>
+    <transition>
+      <source ref="worker_busy"/>
+      <target ref="worker_done"/>
+      <label kind="guard" x="252" y="-96">x &lt;= 5</label>
+      <label kind="synchronisation" x="252" y="-72">finish?</label>
+    </transition>
+    <transition>
+      <source ref="worker_busy"/>
+      <target ref="worker_error"/>
+      <label kind="guard" x="252" y="72">x &gt; 5</label>
+    </transition>
+  </template>
+  <template>
+    <name x="5" y="165">Environment</name>
+    <declaration></declaration>
+    <location id="env_before" x="0" y="160">
+      <name x="-36" y="136">BeforeStart</name>
+    </location>
+    <location id="env_running" x="200" y="160">
+      <name x="168" y="136">Running</name>
+      <label kind="invariant" x="168" y="184">t &lt;= 7</label>
+    </location>
+    <location id="env_after" x="400" y="160">
+      <name x="376" y="136">AfterFinish</name>
+    </location>
+    <init ref="env_before"/>
+    <transition>
+      <source ref="env_before"/>
+      <target ref="env_running"/>
+      <label kind="synchronisation" x="72" y="128">start!</label>
+      <label kind="assignment" x="72" y="152">t = 0</label>
+    </transition>
+    <transition>
+      <source ref="env_running"/>
+      <target ref="env_after"/>
+      <label kind="guard" x="252" y="128">t &gt;= 7</label>
+      <label kind="synchronisation" x="252" y="152">finish!</label>
+    </transition>
+  </template>
+  <system>worker = Worker();
+env = Environment();
+system worker, env;
+</system>
+  <queries>
+  </queries>
+</nta>
+EOF
+```
+
+写入查询文件 `buggy_deadline.q`：
+
+```bash
+cat > "$PWD/tmp_verifyta_demo/buggy_deadline.q" <<'EOF'
+A[] not worker.Error
+EOF
+```
+
+### 8.3 运行命令
+
+在已经完成前面镜像构建、volume 创建、volume 权限初始化和首次激活之后，执行：
 
 ```bash
 docker run --rm \
   -v "$UPPAAL_CONFIG_VOLUME:/home/uppaal/.config" \
   -v "$PWD/tmp_verifyta_demo:/work" \
   "$UPPAAL_IMAGE" \
-  verifyta.sh /home/uppaal/uppaal/demo/train-gate.xml /work/train.q
+  verifyta.sh -t0 /work/buggy_deadline.xml /work/buggy_deadline.q
 ```
+
+这里：
+
+- `-t0` 表示要求 `verifyta` 在性质失败时输出 witness trace
+- 这个命令本身不再传 `UPPAAL_LICENSE_KEY`
+- 如果它还能正常跑，说明 lease 的持久化已经生效
+
+### 8.4 期望输出
 
 预期输出应包含：
 
 - `Verifying formula 1`
-- `Formula is satisfied.`
+- `Formula is NOT satisfied.`
+- `Showing witness trace`
+- 某个状态里 `worker.Busy`
+- 某个后续迁移里 `worker.Busy->worker.Error`
+
+一次实际跑通时得到的关键输出如下：
+
+```text
+Options for the verification:
+  Generating some trace
+  Search order is breadth first
+  Using conservative space optimisation
+
+Verifying formula 1 at /work/buggy_deadline.q:1
+ -- Formula is NOT satisfied.
+ -- Showing witness trace:
+
+State:
+( worker.Idle env.BeforeStart )
+x=0 t=0
+
+Transition:
+  env.BeforeStart->env.Running { 1, start!, t := 0 }
+  worker.Idle->worker.Busy { 1, start?, x := 0 }
+
+State:
+( worker.Busy env.Running )
+x=0 t=0
+
+Delay: 5.5
+
+State:
+( worker.Busy env.Running )
+x=5.5 t=5.5
+
+Transition:
+  worker.Busy->worker.Error { x > 5, tau, 1 }
+```
+
+这说明：
+
+- 系统从 `Idle` / `BeforeStart` 正常启动
+- `worker` 进入 `Busy`
+- 时间推进到 `5.5`
+- 由于 `x > 5`，`worker` 直接进入 `Error`
+- 所以查询 `A[] not worker.Error` 被证伪
+
+### 8.5 这个例子为什么适合作为后续验通基线
+
+这个例子适合作为回归 smoke test，因为它同时覆盖了：
+
+- 自定义 XML 模型加载
+- 自定义 `.q` 文件加载
+- Docker 容器内 `verifyta` 运行
+- lease 持久化是否有效
+- 失败性质是否能输出 witness trace
+- 结果是否真的是“发现问题”，而不是“验证一个显然成立的性质”
 
 ## 第 9 步：建议的日常使用方式
 
@@ -398,7 +606,10 @@ docker run --rm \
 
 ### 3. `docker run --rm` 会不会导致授权丢失
 
-不会，只要你把 `/home/uppaal/.config` 挂到了同一个 Docker named volume。
+不会，只要：
+
+- 你把 `/home/uppaal/.config` 挂到了同一个 Docker named volume
+- 这个 volume 在首次使用前已经做过属主初始化
 
 会丢失授权的情况是：
 
@@ -500,6 +711,14 @@ cp -R "$UPPAAL_VENDOR_DIR/$UPPAAL_DIR_NAME" "$UPPAAL_BUILD_DIR/uppaal"
 
 docker build -t "$UPPAAL_IMAGE" "$UPPAAL_BUILD_DIR"
 docker volume create "$UPPAAL_CONFIG_VOLUME"
+
+export UPPAAL_UID="$(docker run --rm --entrypoint /usr/bin/id "$UPPAAL_IMAGE" -u)"
+export UPPAAL_GID="$(docker run --rm --entrypoint /usr/bin/id "$UPPAAL_IMAGE" -g)"
+
+docker run --rm \
+  -v "$UPPAAL_CONFIG_VOLUME:/cfg" \
+  ubuntu:24.04 \
+  bash -lc "mkdir -p /cfg/uppaal && chown -R ${UPPAAL_UID}:${UPPAAL_GID} /cfg"
 
 docker run --rm \
   -e UPPAAL_LICENSE_KEY="$UPPAAL_LICENSE_KEY" \
