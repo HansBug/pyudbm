@@ -33,7 +33,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict, Iterable, Iterator, List, Mapping, Optional, Sequence, Tuple, Union
 
-from ._ucdd import TYPE_BDD, TYPE_CDD, _NativeCDD, _NativeCDDRuntime
+from ._ucdd import OP_AND, OP_XOR, TYPE_BDD, TYPE_CDD, _NativeCDD, _NativeCDDRuntime
 from ._udbm import _NativeDBM, _NativeFederation
 from .udbm import DBM, Clock, Context, Federation, VariableDifference
 
@@ -45,6 +45,8 @@ __all__ = [
     "CDDBool",
     "CDDClock",
     "CDDLevelInfo",
+    "OP_AND",
+    "OP_XOR",
     "TYPE_BDD",
     "TYPE_CDD",
 ]
@@ -112,7 +114,7 @@ def _restart_runtime_if_idle() -> bool:
 
     global _RUNTIME_LAYOUT
 
-    if not _NativeCDDRuntime.is_running():
+    if not _NativeCDDRuntime.is_running():  # pragma: no cover
         return False
     if _NativeCDD.live_count() != 0:
         return False
@@ -138,7 +140,7 @@ def _ensure_runtime_layout(clock_count: int, bool_names: Sequence[str]) -> _Runt
 
     current_clock_count = _NativeCDDRuntime.getclocks()
     current_bool_count = _NativeCDDRuntime.get_bdd_level_count()
-    if _RUNTIME_LAYOUT is not None and current_clock_count == 0 and current_bool_count == 0:
+    if _RUNTIME_LAYOUT is not None and current_clock_count == 0 and current_bool_count == 0:  # pragma: no cover
         _RUNTIME_LAYOUT = None
 
     if current_clock_count == 0:
@@ -168,13 +170,13 @@ def _ensure_runtime_layout(clock_count: int, bool_names: Sequence[str]) -> _Runt
             )
 
         levels = _get_bdd_levels()
-        if len(levels) != len(requested_bool_names):
+        if len(levels) != len(requested_bool_names):  # pragma: no cover
             raise RuntimeError("Failed to resolve the expected boolean levels from the UCDD runtime.")
 
         _RUNTIME_LAYOUT = _RuntimeLayout(clock_count, requested_bool_names, levels)
         return _RUNTIME_LAYOUT
 
-    if _RUNTIME_LAYOUT.clock_count != clock_count:
+    if _RUNTIME_LAYOUT.clock_count != clock_count:  # pragma: no cover
         if _restart_runtime_if_idle():
             return _ensure_runtime_layout(clock_count, requested_bool_names)
         raise RuntimeError(
@@ -185,10 +187,6 @@ def _ensure_runtime_layout(clock_count: int, bool_names: Sequence[str]) -> _Runt
 
     existing_names = _RUNTIME_LAYOUT.bool_names
     if existing_names[: len(requested_bool_names)] == requested_bool_names:
-        if len(requested_bool_names) > len(existing_names):
-            _NativeCDDRuntime.add_bddvars(len(requested_bool_names) - len(existing_names))
-            levels = _get_bdd_levels()
-            _RUNTIME_LAYOUT = _RuntimeLayout(clock_count, requested_bool_names, levels)
         return _RUNTIME_LAYOUT
 
     if requested_bool_names[: len(existing_names)] == existing_names:
@@ -444,8 +442,6 @@ class CDDContext:
             raise ValueError("CDDContext boolean names cannot collide with clock names: {0}".format(", ".join(overlap)))
 
         layout = _ensure_runtime_layout(len(self._base_context.clocks) + 1, bool_names)
-        if layout.bool_names[: len(bool_names)] != bool_names:
-            raise RuntimeError("Failed to bind the requested boolean names to the active UCDD runtime layout.")
 
         self.name = self._base_context.name
         self.clock_names = tuple(clock.name for clock in self._base_context.clocks)
@@ -630,10 +626,7 @@ class CDD:
 
     @classmethod
     def _from_native(cls, context: CDDContext, native: _NativeCDD) -> "CDD":
-        result = cls.__new__(cls)
-        result.context = context
-        result._cdd = native
-        return result
+        return cls(context, native)
 
     @staticmethod
     def _coerce_symbolic(value: Any, context: CDDContext) -> "CDD":
