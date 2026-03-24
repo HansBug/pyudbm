@@ -17,6 +17,26 @@ namespace py = pybind11;
 
 namespace
 {
+    std::vector<raw_t> normalize_raw_matrix(const std::vector<int32_t>& raw_matrix, cindex_t dim)
+    {
+        const auto expected_size = static_cast<std::size_t>(dim) * static_cast<std::size_t>(dim);
+        if (raw_matrix.size() != expected_size) {
+            throw std::invalid_argument(
+                "DBM size does not match the supplied dimension. Expected dim * dim raw cells."
+            );
+        }
+
+        auto result = std::vector<raw_t>{};
+        result.reserve(raw_matrix.size());
+        for (const auto value : raw_matrix) {
+            result.push_back(static_cast<raw_t>(value));
+        }
+        if (!dbm_isValid(result.data(), dim)) {
+            throw std::invalid_argument("Supplied raw DBM matrix is not valid.");
+        }
+        return result;
+    }
+
     class IndexedClockAccessor final : public dbm::ClockAccessor
     {
     public:
@@ -55,6 +75,12 @@ namespace
     {
     public:
         explicit NativeDBM(const dbm::dbm_t& dbm): dbm_(dbm) {}
+
+        static NativeDBM from_raw_matrix(const std::vector<int32_t>& raw_matrix, cindex_t dim)
+        {
+            const auto normalized = normalize_raw_matrix(raw_matrix, dim);
+            return NativeDBM(dbm::dbm_t(normalized.data(), dim));
+        }
 
         NativeDBM copy() const { return NativeDBM(dbm_); }
 
@@ -109,6 +135,16 @@ namespace
     {
     public:
         explicit NativeFederation(cindex_t dim): fed_(dim) {}
+
+        static NativeFederation from_dbm_list(const std::vector<std::vector<int32_t>>& dbms, cindex_t dim)
+        {
+            auto fed = dbm::fed_t(dim);
+            for (const auto& raw_matrix : dbms) {
+                const auto normalized = normalize_raw_matrix(raw_matrix, dim);
+                fed.add(normalized.data(), dim);
+            }
+            return NativeFederation(fed);
+        }
 
         NativeFederation(cindex_t dim, const NativeConstraint& constraint): fed_(dim)
         {
@@ -306,6 +342,7 @@ PYBIND11_MODULE(_udbm, m)
         });
 
     py::class_<NativeDBM>(m, "_NativeDBM")
+        .def_static("from_raw_matrix", &NativeDBM::from_raw_matrix, py::arg("raw_matrix"), py::arg("dim"))
         .def("copy", &NativeDBM::copy)
         .def("get_dimension", &NativeDBM::get_dimension)
         .def("to_string", &NativeDBM::to_string, py::arg("names"), py::arg("full") = false)
@@ -316,6 +353,7 @@ PYBIND11_MODULE(_udbm, m)
     py::class_<NativeFederation>(m, "_NativeFederation")
         .def(py::init<cindex_t>(), py::arg("dim"))
         .def(py::init<cindex_t, const NativeConstraint&>(), py::arg("dim"), py::arg("constraint"))
+        .def_static("from_dbm_list", &NativeFederation::from_dbm_list, py::arg("dbms"), py::arg("dim"))
         .def("copy", &NativeFederation::copy)
         .def("get_dimension", &NativeFederation::get_dimension)
         .def("size", &NativeFederation::size)

@@ -1746,35 +1746,35 @@ state.to_dot("state.dot", push_negate=True)
 
 实施清单：
 
-- [ ] 新增 `pyudbm/binding/ucdd.py`
-- [ ] 实现 `CDDContext`
-- [ ] 实现 `CDD`
-- [ ] 实现 `CDDExtraction`
-- [ ] 实现 `BDDTraceSet`
-- [ ] 实现 `CDDContext.from_context(context, bools=...)`
-- [ ] 实现 `Context.to_cdd_context(...)`
-- [ ] 实现 `Federation.to_cdd(...)`
-- [ ] 实现 `DBM.to_cdd(...)`
-- [ ] 实现 `CDD.from_federation(federation)`
-- [ ] 实现 `CDD.from_dbm(dbm)`
-- [ ] 实现 `CDD.to_federation(require_pure=True)`
-- [ ] 将 `extract_bdd_and_dbm()` 的 DBM 部分包装成现有 `DBM`
-- [ ] 将 `bdd_arrays` 高层化为可迭代的 `BDDTraceSet`
-- [ ] 自动处理 `extract_*` 所需的 `reduce()` 前置条件
+- [x] 新增 `pyudbm/binding/ucdd.py`
+- [x] 实现 `CDDContext`
+- [x] 实现 `CDD`
+- [x] 实现 `CDDExtraction`
+- [x] 实现 `BDDTraceSet`
+- [x] 实现 `CDDContext.from_context(context, bools=...)`
+- [x] 实现 `Context.to_cdd_context(...)`
+- [x] 实现 `Federation.to_cdd(...)`
+- [x] 实现 `DBM.to_cdd(...)`
+- [x] 实现 `CDD.from_federation(federation)`
+- [x] 实现 `CDD.from_dbm(dbm)`
+- [x] 实现 `CDD.to_federation(require_pure=True)`
+- [x] 将 `extract_bdd_and_dbm()` 的 DBM 部分包装成现有 `DBM`
+- [x] 将 `bdd_arrays` 高层化为可迭代的 `BDDTraceSet`
+- [x] 自动处理 `extract_*` 所需的 `reduce()` 前置条件
 
 本 phase 产物：
 
-- [ ] `pyudbm/binding/ucdd.py`
-- [ ] `test/binding/test_ucdd_api.py`
-- [ ] `test/binding/test_ucdd_interop.py`
+- [x] `pyudbm/binding/ucdd.py`
+- [x] `test/binding/test_ucdd_api.py`
+- [x] `test/binding/test_ucdd_interop.py`
 
 完成后检查清单：
 
-- [ ] 现有 `Federation` 用户能无缝把纯 zone 提升成 CDD
-- [ ] 纯 CDD 结果能在满足条件时回落成 `Federation`
-- [ ] 抽取出的 DBM 可以直接复用现有 `DBM` 方法与表示
-- [ ] 纯 clock 场景下的 UCDD 互操作不引入新的命名或维度歧义
-- [ ] 已完成一次完整编译后的回归测试，并覆盖 `_udbm`、`_ucdd` 与高层 Python API 联动
+- [x] 现有 `Federation` 用户能无缝把纯 zone 提升成 CDD
+- [x] 纯 CDD 结果能在满足条件时回落成 `Federation`
+- [x] 抽取出的 DBM 可以直接复用现有 `DBM` 方法与表示
+- [x] 纯 clock 场景下的 UCDD 互操作不引入新的命名或维度歧义
+- [x] 已完成一次完整编译后的回归测试，并覆盖 `_udbm`、`_ucdd` 与高层 Python API 联动
 
 ### Phase 3：高层 DSL 与易用接口
 
@@ -1786,28 +1786,28 @@ state.to_dot("state.dot", push_negate=True)
 
 实施清单：
 
-- [ ] 在 `CDDContext` 中暴露 bool 变量对象
-- [ ] 支持属性式和下标式访问 bool 变量
-- [ ] 让 clock 条件与 bool 条件可自然组合
-- [ ] 为 `apply_reset` 提供 `{clock: value}` / `{boolvar: bool}` 风格输入
-- [ ] 为 `transition` 提供 Python 友好参数格式
-- [ ] 为 `transition_back` 提供 Python 友好参数格式
-- [ ] 为 `transition_back_past` 提供 Python 友好参数格式
-- [ ] 明确 clock 变量对象与现有 `Clock` 的关系
-- [ ] 明确 bool 命名冲突处理规则
-- [ ] 明确 `Context` 与 `CDDContext` 的共存边界
+- [x] 在 `CDDContext` 中暴露 bool 变量对象
+- [x] 支持属性式和下标式访问 bool 变量
+- [x] 让 clock 条件与 bool 条件可自然组合
+- [x] 为 `apply_reset` 提供 `{clock: value}` / `{boolvar: bool}` 风格输入
+- [x] 为 `transition` 提供 Python 友好参数格式
+- [x] 为 `transition_back` 提供 Python 友好参数格式
+- [x] 为 `transition_back_past` 提供 Python 友好参数格式
+- [x] 明确 clock 变量对象与现有 `Clock` 的关系
+- [x] 明确 bool 命名冲突处理规则
+- [x] 明确 `Context` 与 `CDDContext` 的共存边界
 
 本 phase 产物：
 
-- [ ] 用户可直接编写 mixed bool/clock symbolic expression
-- [ ] `test/binding/test_ucdd_api.py` 中覆盖 DSL 和 transition/reset 用例
+- [x] 用户可直接编写 mixed bool/clock symbolic expression
+- [x] `test/binding/test_ucdd_api.py` 中覆盖 DSL 和 transition/reset 用例
 
 完成后检查清单：
 
-- [ ] 用户可以用 Python 友好方式表达 guard / update / mixed symbolic state
-- [ ] 不需要用户手工拼并行数组即可完成 reset / transition 操作
-- [ ] bool 与 clock 的命名、打印和上下文归属清晰一致
-- [ ] 已完成一次完整编译后的回归测试，并覆盖 mixed bool/clock DSL 与 transition/reset 工作流
+- [x] 用户可以用 Python 友好方式表达 guard / update / mixed symbolic state
+- [x] 不需要用户手工拼并行数组即可完成 reset / transition 操作
+- [x] bool 与 clock 的命名、打印和上下文归属清晰一致
+- [x] 已完成一次完整编译后的回归测试，并覆盖 mixed bool/clock DSL 与 transition/reset 工作流
 
 ### Phase 4：文档、测试与对照验证
 

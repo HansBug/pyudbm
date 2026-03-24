@@ -141,11 +141,45 @@ class DBM:
         self.context = context
         self._dbm = native
 
+    @classmethod
+    def _from_raw_matrix(cls, context: "Context", raw_matrix: Iterable[int]) -> "DBM":
+        """
+        Build a DBM snapshot from one raw DBM matrix.
+
+        This helper is intended for internal interop paths such as UCDD DBM
+        extraction. It assumes the raw matrix already follows UDBM's native
+        closed-DBM conventions.
+
+        :param context: Context whose clock layout labels the DBM.
+        :type context: Context
+        :param raw_matrix: Flat ``dim * dim`` raw DBM matrix.
+        :type raw_matrix: Iterable[int]
+        :return: Wrapped DBM snapshot.
+        :rtype: DBM
+        """
+
+        native = _NativeDBM.from_raw_matrix(list(raw_matrix), len(context.clocks) + 1)
+        return cls(context, native)
+
     def _clock_names(self) -> List[str]:
         return ["0"] + [clock.get_full_name() for clock in self.context.clocks]
 
     def _raw_matrix(self) -> tuple:
         return tuple(int(value) for value in self._dbm.raw_matrix())
+
+    def to_cdd(self, cdd_context: Optional[Any] = None) -> Any:
+        """
+        Lift this DBM snapshot into a :class:`pyudbm.binding.ucdd.CDD`.
+
+        :param cdd_context: Optional target CDD context.
+        :type cdd_context: Any
+        :return: Equivalent pure-clock CDD.
+        :rtype: Any
+        """
+
+        from .ucdd import CDD
+
+        return CDD.from_dbm(self, cdd_context=cdd_context)
 
     def _available_index_names(self) -> List[str]:
         names = ["0"] + [clock.name for clock in self.context.clocks]
@@ -1540,6 +1574,20 @@ class Federation:
 
         return [DBM(self.context, native) for native in self._fed.to_dbm_list()]
 
+    def to_cdd(self, cdd_context: Optional[Any] = None) -> Any:
+        """
+        Lift this federation into a :class:`pyudbm.binding.ucdd.CDD`.
+
+        :param cdd_context: Optional target CDD context.
+        :type cdd_context: Any
+        :return: Equivalent pure-clock CDD.
+        :rtype: Any
+        """
+
+        from .ucdd import CDD
+
+        return CDD.from_federation(self, cdd_context=cdd_context)
+
     def __and__(self, other: "Federation") -> "Federation":
         """
         Return the exact intersection of two federations.
@@ -2456,3 +2504,23 @@ class Context:
         """
 
         return Federation(self)
+
+    def to_cdd_context(self, bools: Iterable[str] = (), name: Optional[str] = None) -> Any:
+        """
+        Build a :class:`pyudbm.binding.ucdd.CDDContext` from this clock context.
+
+        The resulting CDD context preserves the current clock order so that
+        :class:`Federation` and :class:`DBM` objects from this context can be
+        converted without remapping.
+
+        :param bools: Optional boolean variable names to add.
+        :type bools: Iterable[str]
+        :param name: Optional display-name override.
+        :type name: str or None
+        :return: Matching CDD context.
+        :rtype: Any
+        """
+
+        from .ucdd import CDDContext
+
+        return CDDContext.from_context(self, bools=bools, name=name)
