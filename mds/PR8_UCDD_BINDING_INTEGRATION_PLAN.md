@@ -20,7 +20,8 @@
 
 当前仓库已经具备一条以 UDBM 为核心的高层 Python 封装链路：
 
-- native pybind11 入口位于 `pyudbm/binding/_binding.cpp`
+- 当前 native pybind11 入口位于 `pyudbm/binding/_binding.cpp`
+- 本方案建议后续将其重命名为 `pyudbm/binding/_udbm.cpp`，并同步调整扩展模块命名、导入路径和构建配置
 - Python 高层 DSL 位于 `pyudbm/binding/udbm.py`
 - 公开模型以 `Context` / `Clock` / `Federation` / `DBM` 为主
 
@@ -719,13 +720,20 @@ API 层建议：
 
 ### pybinding 层
 
-建议在现有 `_binding` 之外新增独立模块，例如：
+建议将当前单一 native 扩展拆分成两个名字明确的扩展：
 
+- `pyudbm/binding/_udbm.cpp`
 - `pyudbm/binding/_ucdd.cpp`
 
-原因：
+其中：
 
-- 避免把当前 UDBM binding 与 UCDD binding 混在一个巨大 pybind11 文件里
+- `_udbm.cpp` 负责现有 UDBM / DBM / Federation binding
+- `_ucdd.cpp` 负责新增 UCDD binding
+
+这样做的原因：
+
+- 避免继续维持语义不清晰的 `_binding` 名称
+- 避免把 UDBM binding 与 UCDD binding 混在一个巨大 pybind11 文件里
 - 更容易独立测试运行时初始化与对象生命周期
 - 便于后续在 packaging 上确认依赖和符号边界
 
@@ -771,7 +779,7 @@ API 层建议：
 |  |- __init__.py                        # 后续若决定从包根导出 CDD API，这里做重导出
 |  `- binding/
 |     |- __init__.py                     # 绑定层导出整理
-|     |- _binding.cpp                    # 现有 UDBM / DBM / Federation 绑定，原则上不大改结构
+|     |- _udbm.cpp                       # 现有 UDBM / DBM / Federation 绑定，原 _binding.cpp 建议重命名而来
 |     |- _ucdd.cpp                       # 新增：UCDD pybind11 薄绑定入口
 |     |- ucdd.py                         # 新增：UCDD 高层 Python 包装
 |     |- udbm.py                         # 现有高层 UDBM API，补充互转钩子和轻量联动入口
@@ -864,13 +872,13 @@ API 层建议：
 
 建议方向是：
 
-- 保留现有 `_binding` 扩展目标
+- 将现有 `_binding` 扩展目标重命名为 `_udbm`
 - 新增 `_ucdd` 扩展目标
 - 为 `_ucdd` 单独链接 UCDD 及其依赖链
 
 不建议的方式：
 
-- 把 UCDD 代码直接糅进现有 `_binding` 单一扩展里
+- 把 UCDD 代码直接糅进现有 `_udbm` 单一扩展里
 
 原因：
 
@@ -1008,6 +1016,24 @@ pyudbm/binding/
 - 不要在 C++ 层尝试承接整套用户 DSL
 
 这些都属于 Python 层更合适。
+
+## `_binding` 重命名为 `_udbm` 的具体建议
+
+这项调整建议尽早做，原因是：
+
+- 当前 `_binding` 这个名称在只有一个 native 扩展时还勉强成立
+- 一旦同时引入 UDBM 与 UCDD 两个 native 扩展，`_binding` 就会变得语义含混
+- 采用 `_udbm` / `_ucdd` 并列命名后，仓库结构、导入路径、测试覆盖和构建配置都会更清晰
+
+建议调整的内容包括：
+
+- `pyudbm/binding/_binding.cpp` 重命名为 `pyudbm/binding/_udbm.cpp`
+- pybind11 模块名从 `_binding` 改为 `_udbm`
+- `pyudbm/binding/udbm.py` 中的导入从 `from ._binding import ...` 改为 `from ._udbm import ...`
+- 相关测试中若有直接导入 native 模块名，也同步调整
+- `CMakeLists.txt` 中扩展目标、输出模块名和源文件路径同步调整
+
+这项重命名本身不属于 UCDD 特性，但它是后续双扩展结构清晰化的前置整理工作。
 
 ## Python 高层应该如何操作
 
@@ -1310,47 +1336,92 @@ state.to_dot("state.dot", push_negate=True)
 
 ## 分阶段落地计划
 
-### 阶段 0：设计与文档
+## 实施状态维护规则
+
+后续这份文档不应只作为一次性方案说明，而应作为实现过程中的状态记录文件持续维护。
+
+维护规则建议如下：
+
+- 每个 phase 都使用 Markdown checklist 维护状态
+- 未完成项使用 `[ ]`
+- 完成项使用 `[x]`
+- 当某个 phase 实际完成后，需要同时勾选：
+  - 该 phase 的实施清单
+  - 该 phase 的产物清单
+  - 该 phase 的完成后检查清单
+- 如果实现过程中出现拆分或调整，应优先更新本节 checklist，再开始继续开发
+
+### Phase 0：设计与文档
 
 目标：
 
 - 明确对象模型
 - 明确首批暴露接口
 - 明确与现有 DBM binding 的联动边界
+- 明确目录结构、命名调整与实施顺序
 
-产出：
+实施清单：
 
-- 本文档
+- [x] 建立 `mds/` 设计文档
+- [x] 盘点 UCDD 主要公开数据结构与内部结构边界
+- [x] 明确 pybinding 层与 Python 高层 API 分层
+- [x] 明确 UCDD 与现有 `Context` / `DBM` / `Federation` 联动方案
+- [x] 明确 `_binding -> _udbm` 的命名整理建议
+- [x] 明确目标路径结构、新增文件职责与最终使用方式
 
-### 阶段 1：native 薄绑定
+本 phase 产物：
+
+- [x] 本文档
+- [x] PR 说明与文档双向链接
+
+完成后检查清单：
+
+- [x] 文档已包含对象模型、路径结构、阶段计划和最终用法示例
+- [x] 文档已说明哪些内容是首批公开承诺，哪些不是
+- [x] 文档已明确后续 phase 需要继续在本文档中打勾维护
+
+### Phase 1：命名整理与 native 薄绑定
 
 目标：
 
+- 将现有 `_binding` 命名整理为 `_udbm`
 - 新增 `_ucdd` pybind11 模块
 - 只做生命周期安全和内存所有权安全的薄包装
 
-首批必做对象：
+实施清单：
 
-- runtime 管理对象
-- `NativeCDD`
-- `NativeLevelInfo`
-- `NativeExtractionResult`
-- `NativeBDDTraceSet`
+- [ ] 将 `pyudbm/binding/_binding.cpp` 重命名为 `pyudbm/binding/_udbm.cpp`
+- [ ] 将 pybind11 模块名从 `_binding` 调整为 `_udbm`
+- [ ] 调整 `pyudbm/binding/udbm.py` 对 native 模块的导入路径
+- [ ] 调整 `CMakeLists.txt` 里的源文件路径、目标名和输出模块名
+- [ ] 检查是否有测试或辅助代码仍直接引用 `_binding`
+- [ ] 新增 `pyudbm/binding/_ucdd.cpp`
+- [ ] 在 `_ucdd.cpp` 中接入 runtime 包装
+- [ ] 在 `_ucdd.cpp` 中接入 `NativeCDD`
+- [ ] 在 `_ucdd.cpp` 中接入 `NativeCDDLevelInfo`
+- [ ] 在 `_ucdd.cpp` 中接入 `NativeCDDExtraction`
+- [ ] 在 `_ucdd.cpp` 中接入 `NativeBDDTraceSet`
+- [ ] 暴露基础构造与集合代数接口
+- [ ] 暴露 `reduce` / `equiv`
+- [ ] 暴露 `delay` / `past` / `predt`
+- [ ] 暴露 `extract_*` 与 `bdd_to_array`
+- [ ] 暴露 `transition` / `transition_back` / `transition_back_past`
 
-首批必做接口：
+本 phase 产物：
 
-- 基础构造与代数
-- reduce/equiv
-- delay/past/predt
-- extract 系列
-- bdd_to_array
-- transition 系列
+- [ ] 可导入的 `_udbm` 扩展
+- [ ] 可导入的 `_ucdd` 扩展
+- [ ] `test/binding/test_ucdd_native.py`
 
-阶段验收标准：
+完成后检查清单：
 
-- 不依赖 Python 高层包装也能从测试中完整调用这些操作
+- [ ] `python -c "import pyudbm.binding._udbm"` 可成功执行
+- [ ] `python -c "import pyudbm.binding._ucdd"` 可成功执行
+- [ ] 现有 UDBM 高层 API 在 `_binding -> _udbm` 重命名后仍能正常导入
+- [ ] 不依赖 Python 高层包装也能通过测试调用 UCDD 核心 native 接口
+- [ ] `_ucdd` 相关对象不存在裸指针泄漏和明显生命周期错误
 
-### 阶段 2：Python 高层包装与现有 DBM 联动
+### Phase 2：Python 高层包装与现有 DBM 联动
 
 目标：
 
@@ -1361,19 +1432,38 @@ state.to_dot("state.dot", push_negate=True)
 - 打通 `Federation <-> CDD`
 - 抽取出的 DBM 直接复用现有 `DBM`
 
-首批必须完成的互操作：
+实施清单：
 
-- `CDDContext.from_context(context, bools=...)`
-- `CDD.from_federation(federation)`
-- `CDD.to_federation(require_pure=True)`
-- `CDDExtraction.dbm -> DBM`
+- [ ] 新增 `pyudbm/binding/ucdd.py`
+- [ ] 实现 `CDDContext`
+- [ ] 实现 `CDD`
+- [ ] 实现 `CDDExtraction`
+- [ ] 实现 `BDDTraceSet`
+- [ ] 实现 `CDDContext.from_context(context, bools=...)`
+- [ ] 实现 `Context.to_cdd_context(...)`
+- [ ] 实现 `Federation.to_cdd(...)`
+- [ ] 实现 `DBM.to_cdd(...)`
+- [ ] 实现 `CDD.from_federation(federation)`
+- [ ] 实现 `CDD.from_dbm(dbm)`
+- [ ] 实现 `CDD.to_federation(require_pure=True)`
+- [ ] 将 `extract_bdd_and_dbm()` 的 DBM 部分包装成现有 `DBM`
+- [ ] 将 `bdd_arrays` 高层化为可迭代的 `BDDTraceSet`
+- [ ] 自动处理 `extract_*` 所需的 `reduce()` 前置条件
 
-阶段验收标准：
+本 phase 产物：
 
-- 现有 `Federation` 用户能无缝把纯 zone 提升成 CDD
-- 纯 CDD 结果能回落到 `Federation`
+- [ ] `pyudbm/binding/ucdd.py`
+- [ ] `test/binding/test_ucdd_api.py`
+- [ ] `test/binding/test_ucdd_interop.py`
 
-### 阶段 3：高层 DSL 与易用接口
+完成后检查清单：
+
+- [ ] 现有 `Federation` 用户能无缝把纯 zone 提升成 CDD
+- [ ] 纯 CDD 结果能在满足条件时回落成 `Federation`
+- [ ] 抽取出的 DBM 可以直接复用现有 `DBM` 方法与表示
+- [ ] 纯 clock 场景下的 UCDD 互操作不引入新的命名或维度歧义
+
+### Phase 3：高层 DSL 与易用接口
 
 目标：
 
@@ -1381,17 +1471,31 @@ state.to_dot("state.dot", push_negate=True)
 - 提供 clock/bool 混合表达式
 - 提供 reset/transition 的 Python 友好参数格式
 
-这一步需要重点处理：
+实施清单：
 
-- clock 变量对象与现有 `Clock` 的关系
-- bool 变量命名冲突
-- 是否允许 `Context` 与 `CDDContext` 共存、互嵌或共享
+- [ ] 在 `CDDContext` 中暴露 bool 变量对象
+- [ ] 支持属性式和下标式访问 bool 变量
+- [ ] 让 clock 条件与 bool 条件可自然组合
+- [ ] 为 `apply_reset` 提供 `{clock: value}` / `{boolvar: bool}` 风格输入
+- [ ] 为 `transition` 提供 Python 友好参数格式
+- [ ] 为 `transition_back` 提供 Python 友好参数格式
+- [ ] 为 `transition_back_past` 提供 Python 友好参数格式
+- [ ] 明确 clock 变量对象与现有 `Clock` 的关系
+- [ ] 明确 bool 命名冲突处理规则
+- [ ] 明确 `Context` 与 `CDDContext` 的共存边界
 
-阶段验收标准：
+本 phase 产物：
 
-- 用户可以用 Python 友好方式表达 guard / update / mixed symbolic state
+- [ ] 用户可直接编写 mixed bool/clock symbolic expression
+- [ ] `test/binding/test_ucdd_api.py` 中覆盖 DSL 和 transition/reset 用例
 
-### 阶段 4：文档、测试与对照验证
+完成后检查清单：
+
+- [ ] 用户可以用 Python 友好方式表达 guard / update / mixed symbolic state
+- [ ] 不需要用户手工拼并行数组即可完成 reset / transition 操作
+- [ ] bool 与 clock 的命名、打印和上下文归属清晰一致
+
+### Phase 4：文档、测试与对照验证
 
 目标：
 
@@ -1399,12 +1503,55 @@ state.to_dot("state.dot", push_negate=True)
 - 增补联动示例
 - 做与现有 UDBM 操作的对照测试
 
-建议新增测试方向：
+实施清单：
 
-- `Federation.up()` 与 `CDD.from_federation(f).delay().to_federation()` 对照
-- `Federation.down()` 与 `CDD.from_federation(f).past().to_federation()` 对照
-- `predt` 与现有 Federation `predt` 的纯 clock 语义对照
-- `extract_bdd_and_dbm()` 的稳定性与内存安全
+- [ ] 为 UCDD 高层 API 增补文档字符串和使用示例
+- [ ] 在仓库文档或 `mds/` 中补充 UCDD 与 DBM 联动示例
+- [ ] 新增纯 clock 对照测试
+- [ ] 新增 mixed bool/clock 工作流测试
+- [ ] 新增 `extract_bdd_and_dbm()` 稳定性测试
+- [ ] 新增内存安全和生命周期回归测试
+- [ ] 新增 `_udbm` 重命名后的回归测试
+
+建议优先完成的对照测试：
+
+- [ ] `Federation.up()` 与 `CDD.from_federation(f).delay().to_federation()` 对照
+- [ ] `Federation.down()` 与 `CDD.from_federation(f).past().to_federation()` 对照
+- [ ] `predt` 与现有 Federation `predt` 的纯 clock 语义对照
+- [ ] `extract_bdd_and_dbm()` 的稳定性与内存安全
+
+本 phase 产物：
+
+- [ ] 完整的 UCDD 高层 API 测试集
+- [ ] 关键纯 clock 对照测试集
+- [ ] 文档化的使用示例
+
+完成后检查清单：
+
+- [ ] 纯 clock 场景下，UCDD 与现有 Federation 关键语义可对照验证
+- [ ] mixed bool/clock 场景下，核心流程有稳定测试覆盖
+- [ ] 文档中的主要示例代码能与当前 API 保持一致
+
+### Phase 5：状态收尾与文档回填
+
+目标：
+
+- 确保实现完成后，这份文档本身也被更新成真实状态记录
+
+实施清单：
+
+- [ ] 完成一个 phase 后立即回到本文档勾选 checklist
+- [ ] 若实现过程中拆分 phase 或增加新任务，先更新本文档再继续开发
+- [ ] 在 PR 讨论中引用本文档中对应 phase 的完成状态
+
+本 phase 产物：
+
+- [ ] 本文档中的 checklist 与实际实现状态一致
+
+完成后检查清单：
+
+- [ ] 不存在“代码已完成但文档 checklist 未更新”的偏差
+- [ ] 后续读者仅查看本文档即可知道目前推进到哪个 phase
 
 ## 首批不建议进入公开承诺的内容
 
