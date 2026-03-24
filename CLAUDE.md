@@ -438,7 +438,7 @@ The current repository layout can be understood like this:
 |- Makefile                      # Unified local build / test / package entrypoint
 |- tools/                        # Repository maintenance helper scripts
 |  |- __init__.py
-|  |- udbm_version.py            # Sync UDBM version/commit into pyudbm metadata
+|  |- upstream_versions.py       # Sync UUtils/UDBM/UCDD version, commit, and commit time metadata into pyudbm
 |  `- windows_mingw.py           # Discover the MinGW toolchain dynamically on Windows
 |- pyproject.toml                # Build-system metadata and cibuildwheel config
 |- setup.py                      # setuptools + CMake bridge
@@ -672,7 +672,7 @@ git submodule update --init --recursive
 python -m pip install -r requirements.txt
 python -m pip install -r requirements-test.txt
 python -m pip install -r requirements-build.txt
-make uversion
+make sync_versions
 make bin
 make build
 make unittest
@@ -736,11 +736,13 @@ By contrast, `make clean` removes the in-place extension `.so` files under `pyud
   - `build/`
   - `bin_install/`
 
-`make uversion`
+`make sync_versions`
 
-- Update `pyudbm/config/meta.py` with the declared version from
-  `UDBM/CMakeLists.txt` and the current `UDBM` submodule commit hash.
-- Runs `python -m tools.udbm_version -i UDBM -o pyudbm/config/meta.py`.
+- Update `pyudbm/config/meta.py` with the declared versions from
+  `UUtils/CMakeLists.txt`, `UDBM/CMakeLists.txt`, and `UCDD/CMakeLists.txt`,
+  plus the current `UUtils`, `UDBM`, and `UCDD` submodule commit hashes and
+  commit timestamps.
+- Runs `python -m tools.upstream_versions --uutils-input UUtils --udbm-input UDBM --ucdd-input UCDD -o pyudbm/config/meta.py`.
 
 ### Python Test Targets
 

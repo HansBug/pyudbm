@@ -36,6 +36,24 @@ pyudbm.config.meta
 .. autodata:: __AUTHOR_EMAIL__
 
 
+\_\_UUTILS\_VERSION\_\_
+-----------------------------------------------------
+
+.. autodata:: __UUTILS_VERSION__
+
+
+\_\_UUTILS\_COMMIT\_\_
+-----------------------------------------------------
+
+.. autodata:: __UUTILS_COMMIT__
+
+
+\_\_UUTILS\_COMMIT\_TIME\_\_
+-----------------------------------------------------
+
+.. autodata:: __UUTILS_COMMIT_TIME__
+
+
 \_\_UDBM\_VERSION\_\_
 -----------------------------------------------------
 
@@ -46,5 +64,29 @@ pyudbm.config.meta
 -----------------------------------------------------
 
 .. autodata:: __UDBM_COMMIT__
+
+
+\_\_UDBM\_COMMIT\_TIME\_\_
+-----------------------------------------------------
+
+.. autodata:: __UDBM_COMMIT_TIME__
+
+
+\_\_UCDD\_VERSION\_\_
+-----------------------------------------------------
+
+.. autodata:: __UCDD_VERSION__
+
+
+\_\_UCDD\_COMMIT\_\_
+-----------------------------------------------------
+
+.. autodata:: __UCDD_COMMIT__
+
+
+\_\_UCDD\_COMMIT\_TIME\_\_
+-----------------------------------------------------
+
+.. autodata:: __UCDD_COMMIT_TIME__
 
 
