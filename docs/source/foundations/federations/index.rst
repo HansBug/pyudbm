@@ -288,11 +288,19 @@ DBM pieces:
 
    fed = ((x >= 1) & (x <= 2) & (y >= 1) & (y <= 3)) | ((x >= 4) & (x <= 5) & (y >= 2) & (y <= 4))
    pieces = fed.to_dbm_list()
+   piece_texts = sorted(dbm.to_string() for dbm in pieces)
 
    assert len(pieces) == 2
+   assert piece_texts == [
+       "(1<=x & 1<=y & x<=2 & y<=3)",  # D1
+       "(4<=x & 2<=y & x<=5 & y<=4)",  # D2
+   ]
 
 This is exact representation inspection, not approximation. It is especially
 useful when subtraction or exact union has produced several convex pieces.
+In this example the strings make the two pieces explicit: ``D1`` is the left
+rectangle and ``D2`` is the right one. The sort step is only there so the
+example does not depend on internal list ordering.
 
 .. _fed-get-size:
 
@@ -323,14 +331,19 @@ representation quality starts to matter too:
    :align: center
    :alt: Three-panel figure showing a federation before reduction, after reduction, and after intern.
 
-``reduce()`` tries to clean up the DBM list while preserving the represented
-set. In the figure, the left federation is represented by two overlapping DBMs,
-while the middle panel shows the same set after reduction:
+``reduce()`` can simplify a structurally awkward federation without changing
+its geometry. A compact example is ``x <= 1 | x >= 1``: the left panel stores
+that set as two DBMs, while the middle panel shows the same region after it has
+been reduced to one canonical piece:
 
 .. code-block:: python
 
-   reduced = fed.copy().reduce()
-   assert reduced == fed
+   complex_fed = (x <= 1) | (x >= 1)
+   assert complex_fed.get_size() == 2
+
+   complex_fed.reduce()
+   assert complex_fed.get_size() == 1
+   assert complex_fed == (x >= 0)
 
 ``intern()`` is different. It is not a geometric or semantic transformation at
 all. It asks UDBM to share equal canonical DBMs internally through its hash
@@ -338,9 +351,9 @@ tables:
 
 .. code-block:: python
 
-   before = fed.copy()
-   fed.intern()
-   assert fed == before
+   complex_fed.intern()
+   assert complex_fed.get_size() == 1
+   assert complex_fed == (x >= 0)
 
 So the right mental split is:
 
@@ -369,6 +382,10 @@ Intersection stays inside the exact symbolic world:
    right = (x >= 3) & (x <= 5) & (y >= 2) & (y <= 5)
    exact_intersection = left & right
 
+The first two panels already overlay the other operand, so the overlapping
+corner is visible before you even look at the result. In the last panel, ``A``
+and ``B`` stay as dashed references and the filled area is exactly ``A & B``.
+
 The result is exact and usually still convex enough to fit into one DBM.
 
 .. _fed-or:
@@ -378,12 +395,13 @@ Exact Union ``|``
 
 Exact union keeps all pieces and keeps all gaps:
 
-.. image:: union_vs_hull.plot.py.svg
-   :width: 88%
+.. image:: fed_or.plot.py.svg
+   :width: 92%
    :align: center
-   :alt: Two-panel figure showing exact union and convex hull.
+   :alt: Three-panel figure showing two exact pieces and their exact union.
 
-In the left panel, the federation really is two separated regions:
+The result panel keeps the two convex pieces separate, so the gap remains part
+of the geometry:
 
 .. code-block:: python
 
@@ -667,8 +685,16 @@ result of contradictory constraints, for example:
 Relations: ``==``, ``!=``, ``<=``, ``>=``, ``<``, ``>``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The subset panel in the properties figure is the geometric model for all six
-comparison operators:
+The six comparison operators deserve their own gallery:
+
+.. image:: fed_relations.plot.py.svg
+   :width: 94%
+   :align: center
+   :alt: Two-row by three-column figure showing representative examples for federation relations ==, !=, <=, >=, <, and >.
+
+Each panel shows one representative witness. For the non-strict operators
+``<=`` and ``>=``, equality would also be allowed even though the pictured
+example uses proper containment.
 
 * ``A == B`` means same symbolic set
 * ``A != B`` means different symbolic sets

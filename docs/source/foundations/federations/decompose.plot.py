@@ -20,6 +20,24 @@ def build_figure():
     fig, ax = plt.subplots(figsize=(4.4, 3.7), constrained_layout=True)
     plot_piecewise(ax, FEDERATION, VIEWPORT, ["#9ecae1", "#fdd49e"])
     style_axes(ax, VIEWPORT)
+    ax.text(
+        1.5,
+        2.0,
+        r"$D_1$",
+        fontsize=11,
+        ha="center",
+        va="center",
+        bbox={"boxstyle": "round,pad=0.18", "facecolor": "white", "edgecolor": "#666666", "alpha": 0.9},
+    )
+    ax.text(
+        4.5,
+        3.0,
+        r"$D_2$",
+        fontsize=11,
+        ha="center",
+        va="center",
+        bbox={"boxstyle": "round,pad=0.18", "facecolor": "white", "edgecolor": "#666666", "alpha": 0.9},
+    )
     ax.set_title(r"$F = D_1 \cup D_2$", fontsize=12, pad=6)
     return fig
 
