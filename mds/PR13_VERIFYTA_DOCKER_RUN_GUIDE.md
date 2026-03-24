@@ -1,5 +1,9 @@
 # 基于 Docker 的 `verifyta` 运行指南
 
+关联 PR：
+
+- <https://github.com/HansBug/pyudbm/pull/13>
+
 本文档给出一套可直接照着执行的 `verifyta` Docker 运行方案，目标是满足以下要求：
 
 - 在宿主机系统较老时，仍可稳定运行官方 `verifyta`
