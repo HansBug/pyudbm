@@ -751,6 +751,563 @@ API 层建议：
 
 这样能降低对现有 API 的扰动。
 
+## 建议的仓库路径结构与文件职责
+
+这部分给出“后续真正上代码时，代码应该写到哪里”的明确建议。
+
+原则只有两个：
+
+- 不修改 `UCDD/`、`UDBM/`、`UUtils/` 子模块源码
+- 新增代码尽量落在现有 `pyudbm/` 与 `test/` 的 wrapper 责任范围内
+
+### 一、建议新增和修改的路径
+
+建议按下面的目标结构推进：
+
+```text
+.
+|- CMakeLists.txt                         # 需要接入新的 pybind11 扩展目标或源文件
+|- pyudbm/
+|  |- __init__.py                        # 后续若决定从包根导出 CDD API，这里做重导出
+|  `- binding/
+|     |- __init__.py                     # 绑定层导出整理
+|     |- _binding.cpp                    # 现有 UDBM / DBM / Federation 绑定，原则上不大改结构
+|     |- _ucdd.cpp                       # 新增：UCDD pybind11 薄绑定入口
+|     |- ucdd.py                         # 新增：UCDD 高层 Python 包装
+|     |- udbm.py                         # 现有高层 UDBM API，补充互转钩子和轻量联动入口
+|     `- visual.py                       # 现有 DBM/Federation 可视化，可复用其 zone 几何能力
+`- test/
+   `- binding/
+      |- test_api.py                     # 现有 UDBM 高层 API 测试，补纯 clock 互操作对照
+      |- test_ucdd_native.py             # 新增：_ucdd 薄绑定测试
+      |- test_ucdd_api.py                # 新增：ucdd.py 高层 API 测试
+      |- test_ucdd_interop.py            # 新增：UCDD 与 DBM/Federation 互操作测试
+      `- test_ucdd_visual.py             # 可选：后续若做 CDD 到 zone 可视化联动，则在此覆盖
+```
+
+如果后续 `_ucdd.cpp` 变得较大，还可以再拆，但首批不建议一开始就切太碎。
+
+更稳妥的方式是：
+
+- 先把 pybind11 绑定集中在 `pyudbm/binding/_ucdd.cpp`
+- 等对象面稳定后，再酌情拆出局部 helper 头文件
+
+### 二、各文件的职责边界
+
+#### 1. `pyudbm/binding/_ucdd.cpp`
+
+这是 UCDD 的 native 薄绑定入口。
+
+职责应严格限制为：
+
+- 包装 UCDD runtime 生命周期
+- 包装 `cdd` 值对象
+- 包装 `LevelInfo` / `extraction_result` / `bdd_arrays` 这类结果对象
+- 把裸指针和引用计数语义封装成 Python 可安全持有的对象
+- 做必要的参数转换和异常翻译
+
+不应在这里做的事情：
+
+- 大段 Python 友好接口语义
+- clock/bool 名称层映射策略
+- 高层 DSL
+- 与现有 `Context` / `Federation` 的 Python 级对象拼装逻辑
+
+也就是说，`_ucdd.cpp` 的目标是“正确、薄、可测”，而不是“用户体验完善”。
+
+#### 2. `pyudbm/binding/ucdd.py`
+
+这是 UCDD 的高层 Python 包装层。
+
+建议这里承接的职责包括：
+
+- `CDDContext`
+- `CDD`
+- `CDDExtraction`
+- `BDDTraceSet`
+- 对 pybinding 参数进行 Python 友好化
+- 与现有 `Context` / `DBM` / `Federation` 发生互转
+- 帮用户自动处理底层 `reduce()` 前置条件和校验逻辑
+
+简单说：
+
+- `_ucdd.cpp` 负责“能调”
+- `ucdd.py` 负责“好用”
+
+#### 3. `pyudbm/binding/udbm.py`
+
+这个文件不应被 UCDD 接入重写，但需要适度补互操作入口。
+
+建议只做轻量更新，例如：
+
+- `Federation.to_cdd(...)`
+- `DBM.to_cdd(...)`
+- `Context.to_cdd_context(...)`
+
+不要在这个阶段把 `udbm.py` 改造成“同时完整承载 UDBM 和 UCDD 全部高层 API”的超级文件。
+
+#### 4. `pyudbm/__init__.py`
+
+包根导出要谨慎。
+
+建议策略是：
+
+- 第一阶段不从包根直接导出所有 UCDD 对象
+- 先要求用户从 `pyudbm.binding.ucdd` 或后续明确的 `pyudbm.ucdd` 命名空间导入
+- 等接口稳定后，再考虑提升到包根公开面
+
+这样更利于控制 API 稳定性。
+
+#### 5. `CMakeLists.txt`
+
+这里需要修改以编译新的 pybind11 扩展。
+
+建议方向是：
+
+- 保留现有 `_binding` 扩展目标
+- 新增 `_ucdd` 扩展目标
+- 为 `_ucdd` 单独链接 UCDD 及其依赖链
+
+不建议的方式：
+
+- 把 UCDD 代码直接糅进现有 `_binding` 单一扩展里
+
+原因：
+
+- 编译和链接边界更难看清
+- 测试定位更难
+- 后续若需要单独控制加载顺序或初始化策略会更麻烦
+
+### 三、如果 `_ucdd.cpp` 后续需要继续拆分
+
+若后续对象面扩张，可考虑再拆成如下结构：
+
+```text
+pyudbm/binding/
+|- _ucdd.cpp
+|- _ucdd_runtime.hpp
+|- _ucdd_types.hpp
+|- _ucdd_convert.hpp
+`- _ucdd_ops.hpp
+```
+
+其中：
+
+- `_ucdd_runtime.hpp` 放 runtime 包装
+- `_ucdd_types.hpp` 放结果型轻量包装结构
+- `_ucdd_convert.hpp` 放 DBM/Federation 与 UCDD 的桥接 helper
+- `_ucdd_ops.hpp` 放 `cdd` 相关绑定注册函数
+
+但这是第二步优化，不是第一步硬要求。
+
+## 新 C++ 代码应该如何组织
+
+这部分把“新 cpp 代码写在哪里、怎么分层、怎么避免后续变成一团”说清楚。
+
+### 一、推荐分层
+
+`_ucdd.cpp` 内部建议也按三层组织：
+
+1. native 资源包装层
+2. pybind11 暴露层
+3. 轻量桥接 helper 层
+
+#### 1. native 资源包装层
+
+这层建议定义若干 C++ 小包装类，例如：
+
+- `NativeCDDRuntime`
+- `NativeCDD`
+- `NativeCDDLevelInfo`
+- `NativeCDDExtraction`
+- `NativeBDDTraceSet`
+
+职责是：
+
+- 承接 UCDD 的 C++ RAII 语义
+- 管理抽取结果里的 DBM 内存
+- 管理 `bdd_arrays` 的数组释放
+- 隔离 pybind11 与底层 UCDD 结构的直接耦合
+
+#### 2. pybind11 暴露层
+
+这层只负责：
+
+- `py::class_` 注册
+- 参数签名
+- 返回值策略
+- Python 名称设计
+
+不应在 lambda 里堆太多业务逻辑。
+
+#### 3. 轻量桥接 helper 层
+
+这里主要解决：
+
+- `raw_t*` 到 Python list / bytes / capsule 的安全转换
+- `bdd_arrays` 到 C++ 可拥有对象的转换
+- 从现有 DBM 快照中提取原始矩阵用于 `cdd_from_dbm`
+
+如果这部分逻辑过多，应该抽成静态 helper 函数，不要散落在 `.def(...)` 里。
+
+### 二、建议首批在 `_ucdd.cpp` 中直接实现的类
+
+#### `NativeCDDRuntime`
+
+建议提供：
+
+- `ensure_running()`
+- `init(maxsize=..., cache_size=..., stack_size=...)`
+- `done()`
+- `version()`
+- `is_running()`
+- `add_clocks(n)`
+- `add_bddvars(n)`
+- `get_level_count()`
+- `get_bdd_level_count()`
+- `get_level_info(level)`
+
+并考虑在内部记录“当前 runtime 配置是否已经初始化过”，以便 Python 层能更容易做错误提示。
+
+#### `NativeCDD`
+
+建议提供：
+
+- 静态工厂：`true`, `false`, `upper`, `lower`, `interval`, `bddvar`, `bddnvar`, `from_dbm`
+- 基础代数：`and_op`, `or_op`, `minus_op`, `xor_op`, `invert`
+- 图语义：`equiv`, `reduce`, `reduce2`, `nodecount`, `edgecount`, `is_bdd`
+- 时间语义：`remove_negative`, `delay`, `past`, `delay_invariant`, `predt`
+- transition 语义：`apply_reset`, `transition`, `transition_back`, `transition_back_past`
+- 转换抽取：`extract_dbm`, `extract_bdd`, `extract_bdd_and_dbm`, `bdd_to_array`
+- 输出：`to_dot`
+
+#### `NativeCDDExtraction`
+
+建议这是一个真正拥有资源的值对象，而不是简单视图：
+
+- 内部持有抽出的 DBM 缓冲区
+- 内部持有 `CDD_part` 和 `BDD_part`
+- Python 层访问 `dbm` 时再转成高层 `DBM` 或原始矩阵
+
+#### `NativeBDDTraceSet`
+
+建议内部就先把原始 `vars/values` 托管好，再向 Python 暴露：
+
+- `num_traces`
+- `num_bools`
+- `vars_matrix()`
+- `values_matrix()`
+
+之后再由 `ucdd.py` 转成高层 trace 表示。
+
+### 三、推荐不要在 `_ucdd.cpp` 里做的事情
+
+- 不要直接 import Python 的 `Context` / `Federation` 类并拼对象
+- 不要在 C++ 层直接做复杂 clock name 决策
+- 不要在 C++ 层做“是否应该自动 reduce”这类高层便利策略
+- 不要在 C++ 层尝试承接整套用户 DSL
+
+这些都属于 Python 层更合适。
+
+## Python 高层应该如何操作
+
+这里明确说明 Python 层对象之间的调用关系和职责边界。
+
+### 一、建议的高层对象关系
+
+推荐形成下面这个关系图：
+
+- `Context`
+  - 现有纯 clock 上下文
+- `CDDContext`
+  - 复用一个 `Context` 作为 clock 语义基底
+  - 在其上增加 bool 变量集合
+- `Federation`
+  - 现有纯 zone 联邦对象
+- `CDD`
+  - 新的统一符号图对象
+  - 可表示纯 zone，也可表示布尔+zone 混合图
+
+它们之间建议有如下互操作入口：
+
+- `Context.to_cdd_context(bools=..., name=None)`
+- `CDDContext.from_context(context, bools=..., name=None)`
+- `Federation.to_cdd()`
+- `DBM.to_cdd()`
+- `CDD.from_federation(fed)`
+- `CDD.to_federation(require_pure=True)`
+
+### 二、推荐的高层调用模式
+
+#### 1. 纯 clock 用户的升级路径
+
+已有用户可能先写出：
+
+```python
+from pyudbm import Context
+
+c = Context(["x", "y"], name="c")
+fed = (c.x <= 10) & (c.x - c.y < 3)
+```
+
+后续希望接入 UCDD 时，升级路径应该尽量平滑：
+
+```python
+from pyudbm.binding.ucdd import CDD
+
+cdd = CDD.from_federation(fed)
+future = cdd.delay()
+back = future.past()
+```
+
+也就是说，对纯 zone 用户来说，CDD 先应当表现为“更强的一层符号语义”，而不是一套彻底新的建模起点。
+
+#### 2. 需要布尔变量的用户路径
+
+这类用户才真正需要 `CDDContext`：
+
+```python
+from pyudbm import Context
+from pyudbm.binding.ucdd import CDDContext
+
+base = Context(["x", "y"], name="c")
+ctx = CDDContext.from_context(base, bools=["b1", "b2"])
+
+state = (ctx.x <= 10) & ctx.b1 & ~ctx.b2
+delayed = state.delay()
+```
+
+这里要求的是：
+
+- `ctx.x` 尽量保持和现有 `Clock` 直觉一致
+- `ctx.b1` 这种布尔变量能自然进入图代数
+
+#### 3. 需要 transition/reset 的用户路径
+
+高层接口应允许用户用 Python dict 或序列表达更新，而不是手搓多组并行数组：
+
+```python
+guard = (ctx.x <= 5) & ctx.b1
+target = state.transition(
+    guard,
+    clock_resets={ctx.x: 0},
+    bool_resets={ctx.b1: False, ctx.b2: True},
+)
+```
+
+反向 transition 也应采用类似格式：
+
+```python
+source = target.transition_back(
+    guard=guard,
+    update=(ctx.x == 0) & ~ctx.b1 & ctx.b2,
+    clock_resets=[ctx.x],
+    bool_resets=[ctx.b1, ctx.b2],
+)
+```
+
+### 三、`ucdd.py` 中建议提供的具体接口
+
+#### `CDDContext`
+
+建议至少支持：
+
+- `from_context(context, bools, name=None)`
+- `clock_names`
+- `bool_names`
+- `clocks`
+- `bools`
+- `__getitem__`
+- 属性式访问 clock/bool
+- `true()`
+- `false()`
+- `level_info(level)`
+- `all_level_info()`
+
+#### `CDD`
+
+建议至少支持：
+
+- `from_federation(fed)`
+- `from_dbm(dbm)`
+- `to_federation(require_pure=True)`
+- `extract_bdd_and_dbm()`
+- `bdd_traces()`
+- `delay()`
+- `past()`
+- `delay_invariant(inv)`
+- `predt(safe)`
+- `apply_reset(clock_resets=None, bool_resets=None)`
+- `transition(...)`
+- `transition_back(...)`
+- `transition_back_past(...)`
+- `to_dot(path=None, push_negate=False)`
+
+#### `CDDExtraction`
+
+建议至少支持：
+
+- `remainder`
+- `bdd_part`
+- `dbm`
+- `to_federation()`
+
+#### `BDDTraceSet`
+
+建议至少支持：
+
+- `__iter__`
+- `__len__`
+- `to_dicts(sparse=True)`
+- `to_rows()`
+
+## 最终产物期望的使用方式
+
+这里不是讨论内部实现，而是明确“做完以后，用户应该怎么用，什么算是一个令人满意的最终体验”。
+
+### 一、纯 zone 用户的最终体验
+
+目标是：现有 `pyudbm` 用户不需要重学整套系统。
+
+期望的使用方式应接近：
+
+```python
+from pyudbm import Context
+from pyudbm.binding.ucdd import CDD
+
+c = Context(["x", "y"], name="c")
+zone = (c.x <= 10) & (c.x - c.y < 3)
+
+cdd = CDD.from_federation(zone)
+assert cdd.to_federation() == zone
+
+future = cdd.delay()
+past = future.past()
+```
+
+这里体现的是：
+
+- `CDD` 可以自然承接现有 `Federation`
+- `Federation` 仍然是纯 zone 工作流的一等对象
+- `CDD` 是增强层，不是替换层
+
+### 二、混合 bool/clock 用户的最终体验
+
+目标是：用户能用一个上下文同时表达 clock 条件和布尔条件。
+
+期望用法应接近：
+
+```python
+from pyudbm import Context
+from pyudbm.binding.ucdd import CDDContext
+
+base = Context(["x", "y"], name="c")
+ctx = CDDContext.from_context(base, bools=["door_open", "alarm"])
+
+safe = (ctx.x <= 5) & ~ctx.alarm
+state = ((ctx.x <= 10) & ctx.door_open) | ((ctx.y <= 3) & ~ctx.door_open)
+
+bad_predecessor = state.predt(safe)
+```
+
+这里要求：
+
+- 布尔变量能像现有 clock DSL 一样自然使用
+- 混合语义对象不需要用户手动区分“这是 BDD 还是 CDD”
+
+### 三、抽取与分解的最终体验
+
+用户应能很容易地把混合图拆成“布尔条件 + zone 分量”：
+
+```python
+part = state.extract_bdd_and_dbm()
+
+print(part.bdd_part)
+print(part.dbm)
+
+rest = part.remainder
+```
+
+如果要进一步检查布尔轨迹，也应该非常直接：
+
+```python
+traces = part.bdd_part.bdd_traces()
+for row in traces.to_dicts():
+    print(row)
+```
+
+### 四、transition/reset 的最终体验
+
+这里的目标是让 API 贴近 timed-automata 建模直觉，而不是暴露底层并行数组接口：
+
+```python
+next_state = state.transition(
+    guard=(ctx.x <= 5) & ctx.door_open,
+    clock_resets={ctx.x: 0},
+    bool_resets={ctx.door_open: False, ctx.alarm: True},
+)
+
+prev_state = next_state.transition_back_past(
+    guard=(ctx.x <= 5) & ctx.door_open,
+    update=(ctx.x == 0) & ~ctx.door_open & ctx.alarm,
+    clock_resets=[ctx.x],
+    bool_resets=[ctx.door_open, ctx.alarm],
+)
+```
+
+### 五、图结构调试的最终体验
+
+用户应当可以在不理解底层 node 结构的情况下拿到图输出：
+
+```python
+state.to_dot("state.dot", push_negate=True)
+```
+
+如果后续还需要更细的诊断能力，再考虑加：
+
+- `state.levels()`
+- `state.nodecount()`
+- `state.edgecount()`
+
+但首批不应要求用户学习内部 node manager 细节。
+
+## 推荐的首批开发产物定义
+
+为了避免后续实现时“做了很多，但不清楚什么算完成”，建议把首批完成标准明确成一组可观察产物。
+
+### 一、native 产物
+
+以下内容完成后，说明 `_ucdd` 薄绑定达标：
+
+- 能导入 `_ucdd`
+- 能初始化 runtime
+- 能构造 `true/false`、clock interval、BDD 变量
+- 能做基础图运算
+- 能做 `delay/past/predt`
+- 能做 `extract_bdd_and_dbm`
+- 能做 `bdd_to_array`
+
+### 二、Python 高层产物
+
+以下内容完成后，说明 `ucdd.py` 高层包装达标：
+
+- `CDDContext.from_context(...)`
+- `CDD.from_federation(...)`
+- `CDD.to_federation(require_pure=True)`
+- `CDD.delay() / past() / predt()`
+- `CDD.transition(...)`
+- `CDD.extract_bdd_and_dbm()`
+- `CDD.bdd_traces()`
+
+### 三、互操作产物
+
+以下内容完成后，说明“UCDD 已与现有 DBM binding 联动成功”：
+
+- 抽取出的 DBM 复用现有 `DBM` 包装
+- 纯 clock 的 `CDD.from_federation(f).to_federation()` 往返保持语义一致
+- `delay/past/predt` 在纯 clock 场景下可与现有 Federation 行为做对照验证
+- 现有 `Context` 能平滑升级成 `CDDContext`
+
 ## 分阶段落地计划
 
 ### 阶段 0：设计与文档
