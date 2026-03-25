@@ -26,16 +26,22 @@ PROJECT_ROOT_MIXED="$(to_mixed_path "$PROJECT_ROOT_INPUT")"
 
 cd "$PROJECT_ROOT"
 
-choco install mingw -y
+choco install mingw winflexbison3 -y
 
 MINGW_BIN_WIN="$(python -m tools.windows_mingw --bin-dir)"
 MINGW_BIN="$(to_posix_path "$MINGW_BIN_WIN")"
+WIN_FLEX_WIN="$(where.exe win_flex | head -n1 | tr -d '\r')"
+WIN_BISON_WIN="$(where.exe win_bison | head -n1 | tr -d '\r')"
+FLEX_EXECUTABLE="$(to_posix_path "$WIN_FLEX_WIN")"
+BISON_EXECUTABLE="$(to_posix_path "$WIN_BISON_WIN")"
 
 export MINGW_BIN
 export PATH="$MINGW_BIN:$PATH"
 export CC="$MINGW_BIN/gcc.exe"
 export CXX="$MINGW_BIN/g++.exe"
 export CMAKE_GENERATOR=Ninja
+git config --global --add url."https://github.com/".insteadOf git@github.com:
+git config --global --add url."https://github.com/".insteadOf ssh://git@github.com/
 
 echo "PROJECT_ROOT=$PROJECT_ROOT"
 echo "MINGW_BIN=$MINGW_BIN"
@@ -79,3 +85,11 @@ cmake -S UCDD -B UCDD_build "${COMMON_FLAGS[@]}" \
 cmake --build UCDD_build --config Release
 ctest --test-dir UCDD_build --output-on-failure -C Release
 cmake --install UCDD_build --prefix bin_install --config Release
+
+cmake -S UTAP -B UTAP_build "${COMMON_FLAGS[@]}" \
+    -DCMAKE_PREFIX_PATH="$PROJECT_ROOT_MIXED/bin_install" \
+    -DFLEX_EXECUTABLE="$FLEX_EXECUTABLE" \
+    -DBISON_EXECUTABLE="$BISON_EXECUTABLE"
+cmake --build UTAP_build --config Release
+ctest --test-dir UTAP_build --output-on-failure -C Release
+cmake --install UTAP_build --prefix bin_install --config Release

@@ -22,7 +22,7 @@ before-test = [# Unittest for windows
     "python -m pip install -r {project}/requirements-test.txt",
 ]
 test-command = [
-    "rm -rf {project}/UUtils_build {project}/UDBM_build {project}/UCDD_build {project}/bin_install",
+    "rm -rf {project}/UUtils_build {project}/UDBM_build {project}/UCDD_build {project}/UTAP_build {project}/bin_install",
     "cp -rf {project}/test test",
     "cp {project}/pytest.ini pytest.ini",
     "pytest test -sv -m unittest --log-level=DEBUG",
@@ -40,7 +40,7 @@ before-test = [# Unittest for macos
     "python -m pip install -r {project}/requirements-test.txt",
 ]
 test-command = [
-    "rm -rf {project}/UUtils_build {project}/UDBM_build {project}/UCDD_build {project}/bin_install",
+    "rm -rf {project}/UUtils_build {project}/UDBM_build {project}/UCDD_build {project}/UTAP_build {project}/bin_install",
     "cp -rf {project}/test test",
     "cp {project}/pytest.ini pytest.ini",
     "pytest test -sv -m unittest --log-level=DEBUG",
@@ -59,7 +59,7 @@ before-test = [# Unittest for linux
     "python -m pip install -r {project}/requirements-test.txt",
 ]
 test-command = [
-    "rm -rf {project}/UUtils_build {project}/UDBM_build {project}/UCDD_build {project}/bin_install",
+    "rm -rf {project}/UUtils_build {project}/UDBM_build {project}/UCDD_build {project}/UTAP_build {project}/bin_install",
     "cp -rf {project}/test test",
     "cp {project}/pytest.ini pytest.ini",
     "pytest test -sv -m unittest --log-level=DEBUG",

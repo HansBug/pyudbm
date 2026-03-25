@@ -55,6 +55,14 @@ export CMAKE_GENERATOR=Ninja
 
 "$PROJECT_ROOT/macos_kill_cmake.sh"
 
+brew install flex bison doctest
+export PATH="$(brew --prefix flex)/bin:$(brew --prefix bison)/bin:$PATH"
+export FLEX_EXECUTABLE="$(brew --prefix flex)/bin/flex"
+export BISON_EXECUTABLE="$(brew --prefix bison)/bin/bison"
+DOCTEST_PREFIX="$(brew --prefix doctest)"
+git config --global --add url."https://github.com/".insteadOf git@github.com:
+git config --global --add url."https://github.com/".insteadOf ssh://git@github.com/
+
 python -m pip install -U ninja
 python -m pip install pybind11[global]
 python -m pip install -U "cmake<4"
@@ -118,3 +126,18 @@ cmake -G "$CMAKE_GENERATOR" -S UCDD -B UCDD_build \
 cmake --build UCDD_build --config Release
 ctest --test-dir UCDD_build --output-on-failure -C Release
 cmake --install UCDD_build --prefix bin_install --config Release
+
+cmake -G "$CMAKE_GENERATOR" -S UTAP -B UTAP_build \
+    -DCMAKE_C_COMPILER="$CC" \
+    -DCMAKE_CXX_COMPILER="$CXX" \
+    -DCMAKE_PREFIX_PATH="$BIN_INSTALL;$DOCTEST_PREFIX" \
+    -DCMAKE_OSX_ARCHITECTURES="$MACOS_ARCH" \
+    -DCMAKE_SYSTEM_PROCESSOR="$MACOS_ARCH" \
+    -DCMAKE_OSX_DEPLOYMENT_TARGET="$MACOS_DEPLOYMENT" \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_TRY_COMPILE_OSX_ARCHITECTURES="$MACOS_ARCH" \
+    -DFLEX_EXECUTABLE="$FLEX_EXECUTABLE" \
+    -DBISON_EXECUTABLE="$BISON_EXECUTABLE"
+cmake --build UTAP_build --config Release
+ctest --test-dir UTAP_build --output-on-failure -C Release
+cmake --install UTAP_build --prefix bin_install --config Release
