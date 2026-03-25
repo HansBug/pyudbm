@@ -113,6 +113,145 @@
 
 这对后续绑定设计非常重要，因为它说明 `utap` 并不是“只能先落一个固定 AST 再说”，理论上可以直接接自定义 IR builder。
 
+## 二补充、构建依赖边界与工具链注入确认
+
+这部分是对“如果未来要把 `UTAP` 接进 `pyudbm`，它到底会给现有构建链带来什么新依赖”的专项确认。
+
+### 1. `UTAP` 不依赖 `UUtils` / `UDBM` / `UCDD`
+
+这件事已经直接从 `UTAP` 当前仓库的 CMake 构建入口确认过。
+
+顶层 `CMakeLists.txt` 中可见的构建前置只有：
+
+- `find_package(FLEX 2.6.4 REQUIRED)`
+- `find_package(BISON 3.6.0 REQUIRED)`
+- `include(cmake/libxml2.cmake)`
+
+而 `src/CMakeLists.txt` 里：
+
+- 直接构建 `UTAP` 这个库
+- 链接的是 `LibXml2::LibXml2`
+- 没有 `find_package(UUtils)`
+- 没有 `find_package(UDBM)`
+- 没有 `find_package(UCDD)`
+
+因此当前可以明确判断：
+
+- `UTAP` 是官方语言前端层
+- 它不吃当前仓库已有的 `UUtils/UDBM/UCDD` 依赖链
+- 如果把它内置进来，新增的是 parser / XML toolchain 依赖，而不是 zone / CDD 内核依赖
+
+### 2. 真正新增的构建依赖是什么
+
+当前源码可确认的直接构建依赖是：
+
+- `flex`
+- `bison`
+- `libxml2`
+
+测试相关还会拉上：
+
+- `doctest`
+
+其中：
+
+- `libxml2` 在上游仓库里已经有 `FetchContent` fallback
+- `flex` / `bison` 是构建时工具，而不是普通链接库
+
+这意味着如果未来要把 `UTAP` 接进本仓库，真正需要提前设计的是：
+
+- 开发环境如何稳定拿到 parser generator
+- CI 与 wheel 流水线如何解决 `flex/bison`
+
+### 3. `FLEX_EXECUTABLE` / `BISON_EXECUTABLE` 是否真的可以注入
+
+这件事这次已经做了源码确认和最小实证，不再停留在推测层。
+
+#### A. `UTAP` 自己的 CMake 确实直接使用这两个变量
+
+在 `src/CMakeLists.txt` 中，生成 lexer/parser 的命令直接写成：
+
+- `COMMAND ${FLEX_EXECUTABLE} ...`
+- `COMMAND ${BISON_EXECUTABLE} ...`
+
+也就是说：
+
+- 对 `UTAP` 自身而言，只要这两个变量在配置阶段有值
+- 后续生成步骤就会直接使用它们
+
+它没有在仓库内部再包一层自己专用的变量名，也没有把这两个值重新改写掉。
+
+#### B. 当前 CMake 官方模块确实把这两个变量作为查找结果变量
+
+本地确认时使用的 CMake 版本是：
+
+- `3.31.10`
+
+对应的官方模块文件中可以直接看到：
+
+- `FindFLEX.cmake` 里有  
+  `find_program(FLEX_EXECUTABLE NAMES flex win-flex win_flex ...)`
+- `FindBISON.cmake` 里有  
+  `find_program(BISON_EXECUTABLE NAMES bison win-bison win_bison ...)`
+
+这说明两件事：
+
+1. 如果工具在 `PATH` 上，`find_package(FLEX)` / `find_package(BISON)` 会自动找到它们。
+2. 如果配置时显式传入：
+   - `-DFLEX_EXECUTABLE=...`
+   - `-DBISON_EXECUTABLE=...`
+
+   那么模块会采用这些值，而不是必须重新自行探测。
+
+#### C. 已做最小配置实验验证显式注入有效
+
+这次本地做了一个最小 CMake 工程，内容只有：
+
+- `find_package(FLEX 2.6.4 REQUIRED)`
+- `find_package(BISON 3.6.0 REQUIRED)`
+- 打印 `FLEX_EXECUTABLE`
+- 打印 `BISON_EXECUTABLE`
+
+实验结果分两步：
+
+1. 默认配置时，输出的是系统上的 `flex` / `bison` 路径。
+2. 显式传入自定义脚本路径：
+   - `-DFLEX_EXECUTABLE=<tmp>/bin/flex`
+   - `-DBISON_EXECUTABLE=<tmp>/bin/bison`
+
+   配置输出中对应变量就变成了注入路径。
+
+这说明：
+
+- 对当前 `UTAP + CMake 3.31` 组合来说
+- 通过 `FLEX_EXECUTABLE` / `BISON_EXECUTABLE` 注入具体程序路径是可行且生效的
+
+#### D. 这对 Windows 尤其重要
+
+因为 `FindFLEX` / `FindBISON` 当前明确支持的可执行名里就包含：
+
+- `win-flex` / `win_flex`
+- `win-bison` / `win_bison`
+
+因此未来如果在 Windows CI 中采用例如 `winflexbison3` 这一类工具包，理论上有两种路径：
+
+1. 让 `win_flex` / `win_bison` 出现在 `PATH`
+2. 更稳地在 CMake 配置时显式传：
+   - `-DFLEX_EXECUTABLE=...`
+   - `-DBISON_EXECUTABLE=...`
+
+从可控性和可维护性看，后者更适合本仓库现有 CI 与 wheel 脚本。
+
+### 4. 对 `pyudbm` 集成的直接含义
+
+目前能较明确地收敛成这几个判断：
+
+1. 把 `UTAP` 接进来，不会把仓库重新耦回 `UUtils/UDBM/UCDD` 上游依赖树。
+2. 新问题主要集中在 parser toolchain，而不是 symbolic core。
+3. `libxml2` 相对容易通过 `FetchContent` 或系统包解决。
+4. `flex/bison` 才是发布链路上更需要专门设计的部分。
+5. 至少从 CMake 接口层面，`FLEX_EXECUTABLE/BISON_EXECUTABLE` 已经足够构成一个稳定注入点。
+
 ## 三、XML 与文本语法并不是两套独立前端
 
 这是本轮调研里最值得记录的一个结论。
@@ -710,6 +849,7 @@ parse -> dump raw tree
 4. 模型导入与 query/property 编译应设计成两条 API。
 5. 不要把 `ParserBuilder` 原样暴露给 Python。
 6. 若需要跨语言复用，应优先设计稳定适配层，而不是直接暴露 `utap` C++ ABI。
+7. 若进入 CI / wheel 链路，应把 `flex/bison` 视为单独的发布工程问题处理，不要把它和 `UDBM/UCDD` 这类 native 库依赖混为一谈。
 
 ## 参考入口
 
