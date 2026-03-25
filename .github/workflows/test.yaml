@@ -81,13 +81,12 @@ jobs:
         shell: bash
         run: |
           brew install tree cloc wget curl make
-          brew install git ninja make flex bison libxml2 doctest
+          brew install git ninja make flex bison doctest
           echo "$(brew --prefix flex)/bin" >> "$GITHUB_PATH"
           echo "$(brew --prefix bison)/bin" >> "$GITHUB_PATH"
           echo "FLEX_EXECUTABLE=$(brew --prefix flex)/bin/flex" >> "$GITHUB_ENV"
           echo "BISON_EXECUTABLE=$(brew --prefix bison)/bin/bison" >> "$GITHUB_ENV"
-          echo "PKG_CONFIG_PATH=$(brew --prefix libxml2)/lib/pkgconfig:${PKG_CONFIG_PATH}" >> "$GITHUB_ENV"
-          echo "CMAKE_PREFIX_PATH=$(brew --prefix libxml2):$(brew --prefix doctest):${CMAKE_PREFIX_PATH}" >> "$GITHUB_ENV"
+          echo "CMAKE_PREFIX_PATH=$(brew --prefix doctest):${CMAKE_PREFIX_PATH}" >> "$GITHUB_ENV"
           echo "CC=$(xcrun --find clang)" >> "$GITHUB_ENV"
           echo "CXX=$(xcrun --find clang++)" >> "$GITHUB_ENV"
       - name: Set up python ${{ matrix.python-version }}
