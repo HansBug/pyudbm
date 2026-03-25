@@ -188,7 +188,7 @@ jobs:
             python: '3.14'
             architecture: 'arm64'
           - os: 'macos-15-intel'
-            python: '3.7'
+            python: '3.8'
             architecture: 'x86_64'
           - os: 'macos-15-intel'
             python: '3.11'

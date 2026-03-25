@@ -92,6 +92,8 @@ jobs:
             architecture: s390x
           - os: macos-15-intel
             architecture: armv7l
+          - os: macos-15-intel  # python3.7 doesn't have macOS 11 supported version
+            python: '3.7'
 
     steps:
       - name: Checkout code
