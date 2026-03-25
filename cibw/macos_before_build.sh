@@ -76,7 +76,7 @@ if [[ "$CIBW_ARCHS" = "arm64" ]]; then
 else
     echo "detected x86_64"
     MACOS_ARCH=x86_64
-    MACOS_DEPLOYMENT=10.9
+    MACOS_DEPLOYMENT=11.0
 fi
 
 echo "PROJECT_ROOT=$PROJECT_ROOT"
