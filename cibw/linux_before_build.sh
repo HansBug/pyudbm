@@ -88,6 +88,31 @@ build_autotools_tool() {
     )
 }
 
+build_flex() {
+    local version="2.6.4"
+    local source_dir="$TOOLS_SRC_DIR/flex-${version}"
+    local archive="$TOOLS_SRC_DIR/flex-${version}.tar.gz"
+
+    if [[ -x "$TOOLS_PREFIX/bin/flex" ]]; then
+        return 0
+    fi
+
+    download_file \
+        "https://github.com/westes/flex/releases/download/v${version}/flex-${version}.tar.gz" \
+        "$archive"
+    rm -rf "$source_dir"
+    mkdir -p "$TOOLS_SRC_DIR"
+    tar -xzf "$archive" -C "$TOOLS_SRC_DIR"
+
+    (
+        cd "$source_dir"
+        env ac_cv_func_reallocarray=no \
+            ./configure --prefix="$TOOLS_PREFIX" --disable-dependency-tracking
+        make -j"$BUILD_JOBS"
+        make install
+    )
+}
+
 PROJECT_ROOT="${1:-$PWD}"
 PROJECT_ROOT="$(resolve_path "$PROJECT_ROOT")"
 
@@ -108,17 +133,13 @@ if ! command -v m4 >/dev/null 2>&1; then
 fi
 
 build_autotools_tool \
-    flex \
-    2.6.4 \
-    https://github.com/westes/flex/releases/download/v2.6.4/flex-2.6.4.tar.gz \
-    --disable-dependency-tracking
-
-build_autotools_tool \
     bison \
     3.8.2 \
     https://ftp.gnu.org/gnu/bison/bison-3.8.2.tar.gz \
     --disable-dependency-tracking \
     --disable-nls
+
+build_flex
 
 export PATH="$TOOLS_PREFIX/bin:$PATH"
 git config --global --add url."https://github.com/".insteadOf git@github.com:
@@ -130,27 +151,30 @@ python -m pip install -U "cmake<4"
 BIN_INSTALL="$(resolve_path bin_install)"
 FLEX_EXECUTABLE="$(command -v flex)"
 BISON_EXECUTABLE="$(command -v bison)"
-COMMON_FLAGS=(
-    -G "$CMAKE_GENERATOR"
-    -DCMAKE_C_COMPILER="$CC"
-    -DCMAKE_CXX_COMPILER="$CXX"
-    -DCMAKE_BUILD_TYPE=Release
-)
 
-cmake -S UUtils -B UUtils_build "${COMMON_FLAGS[@]}"
+cmake -G "$CMAKE_GENERATOR" -S UUtils -B UUtils_build \
+    -DCMAKE_C_COMPILER="$CC" \
+    -DCMAKE_CXX_COMPILER="$CXX" \
+    -DCMAKE_BUILD_TYPE=Release
 cmake --build UUtils_build --config Release
 ctest --test-dir UUtils_build --output-on-failure -C Release
 cmake --install UUtils_build --prefix bin_install --config Release
 
 UUTILS_DIR="$(resolve_glob 'bin_install/lib*/cmake/UUtils')"
-cmake -S UDBM -B UDBM_build "${COMMON_FLAGS[@]}" \
+cmake -G "$CMAKE_GENERATOR" -S UDBM -B UDBM_build \
+    -DCMAKE_C_COMPILER="$CC" \
+    -DCMAKE_CXX_COMPILER="$CXX" \
+    -DCMAKE_BUILD_TYPE=Release \
     -DUUtils_DIR="$UUTILS_DIR"
 cmake --build UDBM_build --config Release
 ctest --test-dir UDBM_build --output-on-failure -C Release
 cmake --install UDBM_build --prefix bin_install --config Release
 
 UDBM_DIR="$(resolve_glob 'bin_install/lib*/cmake/UDBM')"
-cmake -S UCDD -B UCDD_build "${COMMON_FLAGS[@]}" \
+cmake -G "$CMAKE_GENERATOR" -S UCDD -B UCDD_build \
+    -DCMAKE_C_COMPILER="$CC" \
+    -DCMAKE_CXX_COMPILER="$CXX" \
+    -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_PREFIX_PATH="$BIN_INSTALL" \
     -DUUtils_DIR="$UUTILS_DIR" \
     -DUDBM_DIR="$UDBM_DIR" \
@@ -159,7 +183,10 @@ cmake --build UCDD_build --config Release
 ctest --test-dir UCDD_build --output-on-failure -C Release
 cmake --install UCDD_build --prefix bin_install --config Release
 
-cmake -S UTAP -B UTAP_build "${COMMON_FLAGS[@]}" \
+cmake -G "$CMAKE_GENERATOR" -S UTAP -B UTAP_build \
+    -DCMAKE_C_COMPILER="$CC" \
+    -DCMAKE_CXX_COMPILER="$CXX" \
+    -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_PREFIX_PATH="$BIN_INSTALL" \
     -DFLEX_EXECUTABLE="$FLEX_EXECUTABLE" \
     -DBISON_EXECUTABLE="$BISON_EXECUTABLE"
