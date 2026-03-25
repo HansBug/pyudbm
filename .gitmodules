@@ -7,3 +7,6 @@
 [submodule "UCDD"]
 	path = UCDD
 	url = https://github.com/UPPAALModelChecker/UCDD.git
+[submodule "UTAP"]
+	path = UTAP
+	url = https://github.com/UPPAALModelChecker/utap.git

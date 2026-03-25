@@ -2,6 +2,7 @@
 	uutils_build uutils_test uutils_install uutils_clean uutils uutils_notest \
 	udbm_build udbm_test udbm_install udbm_clean udbm udbm_notest \
 	ucdd_build ucdd_test ucdd_install ucdd_clean ucdd ucdd_notest \
+	utap_build utap_test utap_install utap_clean utap utap_notest \
 	bin_clean bin bin_notest docs docs_en docs_zh pdocs rst_auto sync_versions uversion
 
 PYTHON := $(shell which python)
@@ -62,6 +63,8 @@ UDBM_DIR         := ${PROJ_DIR}/UDBM
 UDBM_BUILD_DIR   := ${PROJ_DIR}/UDBM_build
 UCDD_DIR         := ${PROJ_DIR}/UCDD
 UCDD_BUILD_DIR   := ${PROJ_DIR}/UCDD_build
+UTAP_DIR         := ${PROJ_DIR}/UTAP
+UTAP_BUILD_DIR   := ${PROJ_DIR}/UTAP_build
 
 RANGE_DIR       ?= .
 RANGE_TEST_DIR  := ${TEST_DIR}/${RANGE_DIR}
@@ -85,6 +88,8 @@ CMAKE_E  ?= ${CMAKE_EP} ${CMAKE_EL} ${CMAKE_EI}
 
 CTEST_CFG ?= Release
 CMAKE_GENERATOR ?= Ninja
+FLEX_EXECUTABLE ?=
+BISON_EXECUTABLE ?=
 CMAKE_GNU_RUNTIME_ARGS :=
 ifeq ($(IS_WINDOWS),1)
 CMAKE_GNU_RUNTIME_ARGS += -DCMAKE_C_FLAGS="-static-libgcc"
@@ -139,10 +144,17 @@ help:
 	@echo "  make ucdd           - Build, test, and install UCDD"
 	@echo "  make ucdd_notest    - Build and install UCDD without running tests"
 	@echo ""
+	@echo "  make utap_build     - Configure and build UTAP"
+	@echo "  make utap_test      - Run UTAP tests"
+	@echo "  make utap_install   - Install UTAP into the local prefix"
+	@echo "  make utap_clean     - Remove the UTAP build directory"
+	@echo "  make utap           - Build, test, and install UTAP"
+	@echo "  make utap_notest    - Build and install UTAP without running tests"
+	@echo ""
 	@echo "Combined Dependency Pipeline:"
-	@echo "  make bin          - Build, test, and install UUtils, UDBM, and UCDD"
-	@echo "  make bin_notest   - Build and install UUtils, UDBM, and UCDD without tests"
-	@echo "  make bin_clean    - Remove UUtils, UDBM, UCDD, and local prefix build outputs"
+	@echo "  make bin          - Build, test, and install UUtils, UDBM, UCDD, and UTAP"
+	@echo "  make bin_notest   - Build and install UUtils, UDBM, UCDD, and UTAP without tests"
+	@echo "  make bin_clean    - Remove UUtils, UDBM, UCDD, UTAP, and local prefix build outputs"
 	@echo ""
 	@echo "Documentation:"
 	@echo "  make docs         - Build documentation (auto-detects language)"
@@ -155,7 +167,9 @@ help:
 	@echo "  make info         - Print current path and CMake environment values"
 	@echo ""
 	@echo "Common Variables:"
-	@echo "  BINSTALL_DIR=<dir> - Local install prefix for UUtils/UDBM/UCDD"
+	@echo "  BINSTALL_DIR=<dir> - Local install prefix for UUtils/UDBM/UCDD/UTAP"
+	@echo "  FLEX_EXECUTABLE    - Override the flex executable used by UTAP"
+	@echo "  BISON_EXECUTABLE   - Override the bison executable used by UTAP"
 	@echo "  CMAKE_GENERATOR    - CMake generator (default: Ninja)"
 	@echo "  CTEST_CFG=<cfg>    - CMake/CTest build configuration (default: Release)"
 	@echo "  RANGE_DIR=<dir>    - Limit pytest coverage and test scope (default: .)"
@@ -232,10 +246,24 @@ ucdd_clean:
 ucdd: udbm ucdd_build ucdd_test ucdd_install
 ucdd_notest: udbm_notest ucdd_build ucdd_install
 
-bin_clean: uutils_clean udbm_clean ucdd_clean
+utap_build:
+	cmake -S ${UTAP_DIR} -B "${UTAP_BUILD_DIR}" ${CMAKE_TOOLCHAIN_ARGS} $(if ${CTEST_CFG},-DCMAKE_BUILD_TYPE=${CTEST_CFG},) \
+		$(if ${FLEX_EXECUTABLE},-DFLEX_EXECUTABLE="${FLEX_EXECUTABLE}",) \
+		$(if ${BISON_EXECUTABLE},-DBISON_EXECUTABLE="${BISON_EXECUTABLE}",)
+	cmake --build "${UTAP_BUILD_DIR}" $(if ${CTEST_CFG},--config ${CTEST_CFG},)
+utap_test:
+	${CTEST_ENV} ctest --test-dir "${UTAP_BUILD_DIR}" --output-on-failure $(if ${CTEST_CFG},-C ${CTEST_CFG},)
+utap_install:
+	cmake --install "${UTAP_BUILD_DIR}" --prefix "${BINSTALL_DIR}" $(if ${CTEST_CFG},--config ${CTEST_CFG},)
+utap_clean:
+	rm -rf "${UTAP_BUILD_DIR}"
+utap: utap_build utap_test utap_install
+utap_notest: utap_build utap_install
+
+bin_clean: uutils_clean udbm_clean ucdd_clean utap_clean
 	rm -rf "${BINSTALL_DIR}"
-bin: uutils udbm ucdd
-bin_notest: uutils_notest udbm_notest ucdd_notest
+bin: uutils udbm ucdd utap
+bin_notest: uutils_notest udbm_notest ucdd_notest utap_notest
 
 docs: bin_notest build
 	$(MAKE) -C "${DOC_DIR}" build
