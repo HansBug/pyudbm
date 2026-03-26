@@ -1,3 +1,5 @@
+import json
+import re
 from pathlib import Path
 
 
@@ -144,6 +146,45 @@ MINIMAL_XTA_RELATIVE_PATH = "test/testfile/utap/minimal_ok.xta"
 
 MINIMAL_XML_PATH = REPO_ROOT / MINIMAL_XML_RELATIVE_PATH
 MINIMAL_XTA_PATH = REPO_ROOT / MINIMAL_XTA_RELATIVE_PATH
+UTAP_SIMPLE_SYSTEM_PATH = REPO_ROOT / "UTAP/test/models/simpleSystem.xml"
+
+
+def _load_catalog():
+    return json.loads(OFFICIAL_CATALOG_PATH.read_text(encoding="utf-8"))
+
+
+def _extract_newxta_flag(message: str):
+    match = re.search(r"newxta=(true|false)", message)
+    return None if match is None else (match.group(1) == "true")
+
+
+_CATALOG = _load_catalog()
+OFFICIAL_XML_MODEL_RELATIVE_PATHS = tuple(
+    item["path"] for item in _CATALOG["files"] if item["parse_kind"] == "XML_MODEL_FILE"
+)
+OFFICIAL_TEXTUAL_MODEL_RELATIVE_PATHS = tuple(
+    item["path"] for item in _CATALOG["files"] if item["parse_kind"] == "TEXTUAL_MODEL_FILE"
+)
+OFFICIAL_XML_MODEL_CASES = tuple(
+    (
+        OFFICIAL_CATALOG_PATH.parent / item["path"],
+        _extract_newxta_flag(item["message"]),
+    )
+    for item in _CATALOG["files"]
+    if item["parse_kind"] == "XML_MODEL_FILE"
+)
+OFFICIAL_TEXTUAL_MODEL_CASES = tuple(
+    (
+        OFFICIAL_CATALOG_PATH.parent / item["path"],
+        _extract_newxta_flag(item["message"]),
+    )
+    for item in _CATALOG["files"]
+    if item["parse_kind"] == "TEXTUAL_MODEL_FILE"
+)
+OFFICIAL_XML_MODEL_PATHS = tuple(OFFICIAL_CATALOG_PATH.parent / item for item in OFFICIAL_XML_MODEL_RELATIVE_PATHS)
+OFFICIAL_TEXTUAL_MODEL_PATHS = tuple(
+    OFFICIAL_CATALOG_PATH.parent / item for item in OFFICIAL_TEXTUAL_MODEL_RELATIVE_PATHS
+)
 
 INVALID_XML_MISSING_REF = """<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
@@ -167,4 +208,23 @@ state S;
 init S;
 }
 system Missing;
+"""
+
+DUPLICATE_LOCATION_ID_WARNING_XML = """<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+  <declaration>clock x;</declaration>
+  <template>
+    <name x="0" y="0">P</name>
+    <location id="dup" x="0" y="0">
+      <name x="0" y="0">L0</name>
+    </location>
+    <location id="dup" x="120" y="0">
+      <name x="120" y="0">L1</name>
+    </location>
+    <init ref="dup"/>
+  </template>
+  <system>P1 = P();
+system P1;</system>
+</nta>
 """
