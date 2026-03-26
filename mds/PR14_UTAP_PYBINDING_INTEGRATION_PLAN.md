@@ -939,6 +939,90 @@ Windows 上 `UTAP` 默认更偏静态构建，这可能减轻一部分 runtime D
 
 任何一个阶段结束时，都不应留下“核心功能已写但没有测试”的状态；每个阶段对应的测试至少要覆盖该阶段新引入的 public API、核心字段和失败路径。
 
+### 0. 进度回填要求
+
+这份 `mds/PR14_UTAP_PYBINDING_INTEGRATION_PLAN.md` 不只是前期方案文档，也必须作为实施过程中的持续回填文档使用。
+
+需要明确要求：
+
+* [ ] 每完成一个 phase，必须把对应进度落回到这份 md。
+* [ ] 每次出现“计划与实际实现发生偏差”的情况，必须把偏差和原因落回到这份 md。
+* [ ] 每次新增 public API、测试文件、fixture、catalog/字段清单时，必须把对应路径落回到这份 md。
+* [ ] 每次完成阶段验收时，必须把实际跑过的验证命令和结果摘要落回到这份 md。
+* [ ] 不允许只在聊天记录、commit message 或 PR review 里记录阶段进度，而不更新这份 md。
+* [ ] 后续 phase 的 checklist 打勾状态，应以这份 md 为准，不允许代码与文档长期失配。
+
+### 1. 当前进度回填
+
+以下进度回填到 `2026-03-26` 为止。
+
+#### 已完成：Phase 0
+
+当前已经落地的内容：
+
+* [x] `_utap` 与后续 `pyudbm.binding.utap` 的分层边界已明确，当前 Phase 1 只引入 `_utap` native surface。
+* [x] `XML` / `XTA` / `TA` / `query file` 的输入分层已经在计划和测试辅助数据中明确。
+* [x] 字段覆盖清单初稿已经落到 `test/binding/utap_phase0_data.py`。
+* [x] 样本测试分层清单已经落到 `test/binding/utap_phase0_data.py`。
+* [x] 官方样本集 `test/testfile/official/catalog.json` 已被纳入 Phase 0 的结构一致性校验入口。
+
+已经新增的对应文件：
+
+* [x] `test/binding/utap_phase0_data.py`
+* [x] `test/binding/test_utap_phase0.py`
+* [x] `test/testfile/utap/minimal_ok.xml`
+* [x] `test/testfile/utap/minimal_ok.xta`
+
+本阶段已经实际完成的验证：
+
+* [x] 对 `official/catalog.json` 的 `path` 可达性做了直接断言。
+* [x] 对 `official/catalog.json` 的 `status == "ok"` 做了直接断言。
+* [x] 对所有 query 条目的 `context_path` 有效性做了直接断言。
+* [x] 对字段覆盖清单和样本分层清单建立了可 parameterize 的测试辅助数据。
+
+#### 已完成：Phase 1
+
+当前已经落地的内容：
+
+* [x] 根 `CMakeLists.txt` 已增加 `find_package(UTAP CONFIG REQUIRED)`。
+* [x] `_utap` pybind11 模块已经新增，文件为 `pyudbm/binding/_utap.cpp`。
+* [x] `setup.py` / `CMakeExtension` 已纳入 `_utap`。
+* [x] `_utap` 已暴露最小 native 入口：`load_xml`、`loads_xml`、`load_xta`、`loads_xta`、`builtin_declarations`。
+* [x] `_utap` 已引入 `_NativeDocument` 作为最小 native 返回对象。
+* [x] native 异常边界已明确：缺文件映射到 `FileNotFoundError`，解析失败映射到 `_utap.ParseError`。
+* [x] 本地 runtime 依赖路径已打通，`_utap` 构建后会补齐 `libUTAP` / `libxml2` 的运行时复制。
+
+已经新增的对应文件：
+
+* [x] `pyudbm/binding/_utap.cpp`
+* [x] `test/binding/test_utap_native.py`
+
+本阶段已经实际完成的验证：
+
+* [x] `_utap` 可被 import。
+* [x] 最小 XML fixture 可 parse。
+* [x] 最小文本模型 fixture 可 parse。
+* [x] 失败输入会抛出预期异常。
+* [x] 对返回对象类型做了精确断言。
+* [x] 对异常类型做了精确断言。
+* [x] 对异常消息做了精确断言。
+* [x] `_utap` native 测试被放在专门文件 `test_utap_native.py` 中。
+* [x] 其他测试文件未导入 `_utap`。
+
+已实际跑过的验证命令与结果摘要：
+
+* [x] `make build`
+* [x] `python -m pytest test/binding/test_utap_phase0.py test/binding/test_utap_native.py -m unittest -q`
+* [x] `make clean_x`
+* [x] `python -m pytest test/binding/test_utap_native.py -m unittest -q`
+* [x] `python -m pytest test/binding -m unittest -q`
+
+对应结果摘要：
+
+* [x] `test_utap_phase0.py + test_utap_native.py`：`24 passed`
+* [x] `make clean_x` 后仅跑 `test_utap_native.py`：`7 passed`
+* [x] `test/binding` 全量 unittest：`141 passed`
+
 ### Phase 0：方案冻结与字段盘点
 
 目标：
@@ -946,20 +1030,23 @@ Windows 上 `UTAP` 默认更偏静态构建，这可能减轻一部分 runtime D
 
 checklist：
 
-* [ ] 明确 `_utap` 与 `pyudbm.binding.utap` 的模块职责。
-* [ ] 明确 `XML` / `XTA` / `TA` / `query file` 四条输入路径的 API 归属。
-* [ ] 明确 `load_query` / `loads_query` / `parse_query` 的职责差异。
-* [ ] 明确 `builder="auto"` 的行为边界。
-* [ ] 建立字段覆盖清单初稿，至少覆盖 `Document`、`Template`、`Process`、`Location`、`Edge`、`Query`、`ParsedQuery`、`expression_t`、`type_t`、`symbol_t`、`position_t`。
-* [ ] 建立样本测试分层清单，至少覆盖官方保留样本集、`UTAP/test/models`、手工 `.xta` fixture、极小 synthetic fixture。
+* [x] 明确 `_utap` 与 `pyudbm.binding.utap` 的模块职责。
+* [x] 明确 `XML` / `XTA` / `TA` / `query file` 四条输入路径的 API 归属。
+* [x] 明确 `load_query` / `loads_query` / `parse_query` 的职责差异，并确认其实现落点属于 Phase 4。
+* [x] 明确 `builder="auto"` 的行为边界，并确认其实现落点属于 Phase 4。
+* [x] 建立字段覆盖清单初稿，至少覆盖 `Document`、`Template`、`Process`、`Location`、`Edge`、`Query`、`ParsedQuery`、`expression_t`、`type_t`、`symbol_t`、`position_t`。
+* [x] 建立样本测试分层清单，至少覆盖官方保留样本集、`UTAP/test/models`、手工 `.xta` fixture、极小 synthetic fixture。
 
 阶段测试要求：
 
-* [ ] 新增一个纯 Python 侧的计划一致性测试模块或测试辅助数据模块。
-* [ ] 对 `official/catalog.json` 做结构校验，并直接断言所有 `path` 可达。
-* [ ] 对 `official/catalog.json` 做结构校验，并直接断言所有 `status` 为 `ok`。
-* [ ] 对 `official/catalog.json` 做结构校验，并直接断言所有 query 条目具有有效 `context_path`。
-* [ ] 对字段覆盖清单建立测试占位映射，保证后续阶段能直接 parameterize 接入。
+* [x] 新增一个纯 Python 侧的计划一致性测试模块或测试辅助数据模块。
+* [x] 对 `official/catalog.json` 做结构校验，并直接断言所有 `path` 可达。
+* [x] 对 `official/catalog.json` 做结构校验，并直接断言所有 `status` 为 `ok`。
+* [x] 对 `official/catalog.json` 做结构校验，并直接断言所有 query 条目具有有效 `context_path`。
+* [x] 对字段覆盖清单建立测试占位映射，保证后续阶段能直接 parameterize 接入。
+
+当前状态：
+Phase 0 已完成；其中 `load_query` / `loads_query` / `parse_query` 与 `builder="auto"` 已在计划层明确边界，并已指定由 Phase 4 负责具体实现。
 
 ### Phase 1：native 模块接入与最小可导入能力
 
@@ -968,25 +1055,28 @@ checklist：
 
 checklist：
 
-* [ ] 根 `CMakeLists.txt` 增加 `find_package(UTAP CONFIG REQUIRED)`。
-* [ ] 新增 `_utap` pybind11 模块 target。
-* [ ] `setup.py` / `CMakeExtension` 纳入 `_utap`。
-* [ ] 确认 `_utap` 的动态链接路径在本地可用。
-* [ ] 暴露最小 native 入口：`load_xml`、`loads_xml`、`load_xta`、`loads_xta`、`builtin_declarations`。
-* [ ] 明确 native 异常到 Python 异常的映射。
+* [x] 根 `CMakeLists.txt` 增加 `find_package(UTAP CONFIG REQUIRED)`。
+* [x] 新增 `_utap` pybind11 模块 target。
+* [x] `setup.py` / `CMakeExtension` 纳入 `_utap`。
+* [x] 确认 `_utap` 的动态链接路径在本地可用。
+* [x] 暴露最小 native 入口：`load_xml`、`loads_xml`、`load_xta`、`loads_xta`、`builtin_declarations`。
+* [x] 明确 native 异常到 Python 异常的映射。
 
 阶段测试要求：
 
-* [ ] `_utap` 可被 `import`。
-* [ ] 最小 XML fixture 可 parse。
-* [ ] 最小文本模型 fixture 可 parse。
-* [ ] 失败输入会抛出预期异常。
-* [ ] 对返回对象类型做精确断言。
-* [ ] 对异常类型做精确断言。
-* [ ] 对异常归一化消息或错误码做精确断言。
-* [ ] `_utap` 相关测试集中放在专门文件中，例如 `test_utap_native.py`。
-* [ ] 除专门的 native 测试文件外，其他测试文件不得导入 `_utap`。
-* [ ] `test_utap_native.py` 仅测试 `_utap` 的公开接口，不依赖其内部细节。
+* [x] `_utap` 可被 `import`。
+* [x] 最小 XML fixture 可 parse。
+* [x] 最小文本模型 fixture 可 parse。
+* [x] 失败输入会抛出预期异常。
+* [x] 对返回对象类型做精确断言。
+* [x] 对异常类型做精确断言。
+* [x] 对异常归一化消息或错误码做精确断言。
+* [x] `_utap` 相关测试集中放在专门文件中，例如 `test_utap_native.py`。
+* [x] 除专门的 native 测试文件外，其他测试文件不得导入 `_utap`。
+* [x] `test_utap_native.py` 仅测试 `_utap` 的公开接口，不依赖其内部细节。
+
+当前状态：
+Phase 1 已完成；并额外验证了 `make clean_x` 之后 `_utap` native 测试仍然可以通过，用于覆盖 CI 中删除 `bin_install` 后的运行时场景。
 
 ### Phase 2：`ModelDocument` 与模型结构只读包装
 

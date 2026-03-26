@@ -5,6 +5,7 @@ import re
 import shutil
 import subprocess
 import sys
+from glob import glob
 from codecs import open
 
 from setuptools import Extension
@@ -110,6 +111,36 @@ def _copy_windows_runtime_dlls(extdir: str, compiler_path: str):
         shutil.copy2(src, dst)
 
 
+def _copy_utap_runtime_libraries(extdir: str):
+    binstall_dir = os.environ.get('BINSTALL_DIR') or os.path.join(here, 'bin_install')
+    search_specs = []
+    if platform.system() == 'Windows':
+        search_specs.extend([
+            (os.path.join(binstall_dir, 'bin'), ('UTAP*.dll', 'libxml2*.dll')),
+            (os.path.join(binstall_dir, 'lib'), ('UTAP*.dll', 'libxml2*.dll')),
+        ])
+    elif platform.system() == 'Darwin':
+        search_specs.append((os.path.join(binstall_dir, 'lib'), ('libUTAP*.dylib', 'libxml2*.dylib')))
+    else:
+        search_specs.append((os.path.join(binstall_dir, 'lib'), ('libUTAP.so', 'libUTAP.so.*', 'libxml2.so', 'libxml2.so.*')))
+
+    copied = set()
+    for base_dir, patterns in search_specs:
+        if not os.path.isdir(base_dir):
+            continue
+        for pattern in patterns:
+            for src in sorted(glob(os.path.join(base_dir, pattern))):
+                if not os.path.isfile(src):
+                    continue
+                dst = os.path.join(extdir, os.path.basename(src))
+                if os.path.abspath(src) == os.path.abspath(dst):
+                    continue
+                if dst in copied:
+                    continue
+                shutil.copy2(src, dst)
+                copied.add(dst)
+
+
 class CMakeExtension(Extension):
     def __init__(self, name, sourcedir=''):
         Extension.__init__(self, name, sources=[])
@@ -181,6 +212,8 @@ class CMakeBuild(build_ext):
         logging.info(f'Build with {b2_cmds!r} ...')
         subprocess.check_call(b2_cmds, cwd=self.build_temp, env=env)
         _copy_windows_runtime_dlls(extdir, cc)
+        if ext.name == 'pyudbm.binding._utap':
+            _copy_utap_runtime_libraries(extdir)
 
 
 setup(
@@ -213,11 +246,12 @@ setup(
     ext_modules=[
         CMakeExtension('pyudbm.binding._udbm'),
         CMakeExtension('pyudbm.binding._ucdd'),
+        CMakeExtension('pyudbm.binding._utap'),
     ],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
     package_data={
-        'pyudbm.binding': ['*.dll'],
+        'pyudbm.binding': ['*.dll', '*.so', '*.so.*', '*.dylib'],
     },
     install_requires=requirements,
     extras_require=group_requirements,
