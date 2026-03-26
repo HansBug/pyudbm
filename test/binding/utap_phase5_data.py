@@ -219,10 +219,10 @@ PHASE5_MAPPED_FIELD_NOTES = {
 
 PHASE5_UNMAPPED_FIELD_REASONS = {
     "Document": {
-        "globals": "Exposed via global_declarations() instead of re-exporting raw declarations_t as a first-phase value object.",
-        "before_update": "Exposed via before_update_text() instead of re-exporting raw expression_t on the first-phase document snapshot.",
-        "after_update": "Exposed via after_update_text() instead of re-exporting raw expression_t on the first-phase document snapshot.",
-        "chan_priorities": "Exposed via channel_priority_texts() instead of re-exporting raw chan_priority_t objects.",
+        "globals": "Exposed via the global_declarations property instead of re-exporting raw declarations_t as a first-phase value object.",
+        "before_update": "Exposed via the before_update_text property instead of re-exporting raw expression_t on the first-phase document snapshot.",
+        "after_update": "Exposed via the after_update_text property instead of re-exporting raw expression_t on the first-phase document snapshot.",
+        "chan_priorities": "Exposed via the channel_priority_texts property instead of re-exporting raw chan_priority_t objects.",
         "strings": "Internal interned-string table is not a stable user-facing semantic object.",
     },
     "Template": {

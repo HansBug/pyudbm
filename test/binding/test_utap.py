@@ -96,6 +96,21 @@ class TestUtapApi:
         assert binding_module.UNMAPPED_FIELDS is UNMAPPED_FIELDS
         assert binding_module.UNMAPPED_FIELD_REASONS is UNMAPPED_FIELD_REASONS
 
+    def test_model_document_flat_read_only_helpers_are_properties(self):
+        assert type(ModelDocument.__dict__["global_declarations"]) is property
+        assert type(ModelDocument.__dict__["before_update_text"]) is property
+        assert type(ModelDocument.__dict__["after_update_text"]) is property
+        assert type(ModelDocument.__dict__["channel_priority_texts"]) is property
+        assert type(ModelDocument.__dict__["global_clock_names"]) is property
+        assert type(ModelDocument.__dict__["template_clock_names"]) is property
+
+    def test_model_document_derived_helpers_remain_methods(self):
+        assert type(ModelDocument.__dict__["dumps"]) is not property
+        assert type(ModelDocument.__dict__["to_xml"]) is not property
+        assert type(ModelDocument.__dict__["feature_summary"]) is not property
+        assert type(ModelDocument.__dict__["capability_summary"]) is not property
+        assert type(ModelDocument.__dict__["pretty"]) is not property
+
     @pytest.mark.parametrize(
         ("model_path", "newxta"),
         OFFICIAL_XML_MODEL_CASES,

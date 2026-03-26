@@ -251,10 +251,10 @@ UNMAPPED_FIELDS = {
 #: directly in the high-level Python API.
 UNMAPPED_FIELD_REASONS = {
     "Document": {
-        "globals": "Exposed via global_declarations() instead of re-exporting raw declarations_t as a first-phase value object.",
-        "before_update": "Exposed via before_update_text() instead of re-exporting raw expression_t on the first-phase document snapshot.",
-        "after_update": "Exposed via after_update_text() instead of re-exporting raw expression_t on the first-phase document snapshot.",
-        "chan_priorities": "Exposed via channel_priority_texts() instead of re-exporting raw chan_priority_t objects.",
+        "globals": "Exposed via the global_declarations property instead of re-exporting raw declarations_t as a first-phase value object.",
+        "before_update": "Exposed via the before_update_text property instead of re-exporting raw expression_t on the first-phase document snapshot.",
+        "after_update": "Exposed via the after_update_text property instead of re-exporting raw expression_t on the first-phase document snapshot.",
+        "chan_priorities": "Exposed via the channel_priority_texts property instead of re-exporting raw chan_priority_t objects.",
         "strings": "Internal interned-string table is not a stable user-facing semantic object.",
     },
     "Template": {
@@ -329,6 +329,13 @@ class Position:
     :type end_column: int or None
     :param path: Source path associated with the position, if available.
     :type path: str or None
+
+    Example::
+
+        >>> from pyudbm.binding.utap import Position
+        >>> position = Position(0, 4, 1, 1, 1, 5, "model.xta")
+        >>> position.line
+        1
     """
 
     start: int
@@ -349,6 +356,12 @@ class Option:
     :type name: str
     :param value: Option value as text.
     :type value: str
+
+    Example::
+
+        >>> from pyudbm.binding.utap import Option
+        >>> Option("trace", "short").name
+        'trace'
     """
 
     name: str
@@ -366,6 +379,12 @@ class Resource:
     :type value: str
     :param unit: Optional unit associated with the value.
     :type unit: str or None
+
+    Example::
+
+        >>> from pyudbm.binding.utap import Resource
+        >>> Resource("time", "100", "ms").unit
+        'ms'
     """
 
     name: str
@@ -390,6 +409,13 @@ class Expectation:
     :type value: str
     :param resources: Optional resource constraints or measurements.
     :type resources: Tuple[Resource, ...]
+
+    Example::
+
+        >>> from pyudbm.binding.utap import Expectation, Resource
+        >>> expectation = Expectation("Probability", "True", "0.95", (Resource("time", "100", "ms"),))
+        >>> expectation.value
+        '0.95'
     """
 
     value_type: str
@@ -472,6 +498,48 @@ class TypeInfo:
     :type is_double: bool
     :param is_string: Whether the type denotes a string.
     :type is_string: bool
+
+    Example::
+
+        >>> from pyudbm.binding.utap import Position, TypeInfo
+        >>> position = Position(0, 0, None, None, None, None, None)
+        >>> type_info = TypeInfo(
+        ...     kind=0,
+        ...     position=position,
+        ...     size=1,
+        ...     text="int",
+        ...     declaration="int",
+        ...     is_unknown=False,
+        ...     is_range=False,
+        ...     is_integer=True,
+        ...     is_boolean=False,
+        ...     is_function=False,
+        ...     is_function_external=False,
+        ...     is_clock=False,
+        ...     is_process=False,
+        ...     is_process_set=False,
+        ...     is_location=False,
+        ...     is_location_expr=False,
+        ...     is_instance_line=False,
+        ...     is_branchpoint=False,
+        ...     is_channel=False,
+        ...     is_record=False,
+        ...     is_array=False,
+        ...     is_scalar=False,
+        ...     is_diff=False,
+        ...     is_void=False,
+        ...     is_cost=False,
+        ...     is_integral=True,
+        ...     is_invariant=False,
+        ...     is_probability=False,
+        ...     is_guard=False,
+        ...     is_constraint=False,
+        ...     is_formula=False,
+        ...     is_double=False,
+        ...     is_string=False,
+        ... )
+        >>> type_info.is_integer
+        True
     """
 
     kind: int
@@ -520,6 +588,48 @@ class Symbol:
     :type type: TypeInfo
     :param position: Source position of the symbol declaration or reference.
     :type position: Position
+
+    Example::
+
+        >>> from pyudbm.binding.utap import Position, Symbol, TypeInfo
+        >>> position = Position(0, 0, None, None, None, None, None)
+        >>> type_info = TypeInfo(
+        ...     0,
+        ...     position,
+        ...     1,
+        ...     "clock",
+        ...     "clock",
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     True,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ... )
+        >>> Symbol("x", type_info, position).name
+        'x'
     """
 
     name: str
@@ -549,6 +659,49 @@ class Expression:
     :type children: Tuple[Expression, ...]
     :param is_empty: Whether the expression is structurally empty.
     :type is_empty: bool
+
+    Example::
+
+        >>> from pyudbm.binding.utap import Expression, Position, TypeInfo
+        >>> position = Position(0, 0, None, None, None, None, None)
+        >>> type_info = TypeInfo(
+        ...     0,
+        ...     position,
+        ...     1,
+        ...     "int",
+        ...     "int",
+        ...     False,
+        ...     False,
+        ...     True,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     True,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ...     False,
+        ... )
+        >>> expression = Expression("0", 0, position, type_info, 0, (), False)
+        >>> expression.text
+        '0'
     """
 
     text: str
@@ -581,6 +734,14 @@ class Diagnostic:
     :type end_column: int or None
     :param path: Source path associated with the diagnostic, if available.
     :type path: str or None
+
+    Example::
+
+        >>> from pyudbm.binding.utap import Diagnostic, Position
+        >>> position = Position(0, 5, 1, 1, 1, 6, "model.xml")
+        >>> diagnostic = Diagnostic("error", "context", position, 1, 1, 1, 6, "model.xml")
+        >>> diagnostic.message
+        'error'
     """
 
     message: str
@@ -631,6 +792,13 @@ class FeatureFlags:
     :param supports_concrete: Whether the document is suitable for concrete
         simulation.
     :type supports_concrete: bool
+
+    Example::
+
+        >>> from pyudbm.binding.utap import FeatureFlags
+        >>> flags = FeatureFlags(False, False, False, False, False, False, False, True, 0, True, True, True)
+        >>> flags.supports_symbolic
+        True
     """
 
     has_priority_declaration: bool
@@ -660,6 +828,22 @@ class Branchpoint:
     :type position: Position
     :param symbol: Symbol information for the branchpoint.
     :type symbol: Symbol
+
+    Example::
+
+        >>> from pyudbm.binding.utap import Branchpoint, loads_xta
+        >>> xta = '''clock x;
+        ... process P() {
+        ... state S;
+        ... init S;
+        ... }
+        ... P1 = P();
+        ... system P1;
+        ... '''
+        >>> document = loads_xta(xta)
+        >>> symbol = document.templates[0].locations[0].symbol
+        >>> Branchpoint("B", 0, symbol.position, symbol).name
+        'B'
     """
 
     name: str
@@ -696,6 +880,21 @@ class Location:
     :type is_urgent: bool
     :param is_committed: Whether the location is committed.
     :type is_committed: bool
+
+    Example::
+
+        >>> from pyudbm.binding.utap import loads_xta
+        >>> xta = '''clock x;
+        ... process P() {
+        ... state S;
+        ... init S;
+        ... }
+        ... P1 = P();
+        ... system P1;
+        ... '''
+        >>> document = loads_xta(xta)
+        >>> document.templates[0].locations[0].name
+        'S'
     """
 
     name: str
@@ -746,6 +945,38 @@ class Edge:
     :type select_symbols: Tuple[Symbol, ...]
     :param select_values: Native select values associated with the symbols.
     :type select_values: Tuple[int, ...]
+
+    Example::
+
+        >>> from pyudbm.binding.utap import Edge, loads_xta
+        >>> xta = '''clock x;
+        ... process P() {
+        ... state S;
+        ... init S;
+        ... }
+        ... P1 = P();
+        ... system P1;
+        ... '''
+        >>> document = loads_xta(xta)
+        >>> location = document.templates[0].locations[0]
+        >>> edge = Edge(
+        ...     0,
+        ...     False,
+        ...     "",
+        ...     "S",
+        ...     "location",
+        ...     "S",
+        ...     "location",
+        ...     location.invariant,
+        ...     location.invariant,
+        ...     location.invariant,
+        ...     location.invariant,
+        ...     "",
+        ...     (),
+        ...     (),
+        ... )
+        >>> edge.source_name
+        'S'
     """
 
     index: int
@@ -779,6 +1010,13 @@ class Query:
     :type expectation: Expectation
     :param location: Query source-location text.
     :type location: str
+
+    Example::
+
+        >>> from pyudbm.binding.utap import Expectation, Option, Query
+        >>> query = Query("A[] !deadlock", "safety", (Option("trace", "short"),), Expectation("Symbolic", "True", "", ()), "")
+        >>> query.formula
+        'A[] !deadlock'
     """
 
     formula: str
@@ -803,6 +1041,13 @@ class ParsedQueryExpectation:
     :type time_ms: int
     :param mem_kib: Expected memory budget or measurement in KiB.
     :type mem_kib: int
+
+    Example::
+
+        >>> from pyudbm.binding.utap import ParsedQueryExpectation
+        >>> expectation = ParsedQueryExpectation("Symbolic", "True", None, 10, 32)
+        >>> expectation.time_ms
+        10
     """
 
     result_kind: str
@@ -842,6 +1087,22 @@ class ParsedQuery:
     :type result_type: str
     :param expectation: Structured expectation metadata, if present.
     :type expectation: ParsedQueryExpectation or None
+
+    Example::
+
+        >>> from pyudbm.binding.utap import loads_xta, parse_query
+        >>> xta = '''clock x;
+        ... process P() {
+        ... state S;
+        ... init S;
+        ... }
+        ... P1 = P();
+        ... system P1;
+        ... '''
+        >>> document = loads_xta(xta)
+        >>> query = parse_query("A[] not deadlock", document, builder="property")[0]
+        >>> query.quantifier
+        'AG'
     """
 
     line: int
@@ -882,6 +1143,21 @@ class Process:
     :type unbound_count: int
     :param restricted_symbols: Restricted symbols associated with the process.
     :type restricted_symbols: Tuple[Symbol, ...]
+
+    Example::
+
+        >>> from pyudbm.binding.utap import loads_xta
+        >>> xta = '''clock x;
+        ... process P() {
+        ... state S;
+        ... init S;
+        ... }
+        ... P1 = P();
+        ... system P1;
+        ... '''
+        >>> document = loads_xta(xta)
+        >>> document.processes[0].name
+        'P1'
     """
 
     name: str
@@ -936,6 +1212,21 @@ class Template:
     :type branchpoints: Tuple[Branchpoint, ...]
     :param edges: Template edges.
     :type edges: Tuple[Edge, ...]
+
+    Example::
+
+        >>> from pyudbm.binding.utap import loads_xta
+        >>> xta = '''clock x;
+        ... process P() {
+        ... state S;
+        ... init S;
+        ... }
+        ... P1 = P();
+        ... system P1;
+        ... '''
+        >>> document = loads_xta(xta)
+        >>> document.templates[0].name
+        'P'
     """
 
     name: str
@@ -1209,6 +1500,21 @@ class ModelDocument:
     :ivar errors: Parser or semantic errors reported by UTAP.
     :ivar warnings: Parser or semantic warnings reported by UTAP.
     :ivar modified: Whether UTAP reports the document as modified.
+
+    Example::
+
+        >>> from pyudbm.binding.utap import ModelDocument, loads_xta
+        >>> xta = '''clock x;
+        ... process P() {
+        ... state S;
+        ... init S;
+        ... }
+        ... P1 = P();
+        ... system P1;
+        ... '''
+        >>> document = loads_xta(xta)
+        >>> isinstance(document, ModelDocument)
+        True
     """
 
     def __init__(self, native_document: _NativeDocument):
@@ -1220,6 +1526,22 @@ class ModelDocument:
         :type native_document: _NativeDocument
         :return: ``None``.
         :rtype: None
+
+        Example::
+
+            >>> from pyudbm.binding._utap import loads_xta as native_loads_xta
+            >>> from pyudbm.binding.utap import ModelDocument
+            >>> xta = '''clock x;
+            ... process P() {
+            ... state S;
+            ... init S;
+            ... }
+            ... P1 = P();
+            ... system P1;
+            ... '''
+            >>> document = ModelDocument(native_loads_xta(xta))
+            >>> document.templates[0].name
+            'P'
         """
         self._native = native_document
         payload = native_document.snapshot()
@@ -1248,6 +1570,26 @@ class ModelDocument:
         :type path: Any
         :return: ``None``.
         :rtype: None
+
+        Example::
+
+            >>> import os
+            >>> import tempfile
+            >>> from pyudbm.binding.utap import loads_xta
+            >>> xta = '''clock x;
+            ... process P() {
+            ... state S;
+            ... init S;
+            ... }
+            ... P1 = P();
+            ... system P1;
+            ... '''
+            >>> document = loads_xta(xta)
+            >>> with tempfile.TemporaryDirectory() as tempdir:
+            ...     path = os.path.join(tempdir, "model.xml")
+            ...     document.write_xml(path)
+            ...     os.path.isfile(path)
+            True
         """
 
         self._native.write_xml(path)
@@ -1264,6 +1606,21 @@ class ModelDocument:
         :rtype: str
         :raises RuntimeError: If the native XML output does not contain the
             expected ``<declaration>`` or ``</nta>`` structure.
+
+        Example::
+
+            >>> from pyudbm.binding.utap import loads_xta
+            >>> xta = '''clock x;
+            ... process P() {
+            ... state S;
+            ... init S;
+            ... }
+            ... P1 = P();
+            ... system P1;
+            ... '''
+            >>> document = loads_xta(xta)
+            >>> document.dumps().startswith("<?xml")
+            True
         """
 
         with tempfile.TemporaryDirectory(prefix="pyudbm-utap-") as tempdir:
@@ -1271,7 +1628,7 @@ class ModelDocument:
             self.write_xml(temp_path)
             with open(temp_path, "r", encoding="utf-8") as file:
                 xml_text = file.read()
-        xml_text = _replace_global_declaration_block(xml_text, self.global_declarations())
+        xml_text = _replace_global_declaration_block(xml_text, self.global_declarations)
         return _inject_queries_block(xml_text, self.options, self.queries)
 
     def to_xml(self) -> str:
@@ -1282,6 +1639,21 @@ class ModelDocument:
 
         :return: XML serialization of the current snapshot.
         :rtype: str
+
+        Example::
+
+            >>> from pyudbm.binding.utap import loads_xta
+            >>> xta = '''clock x;
+            ... process P() {
+            ... state S;
+            ... init S;
+            ... }
+            ... P1 = P();
+            ... system P1;
+            ... '''
+            >>> document = loads_xta(xta)
+            >>> document.to_xml() == document.dumps()
+            True
         """
 
         return self.dumps()
@@ -1294,67 +1666,178 @@ class ModelDocument:
         :type path: Any
         :return: ``None``.
         :rtype: None
+
+        Example::
+
+            >>> import os
+            >>> import tempfile
+            >>> from pyudbm.binding.utap import loads_xta
+            >>> xta = '''clock x;
+            ... process P() {
+            ... state S;
+            ... init S;
+            ... }
+            ... P1 = P();
+            ... system P1;
+            ... '''
+            >>> document = loads_xta(xta)
+            >>> with tempfile.TemporaryDirectory() as tempdir:
+            ...     path = os.path.join(tempdir, "dump.xml")
+            ...     document.dump(path)
+            ...     os.path.isfile(path)
+            True
         """
 
         with open(os.fspath(path), "w", encoding="utf-8", newline="\n") as file:
             file.write(self.dumps())
 
+    @property
     def global_declarations(self) -> str:
         """
         Return the global declaration block as plain text.
 
         :return: Global declarations.
         :rtype: str
+
+        Example::
+
+            >>> from pyudbm.binding.utap import loads_xta
+            >>> xta = '''clock x;
+            ... process P() {
+            ... state S;
+            ... init S;
+            ... }
+            ... P1 = P();
+            ... system P1;
+            ... '''
+            >>> document = loads_xta(xta)
+            >>> "clock x;" in document.global_declarations
+            True
         """
 
         return self._native.global_declarations()
 
+    @property
     def before_update_text(self) -> str:
         """
         Return the ``before_update`` declaration text, if present.
 
         :return: ``before_update`` declaration text.
         :rtype: str
+
+        Example::
+
+            >>> from pyudbm.binding.utap import loads_xta
+            >>> xta = '''clock x;
+            ... process P() {
+            ... state S;
+            ... init S;
+            ... }
+            ... P1 = P();
+            ... system P1;
+            ... '''
+            >>> loads_xta(xta).before_update_text
+            ''
         """
 
         return self._native.before_update_text()
 
+    @property
     def after_update_text(self) -> str:
         """
         Return the ``after_update`` declaration text, if present.
 
         :return: ``after_update`` declaration text.
         :rtype: str
+
+        Example::
+
+            >>> from pyudbm.binding.utap import loads_xta
+            >>> xta = '''clock x;
+            ... process P() {
+            ... state S;
+            ... init S;
+            ... }
+            ... P1 = P();
+            ... system P1;
+            ... '''
+            >>> loads_xta(xta).after_update_text
+            ''
         """
 
         return self._native.after_update_text()
 
+    @property
     def channel_priority_texts(self) -> Tuple[str, ...]:
         """
         Return channel-priority declarations.
 
         :return: Channel-priority declaration texts.
         :rtype: Tuple[str, ...]
+
+        Example::
+
+            >>> from pyudbm.binding.utap import loads_xta
+            >>> xta = '''clock x;
+            ... process P() {
+            ... state S;
+            ... init S;
+            ... }
+            ... P1 = P();
+            ... system P1;
+            ... '''
+            >>> loads_xta(xta).channel_priority_texts
+            ()
         """
 
         return tuple(self._native.channel_priority_texts())
 
+    @property
     def global_clock_names(self) -> Tuple[str, ...]:
         """
         Return the global clock names reported by the native document.
 
         :return: Global clock names.
         :rtype: Tuple[str, ...]
+
+        Example::
+
+            >>> from pyudbm.binding.utap import loads_xta
+            >>> xta = '''clock x;
+            ... process P() {
+            ... state S;
+            ... init S;
+            ... }
+            ... P1 = P();
+            ... system P1;
+            ... '''
+            >>> loads_xta(xta).global_clock_names
+            ('x',)
         """
 
         return tuple(self._native.global_clock_names())
 
+    @property
     def template_clock_names(self) -> Mapping[str, Tuple[str, ...]]:
         """
         Return per-template clock names.
 
         :return: Mapping ``{template_name: (clock_names...)}``.
         :rtype: Mapping[str, Tuple[str, ...]]
+
+        Example::
+
+            >>> from pyudbm.binding.utap import loads_xta
+            >>> xta = '''clock x;
+            ... process P() {
+            ... state S;
+            ... init S;
+            ... }
+            ... P1 = P();
+            ... system P1;
+            ... '''
+            >>> loads_xta(xta).template_clock_names
+            {'P': ()}
         """
 
         return {name: tuple(values) for name, values in self._native.template_clock_names().items()}
@@ -1367,6 +1850,20 @@ class ModelDocument:
 
         :return: Feature-flag mapping.
         :rtype: Mapping[str, Any]
+
+        Example::
+
+            >>> from pyudbm.binding.utap import loads_xta
+            >>> xta = '''clock x;
+            ... process P() {
+            ... state S;
+            ... init S;
+            ... }
+            ... P1 = P();
+            ... system P1;
+            ... '''
+            >>> loads_xta(xta).feature_summary()["supports_symbolic"]
+            True
         """
 
         return {name: getattr(self.features, name) for name in MAPPED_FIELDS["FeatureFlags"]}
@@ -1378,6 +1875,20 @@ class ModelDocument:
         :return: Mapping with ``supports_symbolic``,
             ``supports_stochastic``, and ``supports_concrete`` entries.
         :rtype: Mapping[str, bool]
+
+        Example::
+
+            >>> from pyudbm.binding.utap import loads_xta
+            >>> xta = '''clock x;
+            ... process P() {
+            ... state S;
+            ... init S;
+            ... }
+            ... P1 = P();
+            ... system P1;
+            ... '''
+            >>> loads_xta(xta).capability_summary()["supports_concrete"]
+            True
         """
 
         return {
@@ -1395,15 +1906,29 @@ class ModelDocument:
 
         :return: Pretty-printed JSON summary.
         :rtype: str
+
+        Example::
+
+            >>> from pyudbm.binding.utap import loads_xta
+            >>> xta = '''clock x;
+            ... process P() {
+            ... state S;
+            ... init S;
+            ... }
+            ... P1 = P();
+            ... system P1;
+            ... '''
+            >>> '"templates"' in loads_xta(xta).pretty()
+            True
         """
 
         payload = {
-            "global_declarations": self.global_declarations(),
-            "before_update": self.before_update_text(),
-            "after_update": self.after_update_text(),
-            "channel_priorities": list(self.channel_priority_texts()),
-            "global_clock_names": list(self.global_clock_names()),
-            "template_clock_names": {name: list(values) for name, values in self.template_clock_names().items()},
+            "global_declarations": self.global_declarations,
+            "before_update": self.before_update_text,
+            "after_update": self.after_update_text,
+            "channel_priorities": list(self.channel_priority_texts),
+            "global_clock_names": list(self.global_clock_names),
+            "template_clock_names": {name: list(values) for name, values in self.template_clock_names.items()},
             "features": self.feature_summary(),
             "capabilities": self.capability_summary(),
             "templates": [
@@ -1458,6 +1983,27 @@ class ModelDocument:
         :raises FileNotFoundError: If ``path`` does not exist.
         :raises pyudbm.binding._utap.ParseError: If UTAP fails to parse the
             query file.
+
+        Example::
+
+            >>> import os
+            >>> import tempfile
+            >>> from pyudbm.binding.utap import loads_xta
+            >>> xta = '''clock x;
+            ... process P() {
+            ... state S;
+            ... init S;
+            ... }
+            ... P1 = P();
+            ... system P1;
+            ... '''
+            >>> document = loads_xta(xta)
+            >>> with tempfile.TemporaryDirectory() as tempdir:
+            ...     path = os.path.join(tempdir, "model.q")
+            ...     with open(path, "w", encoding="utf-8") as file:
+            ...         _ = file.write("A[] not deadlock")
+            ...     document.load_query(path, builder="property")[0].quantifier
+            'AG'
         """
 
         return tuple(_to_parsed_query(item) for item in _load_query(path, self._native, builder=builder))
@@ -1475,6 +2021,21 @@ class ModelDocument:
         :rtype: Tuple[ParsedQuery, ...]
         :raises pyudbm.binding._utap.ParseError: If UTAP fails to parse the
             query text.
+
+        Example::
+
+            >>> from pyudbm.binding.utap import loads_xta
+            >>> xta = '''clock x;
+            ... process P() {
+            ... state S;
+            ... init S;
+            ... }
+            ... P1 = P();
+            ... system P1;
+            ... '''
+            >>> document = loads_xta(xta)
+            >>> document.loads_query("A[] not deadlock", builder="property")[0].builder
+            'property'
         """
 
         return tuple(_to_parsed_query(item) for item in _loads_query(buffer, self._native, builder=builder))
@@ -1494,6 +2055,21 @@ class ModelDocument:
         :rtype: Tuple[ParsedQuery, ...]
         :raises pyudbm.binding._utap.ParseError: If UTAP fails to parse the
             query text.
+
+        Example::
+
+            >>> from pyudbm.binding.utap import loads_xta
+            >>> xta = '''clock x;
+            ... process P() {
+            ... state S;
+            ... init S;
+            ... }
+            ... P1 = P();
+            ... system P1;
+            ... '''
+            >>> document = loads_xta(xta)
+            >>> document.parse_query("A[] not deadlock", builder="property")[0].text
+            'A[] !deadlock'
         """
 
         return tuple(_to_parsed_query(item) for item in _parse_query(buffer, self._native, builder=builder))
@@ -1505,6 +2081,12 @@ def builtin_declarations() -> str:
 
     :return: Built-in declarations understood by the parser.
     :rtype: str
+
+    Example::
+
+        >>> from pyudbm.binding.utap import builtin_declarations
+        >>> "INT32_MAX" in builtin_declarations()
+        True
     """
 
     return _builtin_declarations()
@@ -1633,6 +2215,27 @@ def load_query(path: Any, document: ModelDocument, *, builder: str = "auto") -> 
     :raises TypeError: If ``document`` is not a :class:`ModelDocument`.
     :raises pyudbm.binding._utap.ParseError: If UTAP fails to parse the query
         file.
+
+    Example::
+
+        >>> import os
+        >>> import tempfile
+        >>> from pyudbm.binding.utap import load_query, loads_xta
+        >>> xta = '''clock x;
+        ... process P() {
+        ... state S;
+        ... init S;
+        ... }
+        ... P1 = P();
+        ... system P1;
+        ... '''
+        >>> document = loads_xta(xta)
+        >>> with tempfile.TemporaryDirectory() as tempdir:
+        ...     path = os.path.join(tempdir, "model.q")
+        ...     with open(path, "w", encoding="utf-8") as file:
+        ...         _ = file.write("A[] not deadlock")
+        ...     load_query(path, document, builder="property")[0].quantifier
+        'AG'
     """
 
     return tuple(_to_parsed_query(item) for item in _load_query(path, _native_document(document), builder=builder))
@@ -1655,6 +2258,21 @@ def loads_query(buffer: str, document: ModelDocument, *, builder: str = "auto") 
     :raises TypeError: If ``document`` is not a :class:`ModelDocument`.
     :raises pyudbm.binding._utap.ParseError: If UTAP fails to parse the query
         text.
+
+    Example::
+
+        >>> from pyudbm.binding.utap import loads_query, loads_xta
+        >>> xta = '''clock x;
+        ... process P() {
+        ... state S;
+        ... init S;
+        ... }
+        ... P1 = P();
+        ... system P1;
+        ... '''
+        >>> document = loads_xta(xta)
+        >>> loads_query("A[] not deadlock", document, builder="property")[0].builder
+        'property'
     """
 
     return tuple(
@@ -1679,6 +2297,21 @@ def parse_query(buffer: str, document: ModelDocument, *, builder: str = "auto") 
     :raises TypeError: If ``document`` is not a :class:`ModelDocument`.
     :raises pyudbm.binding._utap.ParseError: If UTAP fails to parse the query
         text.
+
+    Example::
+
+        >>> from pyudbm.binding.utap import loads_xta, parse_query
+        >>> xta = '''clock x;
+        ... process P() {
+        ... state S;
+        ... init S;
+        ... }
+        ... P1 = P();
+        ... system P1;
+        ... '''
+        >>> document = loads_xta(xta)
+        >>> parse_query("A[] not deadlock", document, builder="property")[0].text
+        'A[] !deadlock'
     """
 
     return tuple(
@@ -1703,6 +2336,33 @@ def load_xml(path: Any, newxta: bool = True, strict: bool = True, libpaths: Iter
     :raises FileNotFoundError: If ``path`` does not exist.
     :raises pyudbm.binding._utap.ParseError: If UTAP fails to parse the XML
         model.
+
+    Example::
+
+        >>> import os
+        >>> import tempfile
+        >>> from pyudbm.binding.utap import load_xml
+        >>> xml_text = '''<?xml version="1.0" encoding="utf-8"?>
+        ... <!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+        ... <nta>
+        ...   <declaration>clock x;</declaration>
+        ...   <template>
+        ...     <name x="0" y="0">P</name>
+        ...     <location id="id0" x="0" y="0">
+        ...       <name x="0" y="0">Init</name>
+        ...     </location>
+        ...     <init ref="id0"/>
+        ...   </template>
+        ...   <system>P1 = P();
+        ... system P1;</system>
+        ... </nta>
+        ... '''
+        >>> with tempfile.TemporaryDirectory() as tempdir:
+        ...     path = os.path.join(tempdir, "model.xml")
+        ...     with open(path, "w", encoding="utf-8") as file:
+        ...         _ = file.write(xml_text)
+        ...     load_xml(path).templates[0].name
+        'P'
     """
 
     return ModelDocument(_load_xml(path, newxta=newxta, strict=strict, libpaths=tuple(libpaths)))
@@ -1724,6 +2384,27 @@ def loads_xml(buffer: str, newxta: bool = True, strict: bool = True, libpaths: I
     :rtype: ModelDocument
     :raises pyudbm.binding._utap.ParseError: If UTAP fails to parse the XML
         model.
+
+    Example::
+
+        >>> from pyudbm.binding.utap import loads_xml
+        >>> xml_text = '''<?xml version="1.0" encoding="utf-8"?>
+        ... <!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+        ... <nta>
+        ...   <declaration>clock x;</declaration>
+        ...   <template>
+        ...     <name x="0" y="0">P</name>
+        ...     <location id="id0" x="0" y="0">
+        ...       <name x="0" y="0">Init</name>
+        ...     </location>
+        ...     <init ref="id0"/>
+        ...   </template>
+        ...   <system>P1 = P();
+        ... system P1;</system>
+        ... </nta>
+        ... '''
+        >>> loads_xml(xml_text).processes[0].name
+        'P1'
     """
 
     return ModelDocument(_loads_xml(buffer, newxta=newxta, strict=strict, libpaths=tuple(libpaths)))
@@ -1744,6 +2425,26 @@ def load_xta(path: Any, newxta: bool = True, strict: bool = True) -> ModelDocume
     :raises FileNotFoundError: If ``path`` does not exist.
     :raises pyudbm.binding._utap.ParseError: If UTAP fails to parse the XTA
         model.
+
+    Example::
+
+        >>> import os
+        >>> import tempfile
+        >>> from pyudbm.binding.utap import load_xta
+        >>> xta = '''clock x;
+        ... process P() {
+        ... state S;
+        ... init S;
+        ... }
+        ... P1 = P();
+        ... system P1;
+        ... '''
+        >>> with tempfile.TemporaryDirectory() as tempdir:
+        ...     path = os.path.join(tempdir, "model.xta")
+        ...     with open(path, "w", encoding="utf-8") as file:
+        ...         _ = file.write(xta)
+        ...     load_xta(path).templates[0].name
+        'P'
     """
 
     return ModelDocument(_load_xta(path, newxta=newxta, strict=strict))
@@ -1763,6 +2464,20 @@ def loads_xta(buffer: str, newxta: bool = True, strict: bool = True) -> ModelDoc
     :rtype: ModelDocument
     :raises pyudbm.binding._utap.ParseError: If UTAP fails to parse the XTA
         model.
+
+    Example::
+
+        >>> from pyudbm.binding.utap import loads_xta
+        >>> xta = '''clock x;
+        ... process P() {
+        ... state S;
+        ... init S;
+        ... }
+        ... P1 = P();
+        ... system P1;
+        ... '''
+        >>> loads_xta(xta).processes[0].name
+        'P1'
     """
 
     return ModelDocument(_loads_xta(buffer, newxta=newxta, strict=strict))
