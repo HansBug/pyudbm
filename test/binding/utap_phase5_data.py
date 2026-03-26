@@ -219,10 +219,10 @@ PHASE5_MAPPED_FIELD_NOTES = {
 
 PHASE5_UNMAPPED_FIELD_REASONS = {
     "Document": {
-        "globals": "Would require a dedicated declarations facade rather than a stable first-phase value object.",
-        "before_update": "Deferred to the dump/pretty/introspection phase together with document-level update helpers.",
-        "after_update": "Deferred to the dump/pretty/introspection phase together with document-level update helpers.",
-        "chan_priorities": "Needs a dedicated channel-priority value object instead of collapsing to strings.",
+        "globals": "Exposed via global_declarations() instead of re-exporting raw declarations_t as a first-phase value object.",
+        "before_update": "Exposed via before_update_text() instead of re-exporting raw expression_t on the first-phase document snapshot.",
+        "after_update": "Exposed via after_update_text() instead of re-exporting raw expression_t on the first-phase document snapshot.",
+        "chan_priorities": "Exposed via channel_priority_texts() instead of re-exporting raw chan_priority_t objects.",
         "strings": "Internal interned-string table is not a stable user-facing semantic object.",
     },
     "Template": {

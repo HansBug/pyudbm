@@ -13,8 +13,12 @@ for now:
 
 from __future__ import annotations
 
+import json
+import os
+import tempfile
 from dataclasses import dataclass
 from typing import Any, Iterable, Mapping, Optional, Tuple
+from xml.sax.saxutils import escape, quoteattr
 
 from . import _utap
 
@@ -217,10 +221,10 @@ UNMAPPED_FIELDS = {
 
 UNMAPPED_FIELD_REASONS = {
     "Document": {
-        "globals": "Would require a dedicated declarations facade rather than a stable first-phase value object.",
-        "before_update": "Deferred to the dump/pretty/introspection phase together with document-level update helpers.",
-        "after_update": "Deferred to the dump/pretty/introspection phase together with document-level update helpers.",
-        "chan_priorities": "Needs a dedicated channel-priority value object instead of collapsing to strings.",
+        "globals": "Exposed via global_declarations() instead of re-exporting raw declarations_t as a first-phase value object.",
+        "before_update": "Exposed via before_update_text() instead of re-exporting raw expression_t on the first-phase document snapshot.",
+        "after_update": "Exposed via after_update_text() instead of re-exporting raw expression_t on the first-phase document snapshot.",
+        "chan_priorities": "Exposed via channel_priority_texts() instead of re-exporting raw chan_priority_t objects.",
         "strings": "Internal interned-string table is not a stable user-facing semantic object.",
     },
     "Template": {
@@ -256,6 +260,19 @@ UNMAPPED_FIELD_REASONS = {
         "frame": "Raw frame_t is an implementation-level scope object without a stable first-phase Python API.",
         "user_data": "Raw user_data pointers are native implementation details and not a safe Python-facing field.",
     },
+}
+
+_EXPECTATION_STATUS_TO_XML = {
+    "True": "success",
+    "False": "failure",
+    "MaybeTrue": "maybe_true",
+    "MaybeFalse": "maybe_false",
+}
+
+_EXPECTATION_TYPE_TO_XML = {
+    "Probability": "probability",
+    "Symbolic": "symbolic",
+    "NumericValue": "value",
 }
 
 
@@ -740,6 +757,101 @@ class ModelDocument:
             len(self.templates), len(self.processes), len(self.queries), len(self.errors), len(self.warnings)
         )
 
+    def write_xml(self, path: Any) -> None:
+        self._native.write_xml(path)
+
+    def dumps(self) -> str:
+        with tempfile.TemporaryDirectory(prefix="pyudbm-utap-") as tempdir:
+            temp_path = os.path.join(tempdir, "document.xml")
+            self.write_xml(temp_path)
+            with open(temp_path, "r", encoding="utf-8") as file:
+                xml_text = file.read()
+        xml_text = _replace_global_declaration_block(xml_text, self.global_declarations())
+        return _inject_queries_block(xml_text, self.options, self.queries)
+
+    def to_xml(self) -> str:
+        return self.dumps()
+
+    def dump(self, path: Any) -> None:
+        with open(os.fspath(path), "w", encoding="utf-8", newline="\n") as file:
+            file.write(self.dumps())
+
+    def global_declarations(self) -> str:
+        return self._native.global_declarations()
+
+    def before_update_text(self) -> str:
+        return self._native.before_update_text()
+
+    def after_update_text(self) -> str:
+        return self._native.after_update_text()
+
+    def channel_priority_texts(self) -> Tuple[str, ...]:
+        return tuple(self._native.channel_priority_texts())
+
+    def global_clock_names(self) -> Tuple[str, ...]:
+        return tuple(self._native.global_clock_names())
+
+    def template_clock_names(self) -> Mapping[str, Tuple[str, ...]]:
+        return {name: tuple(values) for name, values in self._native.template_clock_names().items()}
+
+    def feature_summary(self) -> Mapping[str, Any]:
+        return {name: getattr(self.features, name) for name in MAPPED_FIELDS["FeatureFlags"]}
+
+    def capability_summary(self) -> Mapping[str, bool]:
+        return {
+            "supports_symbolic": self.features.supports_symbolic,
+            "supports_stochastic": self.features.supports_stochastic,
+            "supports_concrete": self.features.supports_concrete,
+        }
+
+    def pretty(self) -> str:
+        payload = {
+            "global_declarations": self.global_declarations(),
+            "before_update": self.before_update_text(),
+            "after_update": self.after_update_text(),
+            "channel_priorities": list(self.channel_priority_texts()),
+            "global_clock_names": list(self.global_clock_names()),
+            "template_clock_names": {name: list(values) for name, values in self.template_clock_names().items()},
+            "features": self.feature_summary(),
+            "capabilities": self.capability_summary(),
+            "templates": [
+                {
+                    "name": template.name,
+                    "init_name": template.init_name,
+                    "type": template.type,
+                    "mode": template.mode,
+                    "is_ta": template.is_ta,
+                    "is_instantiated": template.is_instantiated,
+                    "dynamic": template.dynamic,
+                    "is_defined": template.is_defined,
+                    "location_count": len(template.locations),
+                    "branchpoint_count": len(template.branchpoints),
+                    "edge_count": len(template.edges),
+                }
+                for template in self.templates
+            ],
+            "processes": [
+                {
+                    "name": process.name,
+                    "template_name": process.template_name,
+                    "parameters": process.parameters,
+                    "arguments": process.arguments,
+                    "mapping": process.mapping,
+                }
+                for process in self.processes
+            ],
+            "queries": [
+                {
+                    "formula": query.formula,
+                    "comment": query.comment,
+                    "options": [{"name": option.name, "value": option.value} for option in query.options],
+                    "location": query.location,
+                }
+                for query in self.queries
+            ],
+        }
+        return json.dumps(payload, indent=2, sort_keys=True)
+
     def load_query(self, path: Any, *, builder: str = "auto") -> Tuple[ParsedQuery, ...]:
         return tuple(_to_parsed_query(item) for item in _utap.load_query(path, self._native, builder=builder))
 
@@ -752,6 +864,105 @@ class ModelDocument:
 
 def builtin_declarations() -> str:
     return _utap.builtin_declarations()
+
+
+def _expectation_is_implicit_default(expectation: Expectation) -> bool:
+    return (
+        expectation.value_type == "Symbolic"
+        and expectation.status == "True"
+        and expectation.value == ""
+        and expectation.resources == ()
+    )
+
+
+def _serialize_options_xml(options: Tuple[Option, ...], indent: str) -> Tuple[str, ...]:
+    return tuple(
+        f"{indent}<option key={quoteattr(option.name)} value={quoteattr(option.value)}/>" for option in options
+    )
+
+
+def _serialize_expectation_xml(expectation: Expectation, indent: str) -> Tuple[str, ...]:
+    if _expectation_is_implicit_default(expectation):
+        return ()
+
+    attributes = []
+    outcome = _EXPECTATION_STATUS_TO_XML.get(expectation.status)
+    if outcome is not None:
+        attributes.append(f'outcome={quoteattr(outcome)}')
+
+    expectation_type = _EXPECTATION_TYPE_TO_XML.get(expectation.value_type)
+    if expectation_type is not None:
+        attributes.append(f'type={quoteattr(expectation_type)}')
+
+    if expectation.value != "":
+        attributes.append(f'value={quoteattr(expectation.value)}')
+
+    if expectation.resources:
+        lines = [f"{indent}<expect {' '.join(attributes)}>".rstrip()]
+        for resource in expectation.resources:
+            resource_attributes = [f'type={quoteattr(resource.name)}', f'value={quoteattr(resource.value)}']
+            if resource.unit is not None:
+                resource_attributes.append(f'unit={quoteattr(resource.unit)}')
+            lines.append(f"{indent}  <resource {' '.join(resource_attributes)}/>")
+        lines.append(f"{indent}</expect>")
+        return tuple(lines)
+
+    if attributes:
+        return (f"{indent}<expect {' '.join(attributes)}/>",)
+
+    return (f"{indent}<expect/>",)
+
+
+def _serialize_query_xml(query: Query, indent: str) -> Tuple[str, ...]:
+    lines = [f"{indent}<query>"]
+    lines.append(f"{indent}  <formula>{escape(query.formula)}</formula>")
+    lines.append(f"{indent}  <comment>{escape(query.comment)}</comment>")
+    lines.extend(_serialize_options_xml(query.options, indent + "  "))
+    lines.extend(_serialize_expectation_xml(query.expectation, indent + "  "))
+    lines.append(f"{indent}</query>")
+    return tuple(lines)
+
+
+def _serialize_queries_block(options: Tuple[Option, ...], queries: Tuple[Query, ...]) -> str:
+    if not options and not queries:
+        return ""
+
+    lines = ["  <queries>"]
+    lines.extend(_serialize_options_xml(options, "    "))
+    for query in queries:
+        lines.extend(_serialize_query_xml(query, "    "))
+    lines.append("  </queries>")
+    return "\n".join(lines) + "\n"
+
+
+def _inject_queries_block(xml_text: str, options: Tuple[Option, ...], queries: Tuple[Query, ...]) -> str:
+    queries_block = _serialize_queries_block(options, queries)
+    if not queries_block:
+        return xml_text
+
+    marker = "</nta>"
+    marker_index = xml_text.rfind(marker)
+    if marker_index < 0:
+        raise RuntimeError("UTAP XML writer returned content without </nta> root terminator")
+
+    prefix = xml_text[:marker_index]
+    suffix = xml_text[marker_index:]
+    if prefix and not prefix.endswith("\n"):
+        prefix += "\n"
+    return prefix + queries_block + suffix
+
+
+def _replace_global_declaration_block(xml_text: str, declaration_text: str) -> str:
+    start_tag = "<declaration>"
+    end_tag = "</declaration>"
+    start_index = xml_text.find(start_tag)
+    if start_index < 0:
+        raise RuntimeError("UTAP XML writer returned content without <declaration> tag")
+    end_index = xml_text.find(end_tag, start_index)
+    if end_index < 0:
+        raise RuntimeError("UTAP XML writer returned content without </declaration> terminator")
+    content_start = start_index + len(start_tag)
+    return xml_text[:content_start] + escape(declaration_text) + xml_text[end_index:]
 
 
 def _native_document(document: ModelDocument) -> _utap._NativeDocument:

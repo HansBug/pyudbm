@@ -1,4 +1,5 @@
 import importlib
+import xml.etree.ElementTree as ET
 
 import pytest
 from pyudbm.binding._utap import ParseError, _NativeDocument
@@ -10,6 +11,7 @@ from .utap_phase0_data import (
     INVALID_XTA_UNKNOWN_PROCESS,
     MINIMAL_XML_PATH,
     MINIMAL_XTA_PATH,
+    UTAP_SIMPLE_SYSTEM_PATH,
 )
 from .utap_phase4_data import (
     REPRESENTATIVE_MIXED_CONTEXT,
@@ -82,6 +84,32 @@ class TestUtapNative:
         assert from_buffer.warning_count == 0
         assert from_buffer.modified is False
         assert repr(from_buffer) == "<_utap._NativeDocument errors=0 warnings=0>"
+
+    def test_native_document_exposes_write_and_introspection_helpers(self, tmp_path):
+        document = utap_module.load_xml(MINIMAL_XML_PATH)
+        output_path = tmp_path / "native.xml"
+
+        document.write_xml(output_path)
+
+        assert output_path.is_file()
+        assert document.global_declarations() == "// variables\nclock x;\n"
+        assert document.before_update_text() == ""
+        assert document.after_update_text() == ""
+        assert document.channel_priority_texts() == []
+        assert document.global_clock_names() == ["x"]
+        assert document.template_clock_names() == {"P": []}
+
+    def test_native_write_xml_keeps_upstream_structure_without_queries_injection(self, tmp_path):
+        document = utap_module.load_xml(UTAP_SIMPLE_SYSTEM_PATH)
+        output_path = tmp_path / "native_simple.xml"
+
+        document.write_xml(output_path)
+
+        assert [child.tag for child in ET.fromstring(output_path.read_text(encoding="utf-8"))] == [
+            "declaration",
+            "template",
+            "system",
+        ]
 
     def test_missing_xml_path_raises_file_not_found(self):
         missing_path = MINIMAL_XML_PATH.parent / "missing.xml"

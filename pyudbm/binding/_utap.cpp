@@ -412,6 +412,187 @@ std::string type_declaration_or_empty(const UTAP::type_t& type)
     return type_name_or_empty(type);
 }
 
+std::string declarations_text_or_empty(const UTAP::declarations_t& declarations, bool global)
+{
+    return safe_stringify([&declarations, global]() { return declarations.str(global); });
+}
+
+const std::set<std::string>& builtin_global_names()
+{
+    static const std::set<std::string> names = {
+        "INT8_MIN",
+        "INT8_MAX",
+        "UINT8_MAX",
+        "INT16_MIN",
+        "INT16_MAX",
+        "UINT16_MAX",
+        "INT32_MIN",
+        "INT32_MAX",
+        "FLT_MIN",
+        "FLT_MAX",
+        "DBL_MIN",
+        "DBL_MAX",
+        "M_PI",
+        "M_PI_2",
+        "M_PI_4",
+        "M_E",
+        "M_LOG2E",
+        "M_LOG10E",
+        "M_LN2",
+        "M_LN10",
+        "M_1_PI",
+        "M_2_PI",
+        "M_2_SQRTPI",
+        "M_SQRT2",
+        "M_SQRT1_2",
+        "int8_t",
+        "uint8_t",
+        "int16_t",
+        "uint16_t",
+        "int32_t",
+    };
+    return names;
+}
+
+bool is_builtin_global_name(const std::string& name)
+{
+    return builtin_global_names().find(name) != builtin_global_names().end();
+}
+
+std::string user_declarations_text(const UTAP::declarations_t& declarations, bool global)
+{
+    std::vector<std::string> sections;
+
+    std::ostringstream constants;
+    bool wrote_constants = false;
+    for (const auto& variable : declarations.variables) {
+        if (variable.uid.get_type().get_kind() == UTAP::Constants::CONSTANT && !is_builtin_global_name(variable.uid.get_name())) {
+            if (!wrote_constants) {
+                constants << "// constants\n";
+                wrote_constants = true;
+            }
+            variable.print(constants) << ";\n";
+        }
+    }
+    if (wrote_constants) {
+        sections.push_back(constants.str());
+    }
+
+    std::ostringstream typedefs;
+    bool wrote_typedefs = false;
+    for (const auto& symbol : declarations.frame) {
+        if (symbol.get_type().get_kind() == UTAP::Constants::TYPEDEF && !is_builtin_global_name(symbol.get_name())) {
+            if (!wrote_typedefs) {
+                typedefs << "// type definitions\n";
+                wrote_typedefs = true;
+            }
+            symbol.get_type().print_declaration(typedefs) << ";\n";
+        }
+    }
+    if (wrote_typedefs) {
+        sections.push_back(typedefs.str());
+    }
+
+    std::ostringstream variables;
+    bool wrote_variables = false;
+    for (const auto& variable : declarations.variables) {
+        if (variable.uid.get_type().get_kind() != UTAP::Constants::CONSTANT) {
+            if (!wrote_variables) {
+                variables << "// variables\n";
+                wrote_variables = true;
+            }
+            variable.print(variables) << ";\n";
+        }
+    }
+    if (wrote_variables) {
+        sections.push_back(variables.str());
+    }
+
+    if (!declarations.functions.empty()) {
+        std::ostringstream functions;
+        functions << "// functions\n";
+        for (const auto& function : declarations.functions) {
+            function.print(functions) << "\n\n";
+        }
+        sections.push_back(functions.str());
+    }
+
+    std::ostringstream result;
+    bool first = true;
+    for (const auto& section : sections) {
+        if (!first) {
+            result << "\n";
+        }
+        first = false;
+        result << section;
+    }
+    return result.str();
+}
+
+std::string expression_summary_or_empty(const UTAP::expression_t& expression)
+{
+    return expression.empty() ? std::string{} : safe_stringify([&expression]() { return expression.str(); });
+}
+
+std::string chan_priority_text_or_empty(const UTAP::chan_priority_t& priority)
+{
+    return safe_stringify([&priority]() { return priority.str(); });
+}
+
+bool is_clock_like_type(const UTAP::type_t& type)
+{
+    if (type.unknown()) {
+        return false;
+    }
+    if (type.is_clock()) {
+        return true;
+    }
+    if (type.is_array()) {
+        return type.strip_array().is_clock();
+    }
+    return type.strip().is_clock();
+}
+
+void append_clock_name_if_needed(std::vector<std::string>& names, std::set<std::string>& seen, const std::string& name)
+{
+    if (seen.insert(name).second) {
+        names.push_back(name);
+    }
+}
+
+std::vector<std::string> declarations_clock_names(const UTAP::declarations_t& declarations)
+{
+    std::vector<std::string> names;
+    std::set<std::string> seen;
+    for (const auto& variable : declarations.variables) {
+        if (is_clock_like_type(variable.uid.get_type())) {
+            append_clock_name_if_needed(names, seen, variable.uid.get_name());
+        }
+    }
+    return names;
+}
+
+std::vector<std::string> frame_clock_names(const UTAP::frame_t& frame)
+{
+    std::vector<std::string> names;
+    std::set<std::string> seen;
+    for (const auto& symbol : frame) {
+        if (is_clock_like_type(symbol.get_type())) {
+            append_clock_name_if_needed(names, seen, symbol.get_name());
+        }
+    }
+    return names;
+}
+
+py::list string_vector_to_list(const std::vector<std::string>& values)
+{
+    py::list result;
+    for (const auto& value : values) {
+        result.append(value);
+    }
+    return result;
+}
+
 std::string join_strings(const std::vector<std::string>& parts, const char* separator)
 {
     std::ostringstream oss;
@@ -832,6 +1013,56 @@ public:
         return result;
     }
 
+    void write_xml(const std::filesystem::path& path) const
+    {
+        const auto path_string = path.string();
+        int32_t return_code = 0;
+        try {
+            py::gil_scoped_release release;
+            return_code = write_XML_file(path_string.c_str(), document_.get());
+        } catch (const std::exception& ex) {
+            throw ParseError(std::string("XML write failed: ") + ex.what());
+        }
+
+        if (return_code != 0) {
+            std::ostringstream oss;
+            oss << "XML write failed with code " << return_code;
+            throw ParseError(oss.str());
+        }
+    }
+
+    std::string global_declarations() const { return user_declarations_text(document_->get_globals(), true); }
+
+    std::string before_update_text() const { return expression_summary_or_empty(document_->get_before_update()); }
+
+    std::string after_update_text() const { return expression_summary_or_empty(document_->get_after_update()); }
+
+    py::list channel_priority_texts() const
+    {
+        py::list result;
+        for (const auto& priority : document_->get_chan_priorities()) {
+            result.append(chan_priority_text_or_empty(priority));
+        }
+        return result;
+    }
+
+    py::list global_clock_names() const { return string_vector_to_list(declarations_clock_names(document_->get_globals())); }
+
+    py::dict template_clock_names() const
+    {
+        py::dict result;
+        for (const auto& templ : document_->get_templates()) {
+            std::vector<std::string> names = declarations_clock_names(templ);
+            auto parameter_names = frame_clock_names(templ.parameters);
+            std::set<std::string> seen(names.begin(), names.end());
+            for (const auto& name : parameter_names) {
+                append_clock_name_if_needed(names, seen, name);
+            }
+            result[py::str(templ.uid.get_name())] = string_vector_to_list(names);
+        }
+        return result;
+    }
+
     std::string repr() const
     {
         std::ostringstream oss;
@@ -1191,6 +1422,15 @@ PYBIND11_MODULE(_utap, m)
         .def_property_readonly("warning_count", &NativeDocument::warning_count)
         .def_property_readonly("modified", &NativeDocument::modified)
         .def("snapshot", &NativeDocument::snapshot)
+        .def("write_xml", [](const NativeDocument& document, const py::object& path) {
+            document.write_xml(std::filesystem::path{py_fspath(path)});
+        })
+        .def("global_declarations", &NativeDocument::global_declarations)
+        .def("before_update_text", &NativeDocument::before_update_text)
+        .def("after_update_text", &NativeDocument::after_update_text)
+        .def("channel_priority_texts", &NativeDocument::channel_priority_texts)
+        .def("global_clock_names", &NativeDocument::global_clock_names)
+        .def("template_clock_names", &NativeDocument::template_clock_names)
         .def("__repr__", &NativeDocument::repr);
 
     m.def(

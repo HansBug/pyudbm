@@ -1346,27 +1346,74 @@ Phase 5 已完成；第一阶段字段矩阵、字段说明矩阵、代表性对
 
 checklist：
 
-* [ ] 实现 `document.dump(path)`。
-* [ ] 实现 `document.dumps()`。
-* [ ] 实现 `document.write_xml(path)`。
-* [ ] 实现 `document.to_xml()`。
-* [ ] 实现 `document.pretty()`。
-* [ ] 增加更多 feature summary / capability summary。
-* [ ] 增加 clock / declaration introspection 辅助方法。
-* [ ] 明确 `dumps()` 的临时文件桥接实现边界。
+* [x] 实现 `document.dump(path)`。
+* [x] 实现 `document.dumps()`。
+* [x] 实现 `document.write_xml(path)`。
+* [x] 实现 `document.to_xml()`。
+* [x] 实现 `document.pretty()`。
+* [x] 增加更多 feature summary / capability summary。
+* [x] 增加 clock / declaration introspection 辅助方法。
+* [x] 明确 `dumps()` 的临时文件桥接实现边界。
 
 阶段测试要求：
 
-* [ ] 对代表性 XML 样本执行 parse。
-* [ ] 对代表性 XML 样本执行 dump / dumps。
-* [ ] 对代表性 XML 样本执行 reparse。
-* [ ] 对 round-trip 后的 template 数量做直接比对。
-* [ ] 对 round-trip 后的 process 数量做直接比对。
-* [ ] 对 round-trip 后的 query 数量做直接比对。
-* [ ] 对 round-trip 后的关键声明文本做直接比对或规范化后精确比对。
-* [ ] 对 round-trip 后的 feature flags 做直接比对。
-* [ ] 对 round-trip 后的代表性 expression / query 字段做直接比对。
-* [ ] 不要求字节级一致，但不能只断言“重新 parse 成功”。
+* [x] 对代表性 XML 样本执行 parse。
+* [x] 对代表性 XML 样本执行 dump / dumps。
+* [x] 对代表性 XML 样本执行 reparse。
+* [x] 对 round-trip 后的 template 数量做直接比对。
+* [x] 对 round-trip 后的 process 数量做直接比对。
+* [x] 对 round-trip 后的 query 数量做直接比对。
+* [x] 对 round-trip 后的关键声明文本做直接比对或规范化后精确比对。
+* [x] 对 round-trip 后的 feature flags 做直接比对。
+* [x] 对 round-trip 后的代表性 expression / query 字段做直接比对。
+* [x] 不要求字节级一致，但不能只断言“重新 parse 成功”。
+
+已完成进度回填：
+
+当前已经落地的内容：
+
+* [x] `_utap._NativeDocument` 已新增 `write_xml()`、`global_declarations()`、`before_update_text()`、`after_update_text()`、`channel_priority_texts()`、`global_clock_names()`、`template_clock_names()`。
+* [x] `ModelDocument` 已新增 `write_xml()`、`dump()`、`dumps()`、`to_xml()`、`pretty()`。
+* [x] `ModelDocument` 已新增 `feature_summary()`、`capability_summary()`、`global_declarations()`、`before_update_text()`、`after_update_text()`、`channel_priority_texts()`、`global_clock_names()`、`template_clock_names()`。
+* [x] `dump()` / `dumps()` / `to_xml()` 当前已经负责“语义级 round-trip XML”输出：在上游 `write_XML_file` 基础上补回 `<queries>` / model options，并把全局 `<declaration>` 替换为 user-only 声明文本。
+* [x] `pretty()` 当前落地为稳定的 JSON semantic summary，覆盖 declarations、clocks、features、capabilities、templates、processes、queries。
+
+已经新增的对应文件：
+
+* [x] `test/binding/utap_phase6_data.py`
+* [x] `test/binding/test_utap_roundtrip.py`
+
+本阶段已经实际完成的验证：
+
+* [x] `minimal_ok.xml` 与 `simple_system.xml` 已分别作为无 query 和带 query 的代表性 XML 样本执行 parse / dump / dumps / reparse。
+* [x] `dump()` 与 `dumps()` 的 reparse 结果已对 template 数量、process 数量、query 数量、global declarations、feature summary、capability summary、clock introspection、代表性 invariant 文本做直接比对。
+* [x] `write_xml()` 的 direct-upstream 边界已补测试，确认它不会自行注入 `<queries>`。
+* [x] native `_utap` 新增写出与 introspection 方法已在 `test_utap_native.py` 中补专门 smoke。
+
+本阶段实现与原计划的偏差：
+
+* [x] `write_xml()` 当前被明确区分为“上游直连 writer”，而不是 public round-trip-safe writer。
+原因：上游 `write_XML_file` 本身不会写 `<queries>`，且会把 builtin declarations 一并写回；为了同时保留原生能力和语义级 round-trip，当前 public API 采用 `write_xml()` 保持直连、`dump()` / `dumps()` / `to_xml()` 负责补 query/options 和 user-only declarations 的双层设计。
+* [x] `dumps()` / `to_xml()` 当前通过受控临时文件桥接上游 `write_XML_file`，而不是要求上游提供内存级 writer。
+原因：`UTAP` 当前只公开了 `write_XML_file(const char*, Document*)` 文件级入口；第一阶段优先保证跨平台稳定和测试可控，不在仓库内重写一套 XML writer。
+* [x] `global_declarations()` 当前返回 user-only declarations，而不是包含 builtin constants/typedefs 的完整 native globals pretty print。
+原因：如果把 builtin declarations 也直接纳入 public round-trip XML，默认 `load_xml(..., newxta=True)` reparse 会触发重复定义；当前 helper 与 `dump()` / `dumps()` 统一采用 user-only declarations，保证默认 public round-trip 工作流可用。
+
+已实际跑过的验证命令与结果摘要：
+
+* [x] `make build`
+* [x] `python -m pytest test/binding/test_utap_native.py test/binding/test_utap_roundtrip.py -m unittest -q`
+* [x] `python -m pytest test/binding/test_utap_native.py test/binding/test_utap_phase0.py test/binding/test_utap.py test/binding/test_utap_query.py test/binding/test_utap_field_matrix.py test/binding/test_utap_roundtrip.py -m unittest -q`
+* [x] `python -m pytest test/binding -m unittest -q`
+
+对应结果摘要：
+
+* [x] Phase 6 专项 native/public UTAP 测试：`16 passed`
+* [x] UTAP 阶段专项测试（0-6）：`252 passed`
+* [x] `test/binding` 全量 unittest：`369 passed`
+
+当前状态：
+Phase 6 已完成；public XML round-trip helper、原生直连 writer 边界、semantic pretty summary 与 declaration/clock introspection helper 已收口。
 
 ### Phase 7：官方样本集、`.xta` 补样本与平台硬化
 
