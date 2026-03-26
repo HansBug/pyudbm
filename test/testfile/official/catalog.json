@@ -781,56 +781,6 @@
       "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
-      "path": "linked/uppaal.org/casestudies/cora/alp.q",
-      "parse_kind": "QUERY_PROPERTY_FILE",
-      "desc": "Query/property file for the aircraft landing problem case study.",
-      "desc_zh": "飞机着陆问题案例的性质/查询文件。",
-      "context_path": "linked/uppaal.org/casestudies/cora/alp.xml",
-      "status": "error",
-      "message": "no companion model made the query parse successfully: alp.xml: companion model parse failed: error: $syntax_error: $unexpected T_INT in /nta/declaration at line 3 column 6 to line 3 column 9; error: $Unknown_identifier: TYPES in /nta/declaration at line 9 column 10 to line 9 column 15; error: $syntax_error: $unexpected T_INT in /nta/declaration at line 12 column 6 to line 12 column 9; error: ... (41 total) | vrptw.xml: companion model parse failed: error: $syntax_error: $unexpected T_INT in /nta/declaration at line 2 column 6 to line 2 column 9; error: $syntax_error: $unexpected T_INT in /nta/declaration at line 12 column 6 to line 12 column 9; error: $Unknown_identifier: vehicles in /nta/declaration at line 38 column 16 to line 38 column 24; error: ... (139 total)",
-      "message_zh": "UTAP 实际解析失败。使用上下文文件 linked/uppaal.org/casestudies/cora/alp.xml。原因：no companion model made the query parse successfully: alp.xml: companion model parse failed: error: $syntax_error: $unexpected T_INT in /nta/declaration at line 3 column 6 to line 3 column 9; error: $Unknown_identifier: TYPES in /nta/declaration at line 9 column 10 to line 9 column 15; error: $syntax_error: $unexpected T_INT in /nta/declaration at line 12 column 6 to line 12 column 9; error: ... (41 total) | vrptw.xml: companion model parse failed: error: $syntax_error: $unexpected T_INT in /nta/declaration at line 2 column 6 to line 2 column 9; error: $syntax_error: $unexpected T_INT in /nta/declaration at line 12 column 6 to line 12 column 9; error: $Unknown_identifier: vehicles in /nta/declaration at line 38 column 16 to line 38 column 24; error: ... (139 total)"
-    },
-    {
-      "path": "linked/uppaal.org/casestudies/cora/alp.xml",
-      "parse_kind": "XML_MODEL_FILE",
-      "desc": "XML model file for the aircraft landing problem case study.",
-      "desc_zh": "飞机着陆问题案例的 XML 模型文件。",
-      "context_path": null,
-      "status": "error",
-      "message": "parse_XML_file(newxta=true) failed: error: $Unknown_identifier: cost in /nta/template[2]/location[2]/label[1] at line 2 column 0 to line 2 column 4; error: $Unknown_identifier: cost in /nta/template[2]/location[3]/label[1] at line 2 column 0 to line 2 column 4 | parse_XML_file(newxta=false) failed: error: $syntax_error: $unexpected T_INT in /nta/declaration at line 3 column 6 to line 3 column 9; error: $Unknown_identifier: TYPES in /nta/declaration at line 9 column 10 to line 9 column 15; error: $syntax_error: $unexpected T_INT in /nta/declaration at line 12 column 6 to line 12 column 9; error: ... (41 total)",
-      "message_zh": "UTAP 实际解析失败。原因：parse_XML_file(newxta=true) failed: error: $Unknown_identifier: cost in /nta/template[2]/location[2]/label[1] at line 2 column 0 to line 2 column 4; error: $Unknown_identifier: cost in /nta/template[2]/location[3]/label[1] at line 2 column 0 to line 2 column 4 | parse_XML_file(newxta=false) failed: error: $syntax_error: $unexpected T_INT in /nta/declaration at line 3 column 6 to line 3 column 9; error: $Unknown_identifier: TYPES in /nta/declaration at line 9 column 10 to line 9 column 15; error: $syntax_error: $unexpected T_INT in /nta/declaration at line 12 column 6 to line 12 column 9; error: ... (41 total)"
-    },
-    {
-      "path": "linked/uppaal.org/casestudies/cora/vrptw.q",
-      "parse_kind": "QUERY_PROPERTY_FILE",
-      "desc": "Query/property file for the vehicle-routing-with-time-windows case study.",
-      "desc_zh": "带时间窗的车辆路径规划案例的性质/查询文件。",
-      "context_path": "linked/uppaal.org/casestudies/cora/vrptw.xml",
-      "status": "error",
-      "message": "no companion model made the query parse successfully: vrptw.xml: companion model parse failed: error: $syntax_error: $unexpected T_INT in /nta/declaration at line 2 column 6 to line 2 column 9; error: $syntax_error: $unexpected T_INT in /nta/declaration at line 12 column 6 to line 12 column 9; error: $Unknown_identifier: vehicles in /nta/declaration at line 38 column 16 to line 38 column 24; error: ... (139 total) | alp.xml: companion model parse failed: error: $syntax_error: $unexpected T_INT in /nta/declaration at line 3 column 6 to line 3 column 9; error: $Unknown_identifier: TYPES in /nta/declaration at line 9 column 10 to line 9 column 15; error: $syntax_error: $unexpected T_INT in /nta/declaration at line 12 column 6 to line 12 column 9; error: ... (41 total)",
-      "message_zh": "UTAP 实际解析失败。使用上下文文件 linked/uppaal.org/casestudies/cora/vrptw.xml。原因：no companion model made the query parse successfully: vrptw.xml: companion model parse failed: error: $syntax_error: $unexpected T_INT in /nta/declaration at line 2 column 6 to line 2 column 9; error: $syntax_error: $unexpected T_INT in /nta/declaration at line 12 column 6 to line 12 column 9; error: $Unknown_identifier: vehicles in /nta/declaration at line 38 column 16 to line 38 column 24; error: ... (139 total) | alp.xml: companion model parse failed: error: $syntax_error: $unexpected T_INT in /nta/declaration at line 3 column 6 to line 3 column 9; error: $Unknown_identifier: TYPES in /nta/declaration at line 9 column 10 to line 9 column 15; error: $syntax_error: $unexpected T_INT in /nta/declaration at line 12 column 6 to line 12 column 9; error: ... (41 total)"
-    },
-    {
-      "path": "linked/uppaal.org/casestudies/cora/vrptw.xml",
-      "parse_kind": "XML_MODEL_FILE",
-      "desc": "XML model file for the vehicle-routing-with-time-windows case study.",
-      "desc_zh": "带时间窗的车辆路径规划案例的 XML 模型文件。",
-      "context_path": null,
-      "status": "error",
-      "message": "parse_XML_file(newxta=true) failed: error: $Overflow in /nta/declaration at line 48 column 10 to line 48 column 22; error: $syntax_error: $unexpected T_ERROR in /nta/declaration at line 48 column 10 to line 48 column 22; error: $Overflow in /nta/declaration at line 48 column 23 to line 48 column 35; error: ... (15 total) | parse_XML_file(newxta=false) failed: error: $syntax_error: $unexpected T_INT in /nta/declaration at line 2 column 6 to line 2 column 9; error: $syntax_error: $unexpected T_INT in /nta/declaration at line 12 column 6 to line 12 column 9; error: $Unknown_identifier: vehicles in /nta/declaration at line 38 column 16 to line 38 column 24; error: ... (139 total)",
-      "message_zh": "UTAP 实际解析失败。原因：parse_XML_file(newxta=true) failed: error: $Overflow in /nta/declaration at line 48 column 10 to line 48 column 22; error: $syntax_error: $unexpected T_ERROR in /nta/declaration at line 48 column 10 to line 48 column 22; error: $Overflow in /nta/declaration at line 48 column 23 to line 48 column 35; error: ... (15 total) | parse_XML_file(newxta=false) failed: error: $syntax_error: $unexpected T_INT in /nta/declaration at line 2 column 6 to line 2 column 9; error: $syntax_error: $unexpected T_INT in /nta/declaration at line 12 column 6 to line 12 column 9; error: $Unknown_identifier: vehicles in /nta/declaration at line 38 column 16 to line 38 column 24; error: ... (139 total)"
-    },
-    {
-      "path": "linked/uppaal.org/casestudies/smc/anova/discomfort.q",
-      "parse_kind": "QUERY_PROPERTY_FILE",
-      "desc": "Query/property file for the discomfort objective used in the ANOVA trade-off example.",
-      "desc_zh": "ANOVA 权衡示例中的 discomfort 目标的性质/查询文件。",
-      "context_path": "linked/uppaal.org/casestudies/smc/anova/pareto.xml",
-      "status": "error",
-      "message": "no companion model made the query parse successfully: PropertyBuilder::parse(FILE*) failed with companion model pareto.xml using parse_XML_file(newxta=true): error: $syntax_error: $unexpected T_NAT, $expecting '[' at line 4 column 9 to line 4 column 13 | TigaPropertyBuilder::parse(FILE*) failed with companion model pareto.xml using parse_XML_file(newxta=true): error: $syntax_error: $unexpected T_NAT, $expecting '[' at line 4 column 9 to line 4 column 13",
-      "message_zh": "UTAP 实际解析失败。使用上下文文件 linked/uppaal.org/casestudies/smc/anova/pareto.xml。原因：no companion model made the query parse successfully: PropertyBuilder::parse(FILE*) failed with companion model pareto.xml using parse_XML_file(newxta=true): error: $syntax_error: $unexpected T_NAT, $expecting '[' at line 4 column 9 to line 4 column 13 | TigaPropertyBuilder::parse(FILE*) failed with companion model pareto.xml using parse_XML_file(newxta=true): error: $syntax_error: $unexpected T_NAT, $expecting '[' at line 4 column 9 to line 4 column 13"
-    },
-    {
       "path": "linked/uppaal.org/casestudies/smc/anova/pareto.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the Pareto/ANOVA trade-off example.",
@@ -839,16 +789,6 @@
       "status": "ok",
       "message": "parsed via parse_XML_file(newxta=true)",
       "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
-    },
-    {
-      "path": "linked/uppaal.org/casestudies/smc/bluetooth.cav.q",
-      "parse_kind": "QUERY_PROPERTY_FILE",
-      "desc": "Query/property file for the Bluetooth protocol case study from the CAV examples.",
-      "desc_zh": "CAV 示例中的 Bluetooth 协议案例的性质/查询文件。",
-      "context_path": "linked/uppaal.org/casestudies/smc/bluetooth.cav.xml",
-      "status": "error",
-      "message": "no companion model made the query parse successfully: PropertyBuilder::parse(FILE*) failed with companion model bluetooth.cav.xml using parse_XML_file(newxta=true): error: $has_no_member_named energy at line 81 column 28 to line 81 column 44; error: $Integer_or_clock_expected at line 81 column 28 to line 81 column 37; error: $Unknown_identifier: step at line 86 column 3 to line 86 column 7; error: ... (8 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model bluetooth.cav.xml using parse_XML_file(newxta=true): error: $has_no_member_named energy at line 81 column 28 to line 81 column 44; error: $Integer_or_clock_expected at line 81 column 28 to line 81 column 37; error: $Unknown_identifier: step at line 86 column 3 to line 86 column 7; error: ... (8 total) | PropertyBuilder::parse(FILE*) failed with companion model firewire.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: time at line 6 column 3 to line 6 column 7; error: $Unknown_identifier: receiver1 at line 6 column 18 to line 6 column 27; error: false $is_not_a_structure at line 6 column 18 to line 6 column 33; error: ... (88 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model firewire.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: time at line 6 column 3 to line 6 column 7; error: $Unknown_identifier: receiver1 at line 6 column 18 to line 6 column 27; error: false $is_not_a_structure at line 6 column 18 to line 6 column 33; error: ... (88 total) | PropertyBuilder::parse(FILE*) failed with companion model lmac-bubble.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: receiver1 at line 6 column 18 to line 6 column 27; error: false $is_not_a_structure at line 6 column 18 to line 6 column 33; error: $Unknown_identifier: receiver1 at line 11 column 19 to line 11 column 28; error: ... (53 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model lmac-bubble.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: receiver1 at line 6 column 18 to line 6 column 27; error: false $is_not_a_structure at line 6 column 18 to line 6 column 33; error: $Unknown_identifier: receiver1 at line 11 column 19 to line 11 column 28; error: ... (53 total) | PropertyBuilder::parse(FILE*) failed with companion model lmac-star.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: receiver1 at line 6 column 18 to line 6 column 27; error: false $is_not_a_structure at line 6 column 18 to line 6 column 33; error: $Unknown_identifier: receiver1 at line 11 column 19 to line 11 column 28; error: ... (53 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model lmac-star.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: receiver1 at line 6 column 18 to line 6 column 27; error: false $is_not_a_structure at line 6 column 18 to line 6 column 33; error: $Unknown_identifier: receiver1 at line 11 column 19 to line 11 column 28; error: ... (53 total) | ... (9 candidates tried)",
-      "message_zh": "UTAP 实际解析失败。使用上下文文件 linked/uppaal.org/casestudies/smc/bluetooth.cav.xml。原因：no companion model made the query parse successfully: PropertyBuilder::parse(FILE*) failed with companion model bluetooth.cav.xml using parse_XML_file(newxta=true): error: $has_no_member_named energy at line 81 column 28 to line 81 column 44; error: $Integer_or_clock_expected at line 81 column 28 to line 81 column 37; error: $Unknown_identifier: step at line 86 column 3 to line 86 column 7; error: ... (8 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model bluetooth.cav.xml using parse_XML_file(newxta=true): error: $has_no_member_named energy at line 81 column 28 to line 81 column 44; error: $Integer_or_clock_expected at line 81 column 28 to line 81 column 37; error: $Unknown_identifier: step at line 86 column 3 to line 86 column 7; error: ... (8 total) | PropertyBuilder::parse(FILE*) failed with companion model firewire.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: time at line 6 column 3 to line 6 column 7; error: $Unknown_identifier: receiver1 at line 6 column 18 to line 6 column 27; error: false $is_not_a_structure at line 6 column 18 to line 6 column 33; error: ... (88 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model firewire.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: time at line 6 column 3 to line 6 column 7; error: $Unknown_identifier: receiver1 at line 6 column 18 to line 6 column 27; error: false $is_not_a_structure at line 6 column 18 to line 6 column 33; error: ... (88 total) | PropertyBuilder::parse(FILE*) failed with companion model lmac-bubble.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: receiver1 at line 6 column 18 to line 6 column 27; error: false $is_not_a_structure at line 6 column 18 to line 6 column 33; error: $Unknown_identifier: receiver1 at line 11 column 19 to line 11 column 28; error: ... (53 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model lmac-bubble.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: receiver1 at line 6 column 18 to line 6 column 27; error: false $is_not_a_structure at line 6 column 18 to line 6 column 33; error: $Unknown_identifier: receiver1 at line 11 column 19 to line 11 column 28; error: ... (53 total) | PropertyBuilder::parse(FILE*) failed with companion model lmac-star.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: receiver1 at line 6 column 18 to line 6 column 27; error: false $is_not_a_structure at line 6 column 18 to line 6 column 33; error: $Unknown_identifier: receiver1 at line 11 column 19 to line 11 column 28; error: ... (53 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model lmac-star.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: receiver1 at line 6 column 18 to line 6 column 27; error: false $is_not_a_structure at line 6 column 18 to line 6 column 33; error: $Unknown_identifier: receiver1 at line 11 column 19 to line 11 column 28; error: ... (53 total) | ... (9 candidates tried)"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/bluetooth.cav.xml",
@@ -1101,16 +1041,6 @@
       "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
-      "path": "linked/uppaal.org/casestudies/smc/firewire.cav.q",
-      "parse_kind": "QUERY_PROPERTY_FILE",
-      "desc": "Query/property file for the FireWire protocol case study from the CAV examples.",
-      "desc_zh": "CAV 示例中的 FireWire 协议案例的性质/查询文件。",
-      "context_path": "linked/uppaal.org/casestudies/smc/firewire.cav.xml",
-      "status": "error",
-      "message": "no companion model made the query parse successfully: PropertyBuilder::parse(FILE*) failed with companion model firewire.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: time at line 21 column 3 to line 21 column 7; error: $Clock_expected at line 21 column 3 to line 21 column 7; error: $Unknown_identifier: time at line 26 column 3 to line 26 column 7; error: ... (56 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model firewire.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: time at line 21 column 3 to line 21 column 7; error: $Clock_expected at line 21 column 3 to line 21 column 7; error: $Unknown_identifier: time at line 26 column 3 to line 26 column 7; error: ... (56 total) | PropertyBuilder::parse(FILE*) failed with companion model bluetooth.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: node1 at line 6 column 6 to line 6 column 11; error: false $is_not_a_structure at line 6 column 6 to line 6 column 13; error: $Unknown_identifier: node2 at line 6 column 22 to line 6 column 27; error: ... (130 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model bluetooth.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: node1 at line 6 column 6 to line 6 column 11; error: false $is_not_a_structure at line 6 column 6 to line 6 column 13; error: $Unknown_identifier: node2 at line 6 column 22 to line 6 column 27; error: ... (130 total) | PropertyBuilder::parse(FILE*) failed with companion model lmac-bubble.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: node1 at line 6 column 6 to line 6 column 11; error: false $is_not_a_structure at line 6 column 6 to line 6 column 13; error: $Unknown_identifier: node2 at line 6 column 22 to line 6 column 27; error: ... (130 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model lmac-bubble.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: node1 at line 6 column 6 to line 6 column 11; error: false $is_not_a_structure at line 6 column 6 to line 6 column 13; error: $Unknown_identifier: node2 at line 6 column 22 to line 6 column 27; error: ... (130 total) | PropertyBuilder::parse(FILE*) failed with companion model lmac-star.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: node1 at line 6 column 6 to line 6 column 11; error: false $is_not_a_structure at line 6 column 6 to line 6 column 13; error: $Unknown_identifier: node2 at line 6 column 22 to line 6 column 27; error: ... (130 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model lmac-star.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: node1 at line 6 column 6 to line 6 column 11; error: false $is_not_a_structure at line 6 column 6 to line 6 column 13; error: $Unknown_identifier: node2 at line 6 column 22 to line 6 column 27; error: ... (130 total) | ... (9 candidates tried)",
-      "message_zh": "UTAP 实际解析失败。使用上下文文件 linked/uppaal.org/casestudies/smc/firewire.cav.xml。原因：no companion model made the query parse successfully: PropertyBuilder::parse(FILE*) failed with companion model firewire.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: time at line 21 column 3 to line 21 column 7; error: $Clock_expected at line 21 column 3 to line 21 column 7; error: $Unknown_identifier: time at line 26 column 3 to line 26 column 7; error: ... (56 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model firewire.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: time at line 21 column 3 to line 21 column 7; error: $Clock_expected at line 21 column 3 to line 21 column 7; error: $Unknown_identifier: time at line 26 column 3 to line 26 column 7; error: ... (56 total) | PropertyBuilder::parse(FILE*) failed with companion model bluetooth.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: node1 at line 6 column 6 to line 6 column 11; error: false $is_not_a_structure at line 6 column 6 to line 6 column 13; error: $Unknown_identifier: node2 at line 6 column 22 to line 6 column 27; error: ... (130 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model bluetooth.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: node1 at line 6 column 6 to line 6 column 11; error: false $is_not_a_structure at line 6 column 6 to line 6 column 13; error: $Unknown_identifier: node2 at line 6 column 22 to line 6 column 27; error: ... (130 total) | PropertyBuilder::parse(FILE*) failed with companion model lmac-bubble.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: node1 at line 6 column 6 to line 6 column 11; error: false $is_not_a_structure at line 6 column 6 to line 6 column 13; error: $Unknown_identifier: node2 at line 6 column 22 to line 6 column 27; error: ... (130 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model lmac-bubble.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: node1 at line 6 column 6 to line 6 column 11; error: false $is_not_a_structure at line 6 column 6 to line 6 column 13; error: $Unknown_identifier: node2 at line 6 column 22 to line 6 column 27; error: ... (130 total) | PropertyBuilder::parse(FILE*) failed with companion model lmac-star.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: node1 at line 6 column 6 to line 6 column 11; error: false $is_not_a_structure at line 6 column 6 to line 6 column 13; error: $Unknown_identifier: node2 at line 6 column 22 to line 6 column 27; error: ... (130 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model lmac-star.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: node1 at line 6 column 6 to line 6 column 11; error: false $is_not_a_structure at line 6 column 6 to line 6 column 13; error: $Unknown_identifier: node2 at line 6 column 22 to line 6 column 27; error: ... (130 total) | ... (9 candidates tried)"
-    },
-    {
       "path": "linked/uppaal.org/casestudies/smc/firewire.cav.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the FireWire protocol case study from the CAV examples.",
@@ -1241,16 +1171,6 @@
       "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/uppaal.org/casestudies/smc/polling.xml。详情：parsed via PropertyBuilder::parse(FILE*) using companion model polling.xml with parse_XML_file(newxta=true); properties=1"
     },
     {
-      "path": "linked/uppaal.org/casestudies/smc/samplesmc.q",
-      "parse_kind": "QUERY_PROPERTY_FILE",
-      "desc": "Query/property file for the sample statistical model checking example.",
-      "desc_zh": "示例化统计模型检测案例的性质/查询文件。",
-      "context_path": "linked/uppaal.org/casestudies/smc/samplesmc.xml",
-      "status": "error",
-      "message": "no companion model made the query parse successfully: PropertyBuilder::parse(FILE*) failed with companion model samplesmc.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: P at line 31 column 12 to line 31 column 13; error: false $is_not_a_structure at line 31 column 12 to line 31 column 16 | TigaPropertyBuilder::parse(FILE*) failed with companion model samplesmc.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: P at line 31 column 12 to line 31 column 13; error: false $is_not_a_structure at line 31 column 12 to line 31 column 16 | PropertyBuilder::parse(FILE*) failed with companion model bluetooth.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: steps at line 6 column 3 to line 6 column 8; error: $Unknown_identifier: Master at line 6 column 20 to line 6 column 26; error: false $is_not_a_structure at line 6 column 20 to line 6 column 29; error: ... (18 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model bluetooth.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: steps at line 6 column 3 to line 6 column 8; error: $Unknown_identifier: Master at line 6 column 20 to line 6 column 26; error: false $is_not_a_structure at line 6 column 20 to line 6 column 29; error: ... (18 total) | PropertyBuilder::parse(FILE*) failed with companion model firewire.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: steps at line 6 column 3 to line 6 column 8; error: $Unknown_identifier: Master at line 6 column 20 to line 6 column 26; error: false $is_not_a_structure at line 6 column 20 to line 6 column 29; error: ... (18 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model firewire.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: steps at line 6 column 3 to line 6 column 8; error: $Unknown_identifier: Master at line 6 column 20 to line 6 column 26; error: false $is_not_a_structure at line 6 column 20 to line 6 column 29; error: ... (18 total) | PropertyBuilder::parse(FILE*) failed with companion model lmac-bubble.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: steps at line 6 column 3 to line 6 column 8; error: $Unknown_identifier: Master at line 6 column 20 to line 6 column 26; error: false $is_not_a_structure at line 6 column 20 to line 6 column 29; error: ... (18 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model lmac-bubble.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: steps at line 6 column 3 to line 6 column 8; error: $Unknown_identifier: Master at line 6 column 20 to line 6 column 26; error: false $is_not_a_structure at line 6 column 20 to line 6 column 29; error: ... (18 total) | ... (9 candidates tried)",
-      "message_zh": "UTAP 实际解析失败。使用上下文文件 linked/uppaal.org/casestudies/smc/samplesmc.xml。原因：no companion model made the query parse successfully: PropertyBuilder::parse(FILE*) failed with companion model samplesmc.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: P at line 31 column 12 to line 31 column 13; error: false $is_not_a_structure at line 31 column 12 to line 31 column 16 | TigaPropertyBuilder::parse(FILE*) failed with companion model samplesmc.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: P at line 31 column 12 to line 31 column 13; error: false $is_not_a_structure at line 31 column 12 to line 31 column 16 | PropertyBuilder::parse(FILE*) failed with companion model bluetooth.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: steps at line 6 column 3 to line 6 column 8; error: $Unknown_identifier: Master at line 6 column 20 to line 6 column 26; error: false $is_not_a_structure at line 6 column 20 to line 6 column 29; error: ... (18 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model bluetooth.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: steps at line 6 column 3 to line 6 column 8; error: $Unknown_identifier: Master at line 6 column 20 to line 6 column 26; error: false $is_not_a_structure at line 6 column 20 to line 6 column 29; error: ... (18 total) | PropertyBuilder::parse(FILE*) failed with companion model firewire.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: steps at line 6 column 3 to line 6 column 8; error: $Unknown_identifier: Master at line 6 column 20 to line 6 column 26; error: false $is_not_a_structure at line 6 column 20 to line 6 column 29; error: ... (18 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model firewire.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: steps at line 6 column 3 to line 6 column 8; error: $Unknown_identifier: Master at line 6 column 20 to line 6 column 26; error: false $is_not_a_structure at line 6 column 20 to line 6 column 29; error: ... (18 total) | PropertyBuilder::parse(FILE*) failed with companion model lmac-bubble.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: steps at line 6 column 3 to line 6 column 8; error: $Unknown_identifier: Master at line 6 column 20 to line 6 column 26; error: false $is_not_a_structure at line 6 column 20 to line 6 column 29; error: ... (18 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model lmac-bubble.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: steps at line 6 column 3 to line 6 column 8; error: $Unknown_identifier: Master at line 6 column 20 to line 6 column 26; error: false $is_not_a_structure at line 6 column 20 to line 6 column 29; error: ... (18 total) | ... (9 candidates tried)"
-    },
-    {
       "path": "linked/uppaal.org/casestudies/smc/samplesmc.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the sample statistical model checking example.",
@@ -1379,66 +1299,6 @@
       "status": "ok",
       "message": "parsed via parse_XML_file(newxta=false)",
       "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=false)"
-    },
-    {
-      "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bopdp/bopdp.q",
-      "parse_kind": "QUERY_PROPERTY_FILE",
-      "desc": "Query/property file for the official `bopdp` benchmark case study.",
-      "desc_zh": "`bopdp` 官方基准案例的性质/查询文件。",
-      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bopdp/bopdp.xml",
-      "status": "error",
-      "message": "current official www.it.uu.se benchmark URL resolves to an HTML/404 page instead of a query file; simple re-download from the same official source is unlikely to repair this sample as of 2026-03-26",
-      "message_zh": "当前官方 www.it.uu.se benchmark 链接返回的是 HTML/404 页面，而不是查询文件；截至 2026-03-26，仅从同一官方来源重新下载，大概率无法修复该样本。"
-    },
-    {
-      "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bopdp/bopdp.ta",
-      "parse_kind": "TEXTUAL_MODEL_FILE",
-      "desc": "Textual model file for the official `bopdp` benchmark case study.",
-      "desc_zh": "`bopdp` 官方基准案例的文本模型文件。",
-      "context_path": null,
-      "status": "error",
-      "message": "current official www.it.uu.se benchmark URL resolves to an HTML/404 page instead of a textual model file; simple re-download from the same official source is unlikely to repair this sample as of 2026-03-26",
-      "message_zh": "当前官方 www.it.uu.se benchmark 链接返回的是 HTML/404 页面，而不是文本模型文件；截至 2026-03-26，仅从同一官方来源重新下载，大概率无法修复该样本。"
-    },
-    {
-      "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bopdp/bopdp.xml",
-      "parse_kind": "XML_MODEL_FILE",
-      "desc": "XML model file for the official `bopdp` benchmark case study.",
-      "desc_zh": "`bopdp` 官方基准案例的 XML 模型文件。",
-      "context_path": null,
-      "status": "error",
-      "message": "current official www.it.uu.se benchmark URL resolves to an HTML/404 page instead of an XML model file; simple re-download from the same official source is unlikely to repair this sample as of 2026-03-26",
-      "message_zh": "当前官方 www.it.uu.se benchmark 链接返回的是 HTML/404 页面，而不是 XML 模型文件；截至 2026-03-26，仅从同一官方来源重新下载，大概率无法修复该样本。"
-    },
-    {
-      "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bopdpFIXED/bopdpFIXED.q",
-      "parse_kind": "QUERY_PROPERTY_FILE",
-      "desc": "Query/property file for the fixed variant of the official `bopdp` benchmark.",
-      "desc_zh": "`bopdp` 官方基准的 fixed 变体的性质/查询文件。",
-      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bopdpFIXED/bopdpFIXED.xml",
-      "status": "error",
-      "message": "current official www.it.uu.se benchmark URL resolves to an HTML/404 page instead of a query file; simple re-download from the same official source is unlikely to repair this sample as of 2026-03-26",
-      "message_zh": "当前官方 www.it.uu.se benchmark 链接返回的是 HTML/404 页面，而不是查询文件；截至 2026-03-26，仅从同一官方来源重新下载，大概率无法修复该样本。"
-    },
-    {
-      "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bopdpFIXED/bopdpFIXED.ta",
-      "parse_kind": "TEXTUAL_MODEL_FILE",
-      "desc": "Textual model file for the fixed variant of the official `bopdp` benchmark.",
-      "desc_zh": "`bopdp` 官方基准的 fixed 变体的文本模型文件。",
-      "context_path": null,
-      "status": "error",
-      "message": "current official www.it.uu.se benchmark URL resolves to an HTML/404 page instead of a textual model file; simple re-download from the same official source is unlikely to repair this sample as of 2026-03-26",
-      "message_zh": "当前官方 www.it.uu.se benchmark 链接返回的是 HTML/404 页面，而不是文本模型文件；截至 2026-03-26，仅从同一官方来源重新下载，大概率无法修复该样本。"
-    },
-    {
-      "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bopdpFIXED/bopdpFIXED.xml",
-      "parse_kind": "XML_MODEL_FILE",
-      "desc": "XML model file for the fixed variant of the official `bopdp` benchmark.",
-      "desc_zh": "`bopdp` 官方基准的 fixed 变体的 XML 模型文件。",
-      "context_path": null,
-      "status": "error",
-      "message": "current official www.it.uu.se benchmark URL resolves to an HTML/404 page instead of an XML model file; simple re-download from the same official source is unlikely to repair this sample as of 2026-03-26",
-      "message_zh": "当前官方 www.it.uu.se benchmark 链接返回的是 HTML/404 页面，而不是 XML 模型文件；截至 2026-03-26，仅从同一官方来源重新下载，大概率无法修复该样本。"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_02.q",
@@ -1689,226 +1549,6 @@
       "status": "ok",
       "message": "parsed via parse_XML_file(newxta=false)",
       "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=false)"
-    },
-    {
-      "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_02.q",
-      "parse_kind": "QUERY_PROPERTY_FILE",
-      "desc": "Query/property file for Fischer mutual exclusion benchmark instance 2.",
-      "desc_zh": "Fischer 互斥基准的第 2 个实例的性质/查询文件。",
-      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_02.ta",
-      "status": "error",
-      "message": "current official www.it.uu.se benchmark URL resolves to an HTML/404 page instead of a query file; simple re-download from the same official source is unlikely to repair this sample as of 2026-03-26",
-      "message_zh": "当前官方 www.it.uu.se benchmark 链接返回的是 HTML/404 页面，而不是查询文件；截至 2026-03-26，仅从同一官方来源重新下载，大概率无法修复该样本。"
-    },
-    {
-      "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_02.ta",
-      "parse_kind": "TEXTUAL_MODEL_FILE",
-      "desc": "Textual model file for Fischer mutual exclusion benchmark instance 2.",
-      "desc_zh": "Fischer 互斥基准的第 2 个实例的文本模型文件。",
-      "context_path": null,
-      "status": "error",
-      "message": "current official www.it.uu.se benchmark URL resolves to an HTML/404 page instead of a textual model file; simple re-download from the same official source is unlikely to repair this sample as of 2026-03-26",
-      "message_zh": "当前官方 www.it.uu.se benchmark 链接返回的是 HTML/404 页面，而不是文本模型文件；截至 2026-03-26，仅从同一官方来源重新下载，大概率无法修复该样本。"
-    },
-    {
-      "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_03.q",
-      "parse_kind": "QUERY_PROPERTY_FILE",
-      "desc": "Query/property file for Fischer mutual exclusion benchmark instance 3.",
-      "desc_zh": "Fischer 互斥基准的第 3 个实例的性质/查询文件。",
-      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_03.ta",
-      "status": "error",
-      "message": "current official www.it.uu.se benchmark URL resolves to an HTML/404 page instead of a query file; simple re-download from the same official source is unlikely to repair this sample as of 2026-03-26",
-      "message_zh": "当前官方 www.it.uu.se benchmark 链接返回的是 HTML/404 页面，而不是查询文件；截至 2026-03-26，仅从同一官方来源重新下载，大概率无法修复该样本。"
-    },
-    {
-      "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_03.ta",
-      "parse_kind": "TEXTUAL_MODEL_FILE",
-      "desc": "Textual model file for Fischer mutual exclusion benchmark instance 3.",
-      "desc_zh": "Fischer 互斥基准的第 3 个实例的文本模型文件。",
-      "context_path": null,
-      "status": "error",
-      "message": "current official www.it.uu.se benchmark URL resolves to an HTML/404 page instead of a textual model file; simple re-download from the same official source is unlikely to repair this sample as of 2026-03-26",
-      "message_zh": "当前官方 www.it.uu.se benchmark 链接返回的是 HTML/404 页面，而不是文本模型文件；截至 2026-03-26，仅从同一官方来源重新下载，大概率无法修复该样本。"
-    },
-    {
-      "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_04.q",
-      "parse_kind": "QUERY_PROPERTY_FILE",
-      "desc": "Query/property file for Fischer mutual exclusion benchmark instance 4.",
-      "desc_zh": "Fischer 互斥基准的第 4 个实例的性质/查询文件。",
-      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_04.ta",
-      "status": "error",
-      "message": "current official www.it.uu.se benchmark URL resolves to an HTML/404 page instead of a query file; simple re-download from the same official source is unlikely to repair this sample as of 2026-03-26",
-      "message_zh": "当前官方 www.it.uu.se benchmark 链接返回的是 HTML/404 页面，而不是查询文件；截至 2026-03-26，仅从同一官方来源重新下载，大概率无法修复该样本。"
-    },
-    {
-      "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_04.ta",
-      "parse_kind": "TEXTUAL_MODEL_FILE",
-      "desc": "Textual model file for Fischer mutual exclusion benchmark instance 4.",
-      "desc_zh": "Fischer 互斥基准的第 4 个实例的文本模型文件。",
-      "context_path": null,
-      "status": "error",
-      "message": "current official www.it.uu.se benchmark URL resolves to an HTML/404 page instead of a textual model file; simple re-download from the same official source is unlikely to repair this sample as of 2026-03-26",
-      "message_zh": "当前官方 www.it.uu.se benchmark 链接返回的是 HTML/404 页面，而不是文本模型文件；截至 2026-03-26，仅从同一官方来源重新下载，大概率无法修复该样本。"
-    },
-    {
-      "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_05.q",
-      "parse_kind": "QUERY_PROPERTY_FILE",
-      "desc": "Query/property file for Fischer mutual exclusion benchmark instance 5.",
-      "desc_zh": "Fischer 互斥基准的第 5 个实例的性质/查询文件。",
-      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_05.ta",
-      "status": "error",
-      "message": "current official www.it.uu.se benchmark URL resolves to an HTML/404 page instead of a query file; simple re-download from the same official source is unlikely to repair this sample as of 2026-03-26",
-      "message_zh": "当前官方 www.it.uu.se benchmark 链接返回的是 HTML/404 页面，而不是查询文件；截至 2026-03-26，仅从同一官方来源重新下载，大概率无法修复该样本。"
-    },
-    {
-      "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_05.ta",
-      "parse_kind": "TEXTUAL_MODEL_FILE",
-      "desc": "Textual model file for Fischer mutual exclusion benchmark instance 5.",
-      "desc_zh": "Fischer 互斥基准的第 5 个实例的文本模型文件。",
-      "context_path": null,
-      "status": "error",
-      "message": "current official www.it.uu.se benchmark URL resolves to an HTML/404 page instead of a textual model file; simple re-download from the same official source is unlikely to repair this sample as of 2026-03-26",
-      "message_zh": "当前官方 www.it.uu.se benchmark 链接返回的是 HTML/404 页面，而不是文本模型文件；截至 2026-03-26，仅从同一官方来源重新下载，大概率无法修复该样本。"
-    },
-    {
-      "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_06.q",
-      "parse_kind": "QUERY_PROPERTY_FILE",
-      "desc": "Query/property file for Fischer mutual exclusion benchmark instance 6.",
-      "desc_zh": "Fischer 互斥基准的第 6 个实例的性质/查询文件。",
-      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_06.ta",
-      "status": "error",
-      "message": "current official www.it.uu.se benchmark URL resolves to an HTML/404 page instead of a query file; simple re-download from the same official source is unlikely to repair this sample as of 2026-03-26",
-      "message_zh": "当前官方 www.it.uu.se benchmark 链接返回的是 HTML/404 页面，而不是查询文件；截至 2026-03-26，仅从同一官方来源重新下载，大概率无法修复该样本。"
-    },
-    {
-      "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_06.ta",
-      "parse_kind": "TEXTUAL_MODEL_FILE",
-      "desc": "Textual model file for Fischer mutual exclusion benchmark instance 6.",
-      "desc_zh": "Fischer 互斥基准的第 6 个实例的文本模型文件。",
-      "context_path": null,
-      "status": "error",
-      "message": "current official www.it.uu.se benchmark URL resolves to an HTML/404 page instead of a textual model file; simple re-download from the same official source is unlikely to repair this sample as of 2026-03-26",
-      "message_zh": "当前官方 www.it.uu.se benchmark 链接返回的是 HTML/404 页面，而不是文本模型文件；截至 2026-03-26，仅从同一官方来源重新下载，大概率无法修复该样本。"
-    },
-    {
-      "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_07.q",
-      "parse_kind": "QUERY_PROPERTY_FILE",
-      "desc": "Query/property file for Fischer mutual exclusion benchmark instance 7.",
-      "desc_zh": "Fischer 互斥基准的第 7 个实例的性质/查询文件。",
-      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_07.ta",
-      "status": "error",
-      "message": "current official www.it.uu.se benchmark URL resolves to an HTML/404 page instead of a query file; simple re-download from the same official source is unlikely to repair this sample as of 2026-03-26",
-      "message_zh": "当前官方 www.it.uu.se benchmark 链接返回的是 HTML/404 页面，而不是查询文件；截至 2026-03-26，仅从同一官方来源重新下载，大概率无法修复该样本。"
-    },
-    {
-      "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_07.ta",
-      "parse_kind": "TEXTUAL_MODEL_FILE",
-      "desc": "Textual model file for Fischer mutual exclusion benchmark instance 7.",
-      "desc_zh": "Fischer 互斥基准的第 7 个实例的文本模型文件。",
-      "context_path": null,
-      "status": "error",
-      "message": "current official www.it.uu.se benchmark URL resolves to an HTML/404 page instead of a textual model file; simple re-download from the same official source is unlikely to repair this sample as of 2026-03-26",
-      "message_zh": "当前官方 www.it.uu.se benchmark 链接返回的是 HTML/404 页面，而不是文本模型文件；截至 2026-03-26，仅从同一官方来源重新下载，大概率无法修复该样本。"
-    },
-    {
-      "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_08.q",
-      "parse_kind": "QUERY_PROPERTY_FILE",
-      "desc": "Query/property file for Fischer mutual exclusion benchmark instance 8.",
-      "desc_zh": "Fischer 互斥基准的第 8 个实例的性质/查询文件。",
-      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_08.ta",
-      "status": "error",
-      "message": "current official www.it.uu.se benchmark URL resolves to an HTML/404 page instead of a query file; simple re-download from the same official source is unlikely to repair this sample as of 2026-03-26",
-      "message_zh": "当前官方 www.it.uu.se benchmark 链接返回的是 HTML/404 页面，而不是查询文件；截至 2026-03-26，仅从同一官方来源重新下载，大概率无法修复该样本。"
-    },
-    {
-      "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_08.ta",
-      "parse_kind": "TEXTUAL_MODEL_FILE",
-      "desc": "Textual model file for Fischer mutual exclusion benchmark instance 8.",
-      "desc_zh": "Fischer 互斥基准的第 8 个实例的文本模型文件。",
-      "context_path": null,
-      "status": "error",
-      "message": "current official www.it.uu.se benchmark URL resolves to an HTML/404 page instead of a textual model file; simple re-download from the same official source is unlikely to repair this sample as of 2026-03-26",
-      "message_zh": "当前官方 www.it.uu.se benchmark 链接返回的是 HTML/404 页面，而不是文本模型文件；截至 2026-03-26，仅从同一官方来源重新下载，大概率无法修复该样本。"
-    },
-    {
-      "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_09.q",
-      "parse_kind": "QUERY_PROPERTY_FILE",
-      "desc": "Query/property file for Fischer mutual exclusion benchmark instance 9.",
-      "desc_zh": "Fischer 互斥基准的第 9 个实例的性质/查询文件。",
-      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_09.ta",
-      "status": "error",
-      "message": "current official www.it.uu.se benchmark URL resolves to an HTML/404 page instead of a query file; simple re-download from the same official source is unlikely to repair this sample as of 2026-03-26",
-      "message_zh": "当前官方 www.it.uu.se benchmark 链接返回的是 HTML/404 页面，而不是查询文件；截至 2026-03-26，仅从同一官方来源重新下载，大概率无法修复该样本。"
-    },
-    {
-      "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_09.ta",
-      "parse_kind": "TEXTUAL_MODEL_FILE",
-      "desc": "Textual model file for Fischer mutual exclusion benchmark instance 9.",
-      "desc_zh": "Fischer 互斥基准的第 9 个实例的文本模型文件。",
-      "context_path": null,
-      "status": "error",
-      "message": "current official www.it.uu.se benchmark URL resolves to an HTML/404 page instead of a textual model file; simple re-download from the same official source is unlikely to repair this sample as of 2026-03-26",
-      "message_zh": "当前官方 www.it.uu.se benchmark 链接返回的是 HTML/404 页面，而不是文本模型文件；截至 2026-03-26，仅从同一官方来源重新下载，大概率无法修复该样本。"
-    },
-    {
-      "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_10.q",
-      "parse_kind": "QUERY_PROPERTY_FILE",
-      "desc": "Query/property file for Fischer mutual exclusion benchmark instance 10.",
-      "desc_zh": "Fischer 互斥基准的第 10 个实例的性质/查询文件。",
-      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_10.ta",
-      "status": "error",
-      "message": "current official www.it.uu.se benchmark URL resolves to an HTML/404 page instead of a query file; simple re-download from the same official source is unlikely to repair this sample as of 2026-03-26",
-      "message_zh": "当前官方 www.it.uu.se benchmark 链接返回的是 HTML/404 页面，而不是查询文件；截至 2026-03-26，仅从同一官方来源重新下载，大概率无法修复该样本。"
-    },
-    {
-      "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_10.ta",
-      "parse_kind": "TEXTUAL_MODEL_FILE",
-      "desc": "Textual model file for Fischer mutual exclusion benchmark instance 10.",
-      "desc_zh": "Fischer 互斥基准的第 10 个实例的文本模型文件。",
-      "context_path": null,
-      "status": "error",
-      "message": "current official www.it.uu.se benchmark URL resolves to an HTML/404 page instead of a textual model file; simple re-download from the same official source is unlikely to repair this sample as of 2026-03-26",
-      "message_zh": "当前官方 www.it.uu.se benchmark 链接返回的是 HTML/404 页面，而不是文本模型文件；截至 2026-03-26，仅从同一官方来源重新下载，大概率无法修复该样本。"
-    },
-    {
-      "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_11.q",
-      "parse_kind": "QUERY_PROPERTY_FILE",
-      "desc": "Query/property file for Fischer mutual exclusion benchmark instance 11.",
-      "desc_zh": "Fischer 互斥基准的第 11 个实例的性质/查询文件。",
-      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_11.ta",
-      "status": "error",
-      "message": "current official www.it.uu.se benchmark URL resolves to an HTML/404 page instead of a query file; simple re-download from the same official source is unlikely to repair this sample as of 2026-03-26",
-      "message_zh": "当前官方 www.it.uu.se benchmark 链接返回的是 HTML/404 页面，而不是查询文件；截至 2026-03-26，仅从同一官方来源重新下载，大概率无法修复该样本。"
-    },
-    {
-      "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_11.ta",
-      "parse_kind": "TEXTUAL_MODEL_FILE",
-      "desc": "Textual model file for Fischer mutual exclusion benchmark instance 11.",
-      "desc_zh": "Fischer 互斥基准的第 11 个实例的文本模型文件。",
-      "context_path": null,
-      "status": "error",
-      "message": "current official www.it.uu.se benchmark URL resolves to an HTML/404 page instead of a textual model file; simple re-download from the same official source is unlikely to repair this sample as of 2026-03-26",
-      "message_zh": "当前官方 www.it.uu.se benchmark 链接返回的是 HTML/404 页面，而不是文本模型文件；截至 2026-03-26，仅从同一官方来源重新下载，大概率无法修复该样本。"
-    },
-    {
-      "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_12.q",
-      "parse_kind": "QUERY_PROPERTY_FILE",
-      "desc": "Query/property file for Fischer mutual exclusion benchmark instance 12.",
-      "desc_zh": "Fischer 互斥基准的第 12 个实例的性质/查询文件。",
-      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_12.ta",
-      "status": "error",
-      "message": "current official www.it.uu.se benchmark URL resolves to an HTML/404 page instead of a query file; simple re-download from the same official source is unlikely to repair this sample as of 2026-03-26",
-      "message_zh": "当前官方 www.it.uu.se benchmark 链接返回的是 HTML/404 页面，而不是查询文件；截至 2026-03-26，仅从同一官方来源重新下载，大概率无法修复该样本。"
-    },
-    {
-      "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_12.ta",
-      "parse_kind": "TEXTUAL_MODEL_FILE",
-      "desc": "Textual model file for Fischer mutual exclusion benchmark instance 12.",
-      "desc_zh": "Fischer 互斥基准的第 12 个实例的文本模型文件。",
-      "context_path": null,
-      "status": "error",
-      "message": "current official www.it.uu.se benchmark URL resolves to an HTML/404 page instead of a textual model file; simple re-download from the same official source is unlikely to repair this sample as of 2026-03-26",
-      "message_zh": "当前官方 www.it.uu.se benchmark 链接返回的是 HTML/404 页面，而不是文本模型文件；截至 2026-03-26，仅从同一官方来源重新下载，大概率无法修复该样本。"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_02.q",
@@ -2169,26 +1809,6 @@
       "status": "ok",
       "message": "parsed via parse_XTA(newxta=false)",
       "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XTA(newxta=false)"
-    },
-    {
-      "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/philaudio/philaudio.q",
-      "parse_kind": "QUERY_PROPERTY_FILE",
-      "desc": "Query/property file for the official `philaudio` benchmark case study.",
-      "desc_zh": "`philaudio` 官方基准案例的性质/查询文件。",
-      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/philaudio/philaudio.ta",
-      "status": "error",
-      "message": "current official www.it.uu.se benchmark URL resolves to an HTML/404 page instead of a query file; simple re-download from the same official source is unlikely to repair this sample as of 2026-03-26",
-      "message_zh": "当前官方 www.it.uu.se benchmark 链接返回的是 HTML/404 页面，而不是查询文件；截至 2026-03-26，仅从同一官方来源重新下载，大概率无法修复该样本。"
-    },
-    {
-      "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/philaudio/philaudio.ta",
-      "parse_kind": "TEXTUAL_MODEL_FILE",
-      "desc": "Textual model file for the official `philaudio` benchmark case study.",
-      "desc_zh": "`philaudio` 官方基准案例的文本模型文件。",
-      "context_path": null,
-      "status": "error",
-      "message": "current official www.it.uu.se benchmark URL resolves to an HTML/404 page instead of a textual model file; simple re-download from the same official source is unlikely to repair this sample as of 2026-03-26",
-      "message_zh": "当前官方 www.it.uu.se benchmark 链接返回的是 HTML/404 页面，而不是文本模型文件；截至 2026-03-26，仅从同一官方来源重新下载，大概率无法修复该样本。"
     }
   ],
   "status_enum": {

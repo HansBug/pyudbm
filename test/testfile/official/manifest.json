@@ -608,72 +608,12 @@
   {
     "kind": "official_page_link",
     "linked_from_pages": [
-      "https://uppaal.org/casestudies/cora/"
-    ],
-    "local_path": "test/testfile/official/linked/uppaal.org/casestudies/cora/alp.q",
-    "sha256": "837b5c499da9a5f66027b4b1c5078d51a0606f625e697de0b9c3ca37d9935d71",
-    "size": 220,
-    "source_url": "https://uppaal.org/casestudies/cora/alp.q"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/casestudies/cora/"
-    ],
-    "local_path": "test/testfile/official/linked/uppaal.org/casestudies/cora/alp.xml",
-    "sha256": "b8d4ac60d6d34513190561be0a8a2562e4976302516af621c39920746d4cc3c8",
-    "size": 3757,
-    "source_url": "https://uppaal.org/casestudies/cora/alp.xml"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/casestudies/cora/"
-    ],
-    "local_path": "test/testfile/official/linked/uppaal.org/casestudies/cora/vrptw.q",
-    "sha256": "c90f006d12212bb42f6923a1622a74d75c3a99edf6b3e7bfcbceccc214a1f0b1",
-    "size": 189,
-    "source_url": "https://uppaal.org/casestudies/cora/vrptw.q"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/casestudies/cora/"
-    ],
-    "local_path": "test/testfile/official/linked/uppaal.org/casestudies/cora/vrptw.xml",
-    "sha256": "dc3b30ab43bdf16ec5b6919f4ef9ffd4c669681cbbddd9b8f9034e907edc582b",
-    "size": 6943,
-    "source_url": "https://uppaal.org/casestudies/cora/vrptw.xml"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/casestudies/smc/anova/"
-    ],
-    "local_path": "test/testfile/official/linked/uppaal.org/casestudies/smc/anova/discomfort.q",
-    "sha256": "524a4d085315e4b4df2d259d5a6efc851166d8cbfe5d00c97bd9b763fc72f44e",
-    "size": 132,
-    "source_url": "https://uppaal.org/casestudies/smc/anova/discomfort.q"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
       "https://uppaal.org/casestudies/smc/anova/"
     ],
     "local_path": "test/testfile/official/linked/uppaal.org/casestudies/smc/anova/pareto.xml",
     "sha256": "057b122b0a18228ea4cfc8dc99ec5822b704024e22ae2b134f3e5c62c6135005",
     "size": 29484,
     "source_url": "https://uppaal.org/casestudies/smc/anova/pareto.xml"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/casestudies/smc/"
-    ],
-    "local_path": "test/testfile/official/linked/uppaal.org/casestudies/smc/bluetooth.cav.q",
-    "sha256": "9782b1fbbb9318d9362057b192a2cfadc064d04e7bc2dcb4d43b742ad83ad454",
-    "size": 1083,
-    "source_url": "https://uppaal.org/casestudies/smc/bluetooth.cav.q"
   },
   {
     "kind": "official_page_link",
@@ -930,16 +870,6 @@
     "linked_from_pages": [
       "https://uppaal.org/casestudies/smc/"
     ],
-    "local_path": "test/testfile/official/linked/uppaal.org/casestudies/smc/firewire.cav.q",
-    "sha256": "c2a3a9a373c60a6bb08d0516b2c33b82073e77c08c5ae7ed974cb14a48e82540",
-    "size": 1994,
-    "source_url": "https://uppaal.org/casestudies/smc/firewire.cav.q"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/casestudies/smc/"
-    ],
     "local_path": "test/testfile/official/linked/uppaal.org/casestudies/smc/firewire.cav.xml",
     "sha256": "24a8e493f5cfa0f0dbc00ed81486b92022fc528bf178eb4dd1854592297272f3",
     "size": 17125,
@@ -1070,16 +1000,6 @@
     "linked_from_pages": [
       "https://uppaal.org/casestudies/smc/"
     ],
-    "local_path": "test/testfile/official/linked/uppaal.org/casestudies/smc/samplesmc.q",
-    "sha256": "f61f5f89527081221098478a1726401ea5534b8cdbef02794f1a8840b5c48825",
-    "size": 290,
-    "source_url": "https://uppaal.org/casestudies/smc/samplesmc.q"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/casestudies/smc/"
-    ],
     "local_path": "test/testfile/official/linked/uppaal.org/casestudies/smc/samplesmc.xml",
     "sha256": "3fa16995b4987d346168c8d5e7d9b246d0af69ed9c425e4fb5077e1a01a89aa9",
     "size": 4426,
@@ -1204,66 +1124,6 @@
     "sha256": "e627df60182e326184ff5d09697de194629d527a09d32342c743cdbd627ebc1f",
     "size": 37912,
     "source_url": "https://www.it.uu.se/research/group/darts/uppaal/benchmarks/bocdpFIXED/bocdpFIXED.xml"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/benchmarks/"
-    ],
-    "local_path": "test/testfile/official/linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bopdp/bopdp.q",
-    "sha256": "b2645a24a1bac89eaa1848ef8217eff8755dda0b6510880106bee0c9f8f26fff",
-    "size": 3185,
-    "source_url": "https://www.it.uu.se/research/group/darts/uppaal/benchmarks/bopdp/bopdp.q"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/benchmarks/"
-    ],
-    "local_path": "test/testfile/official/linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bopdp/bopdp.ta",
-    "sha256": "b2645a24a1bac89eaa1848ef8217eff8755dda0b6510880106bee0c9f8f26fff",
-    "size": 3185,
-    "source_url": "https://www.it.uu.se/research/group/darts/uppaal/benchmarks/bopdp/bopdp.ta"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/benchmarks/"
-    ],
-    "local_path": "test/testfile/official/linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bopdp/bopdp.xml",
-    "sha256": "b2645a24a1bac89eaa1848ef8217eff8755dda0b6510880106bee0c9f8f26fff",
-    "size": 3185,
-    "source_url": "https://www.it.uu.se/research/group/darts/uppaal/benchmarks/bopdp/bopdp.xml"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/benchmarks/"
-    ],
-    "local_path": "test/testfile/official/linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bopdpFIXED/bopdpFIXED.q",
-    "sha256": "b2645a24a1bac89eaa1848ef8217eff8755dda0b6510880106bee0c9f8f26fff",
-    "size": 3185,
-    "source_url": "https://www.it.uu.se/research/group/darts/uppaal/benchmarks/bopdpFIXED/bopdpFIXED.q"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/benchmarks/"
-    ],
-    "local_path": "test/testfile/official/linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bopdpFIXED/bopdpFIXED.ta",
-    "sha256": "b2645a24a1bac89eaa1848ef8217eff8755dda0b6510880106bee0c9f8f26fff",
-    "size": 3185,
-    "source_url": "https://www.it.uu.se/research/group/darts/uppaal/benchmarks/bopdpFIXED/bopdpFIXED.ta"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/benchmarks/"
-    ],
-    "local_path": "test/testfile/official/linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bopdpFIXED/bopdpFIXED.xml",
-    "sha256": "b2645a24a1bac89eaa1848ef8217eff8755dda0b6510880106bee0c9f8f26fff",
-    "size": 3185,
-    "source_url": "https://www.it.uu.se/research/group/darts/uppaal/benchmarks/bopdpFIXED/bopdpFIXED.xml"
   },
   {
     "kind": "official_page_link",
@@ -1514,226 +1374,6 @@
     "sha256": "e388f291d95f07f79d5cabe124a62ba1b59526a0e58f33ec107fb9e60e590771",
     "size": 2130,
     "source_url": "https://www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer.xml"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/benchmarks/"
-    ],
-    "local_path": "test/testfile/official/linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_02.q",
-    "sha256": "b2645a24a1bac89eaa1848ef8217eff8755dda0b6510880106bee0c9f8f26fff",
-    "size": 3185,
-    "source_url": "https://www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_02.q"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/benchmarks/"
-    ],
-    "local_path": "test/testfile/official/linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_02.ta",
-    "sha256": "b2645a24a1bac89eaa1848ef8217eff8755dda0b6510880106bee0c9f8f26fff",
-    "size": 3185,
-    "source_url": "https://www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_02.ta"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/benchmarks/"
-    ],
-    "local_path": "test/testfile/official/linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_03.q",
-    "sha256": "b2645a24a1bac89eaa1848ef8217eff8755dda0b6510880106bee0c9f8f26fff",
-    "size": 3185,
-    "source_url": "https://www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_03.q"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/benchmarks/"
-    ],
-    "local_path": "test/testfile/official/linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_03.ta",
-    "sha256": "b2645a24a1bac89eaa1848ef8217eff8755dda0b6510880106bee0c9f8f26fff",
-    "size": 3185,
-    "source_url": "https://www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_03.ta"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/benchmarks/"
-    ],
-    "local_path": "test/testfile/official/linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_04.q",
-    "sha256": "b2645a24a1bac89eaa1848ef8217eff8755dda0b6510880106bee0c9f8f26fff",
-    "size": 3185,
-    "source_url": "https://www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_04.q"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/benchmarks/"
-    ],
-    "local_path": "test/testfile/official/linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_04.ta",
-    "sha256": "b2645a24a1bac89eaa1848ef8217eff8755dda0b6510880106bee0c9f8f26fff",
-    "size": 3185,
-    "source_url": "https://www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_04.ta"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/benchmarks/"
-    ],
-    "local_path": "test/testfile/official/linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_05.q",
-    "sha256": "b2645a24a1bac89eaa1848ef8217eff8755dda0b6510880106bee0c9f8f26fff",
-    "size": 3185,
-    "source_url": "https://www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_05.q"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/benchmarks/"
-    ],
-    "local_path": "test/testfile/official/linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_05.ta",
-    "sha256": "b2645a24a1bac89eaa1848ef8217eff8755dda0b6510880106bee0c9f8f26fff",
-    "size": 3185,
-    "source_url": "https://www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_05.ta"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/benchmarks/"
-    ],
-    "local_path": "test/testfile/official/linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_06.q",
-    "sha256": "b2645a24a1bac89eaa1848ef8217eff8755dda0b6510880106bee0c9f8f26fff",
-    "size": 3185,
-    "source_url": "https://www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_06.q"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/benchmarks/"
-    ],
-    "local_path": "test/testfile/official/linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_06.ta",
-    "sha256": "b2645a24a1bac89eaa1848ef8217eff8755dda0b6510880106bee0c9f8f26fff",
-    "size": 3185,
-    "source_url": "https://www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_06.ta"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/benchmarks/"
-    ],
-    "local_path": "test/testfile/official/linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_07.q",
-    "sha256": "b2645a24a1bac89eaa1848ef8217eff8755dda0b6510880106bee0c9f8f26fff",
-    "size": 3185,
-    "source_url": "https://www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_07.q"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/benchmarks/"
-    ],
-    "local_path": "test/testfile/official/linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_07.ta",
-    "sha256": "b2645a24a1bac89eaa1848ef8217eff8755dda0b6510880106bee0c9f8f26fff",
-    "size": 3185,
-    "source_url": "https://www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_07.ta"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/benchmarks/"
-    ],
-    "local_path": "test/testfile/official/linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_08.q",
-    "sha256": "b2645a24a1bac89eaa1848ef8217eff8755dda0b6510880106bee0c9f8f26fff",
-    "size": 3185,
-    "source_url": "https://www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_08.q"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/benchmarks/"
-    ],
-    "local_path": "test/testfile/official/linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_08.ta",
-    "sha256": "b2645a24a1bac89eaa1848ef8217eff8755dda0b6510880106bee0c9f8f26fff",
-    "size": 3185,
-    "source_url": "https://www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_08.ta"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/benchmarks/"
-    ],
-    "local_path": "test/testfile/official/linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_09.q",
-    "sha256": "b2645a24a1bac89eaa1848ef8217eff8755dda0b6510880106bee0c9f8f26fff",
-    "size": 3185,
-    "source_url": "https://www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_09.q"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/benchmarks/"
-    ],
-    "local_path": "test/testfile/official/linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_09.ta",
-    "sha256": "b2645a24a1bac89eaa1848ef8217eff8755dda0b6510880106bee0c9f8f26fff",
-    "size": 3185,
-    "source_url": "https://www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_09.ta"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/benchmarks/"
-    ],
-    "local_path": "test/testfile/official/linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_10.q",
-    "sha256": "b2645a24a1bac89eaa1848ef8217eff8755dda0b6510880106bee0c9f8f26fff",
-    "size": 3185,
-    "source_url": "https://www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_10.q"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/benchmarks/"
-    ],
-    "local_path": "test/testfile/official/linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_10.ta",
-    "sha256": "b2645a24a1bac89eaa1848ef8217eff8755dda0b6510880106bee0c9f8f26fff",
-    "size": 3185,
-    "source_url": "https://www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_10.ta"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/benchmarks/"
-    ],
-    "local_path": "test/testfile/official/linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_11.q",
-    "sha256": "b2645a24a1bac89eaa1848ef8217eff8755dda0b6510880106bee0c9f8f26fff",
-    "size": 3185,
-    "source_url": "https://www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_11.q"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/benchmarks/"
-    ],
-    "local_path": "test/testfile/official/linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_11.ta",
-    "sha256": "b2645a24a1bac89eaa1848ef8217eff8755dda0b6510880106bee0c9f8f26fff",
-    "size": 3185,
-    "source_url": "https://www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_11.ta"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/benchmarks/"
-    ],
-    "local_path": "test/testfile/official/linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_12.q",
-    "sha256": "b2645a24a1bac89eaa1848ef8217eff8755dda0b6510880106bee0c9f8f26fff",
-    "size": 3185,
-    "source_url": "https://www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_12.q"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/benchmarks/"
-    ],
-    "local_path": "test/testfile/official/linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_12.ta",
-    "sha256": "b2645a24a1bac89eaa1848ef8217eff8755dda0b6510880106bee0c9f8f26fff",
-    "size": 3185,
-    "source_url": "https://www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_12.ta"
   },
   {
     "kind": "official_page_link",
@@ -1994,25 +1634,5 @@
     "sha256": "d1f24f7e005faed4ad55b38b5d694f7e29ff4ddb4cc3c7bc58f9828b8f5b5ad1",
     "size": 13035,
     "source_url": "https://www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_14.ta"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/benchmarks/"
-    ],
-    "local_path": "test/testfile/official/linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/philaudio/philaudio.q",
-    "sha256": "b2645a24a1bac89eaa1848ef8217eff8755dda0b6510880106bee0c9f8f26fff",
-    "size": 3185,
-    "source_url": "https://www.it.uu.se/research/group/darts/uppaal/benchmarks/philaudio/philaudio.q"
-  },
-  {
-    "kind": "official_page_link",
-    "linked_from_pages": [
-      "https://uppaal.org/benchmarks/"
-    ],
-    "local_path": "test/testfile/official/linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/philaudio/philaudio.ta",
-    "sha256": "b2645a24a1bac89eaa1848ef8217eff8755dda0b6510880106bee0c9f8f26fff",
-    "size": 3185,
-    "source_url": "https://www.it.uu.se/research/group/darts/uppaal/benchmarks/philaudio/philaudio.ta"
   }
 ]
