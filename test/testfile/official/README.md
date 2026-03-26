@@ -19,6 +19,9 @@ Stored layout:
   - files downloaded from direct links exposed by official UPPAAL pages, preserving host/path layout
 - `manifest.json`
   - source URL / archive member / local path / hash / size for every collected file
+- `catalog.json`
+  - parser-oriented catalog for every collected example file
+  - records each file's path relative to this directory, finite parse-kind enum, and short English/Chinese descriptions
 - `failures.json`
   - official links that were still referenced by official pages but returned download failures during collection
 
