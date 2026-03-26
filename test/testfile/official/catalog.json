@@ -34,1297 +34,2171 @@
       "path": "distribution/beta_linux_5.1.0-beta5/demo/2doors.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the two-door access-control example.",
-      "desc_zh": "双门访问控制示例的 XML 模型文件。"
+      "desc_zh": "双门访问控制示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/SchedulingFramework.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the scheduling framework demo.",
-      "desc_zh": "调度框架演示示例的 XML 模型文件。"
+      "desc_zh": "调度框架演示示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/bridge.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the bridge-crossing coordination example.",
-      "desc_zh": "过桥协调示例的 XML 模型文件。"
+      "desc_zh": "过桥协调示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/fischer.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the classic Fischer mutual exclusion example.",
-      "desc_zh": "经典 Fischer 互斥示例的 XML 模型文件。"
+      "desc_zh": "经典 Fischer 互斥示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/fischer_symmetry.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the symmetry-reduced Fischer mutual exclusion example.",
-      "desc_zh": "带对称性约简的 Fischer 互斥示例的 XML 模型文件。"
+      "desc_zh": "带对称性约简的 Fischer 互斥示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/interrupt.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the interrupt-handling example.",
-      "desc_zh": "中断处理示例的 XML 模型文件。"
+      "desc_zh": "中断处理示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/lsc_example.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the live sequence chart example.",
-      "desc_zh": "LSC 现场序列图示例的 XML 模型文件。"
+      "desc_zh": "LSC 现场序列图示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/lsc_train-gate_parameters.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the parameterized live sequence chart train-gate example.",
-      "desc_zh": "参数化的 LSC 火车-道口示例的 XML 模型文件。"
+      "desc_zh": "参数化的 LSC 火车-道口示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/scheduling3.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the three-task scheduling example.",
-      "desc_zh": "三任务调度示例的 XML 模型文件。"
+      "desc_zh": "三任务调度示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/scheduling4.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the four-task scheduling example.",
-      "desc_zh": "四任务调度示例的 XML 模型文件。"
+      "desc_zh": "四任务调度示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/smc/ClientServer.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the client-server statistical model checking example.",
-      "desc_zh": "客户端-服务器统计模型检测示例的 XML 模型文件。"
+      "desc_zh": "客户端-服务器统计模型检测示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/smc/ball.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the bouncing-ball stochastic/hybrid example.",
-      "desc_zh": "弹跳小球随机/混合示例的 XML 模型文件。"
+      "desc_zh": "弹跳小球随机/混合示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/smc/bluetooth.cav.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the Bluetooth protocol case study from the CAV examples.",
-      "desc_zh": "CAV 示例中的 Bluetooth 协议案例的 XML 模型文件。"
+      "desc_zh": "CAV 示例中的 Bluetooth 协议案例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/smc/csma-ca.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the CSMA-CA protocol example.",
-      "desc_zh": "CSMA-CA 协议示例的 XML 模型文件。"
+      "desc_zh": "CSMA-CA 协议示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/smc/dice.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the dice-based statistical example.",
-      "desc_zh": "掷骰子统计示例的 XML 模型文件。"
+      "desc_zh": "掷骰子统计示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/smc/ex-proba1.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the first probability tutorial example.",
-      "desc_zh": "第一个概率教程示例的 XML 模型文件。"
+      "desc_zh": "第一个概率教程示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/smc/ex-proba2.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the second probability tutorial example.",
-      "desc_zh": "第二个概率教程示例的 XML 模型文件。"
+      "desc_zh": "第二个概率教程示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/smc/firewire.cav.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the FireWire protocol case study from the CAV examples.",
-      "desc_zh": "CAV 示例中的 FireWire 协议案例的 XML 模型文件。"
+      "desc_zh": "CAV 示例中的 FireWire 协议案例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/smc/fischer-stat.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the statistical Fischer mutual exclusion variant.",
-      "desc_zh": "Fischer 互斥的统计变体的 XML 模型文件。"
+      "desc_zh": "Fischer 互斥的统计变体的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/smc/genosc-hybrid.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the hybrid gene-oscillation example.",
-      "desc_zh": "混合基因振荡示例的 XML 模型文件。"
+      "desc_zh": "混合基因振荡示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/smc/genosc.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the gene-oscillation example.",
-      "desc_zh": "基因振荡示例的 XML 模型文件。"
+      "desc_zh": "基因振荡示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/smc/leader-election.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the leader-election statistical example.",
-      "desc_zh": "领导者选举统计示例的 XML 模型文件。"
+      "desc_zh": "领导者选举统计示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/smc/lmac6.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the six-node LMAC protocol example.",
-      "desc_zh": "六节点 LMAC 协议示例的 XML 模型文件。"
+      "desc_zh": "六节点 LMAC 协议示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/smc/oscillate.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the oscillation tutorial example.",
-      "desc_zh": "振荡教程示例的 XML 模型文件。"
+      "desc_zh": "振荡教程示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/smc/samplesmc.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the sample statistical model checking example.",
-      "desc_zh": "示例化统计模型检测案例的 XML 模型文件。"
+      "desc_zh": "示例化统计模型检测案例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/smc/train-gate-stat.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the statistical train-gate variant.",
-      "desc_zh": "火车-道口的统计变体的 XML 模型文件。"
+      "desc_zh": "火车-道口的统计变体的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/smc/trig.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the trigonometric/statistical tutorial example.",
-      "desc_zh": "三角函数/统计教程示例的 XML 模型文件。"
+      "desc_zh": "三角函数/统计教程示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/stratego/cat-and-mouse.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the STRATEGO cat-and-mouse control example.",
-      "desc_zh": "STRATEGO 猫鼠控制示例的 XML 模型文件。"
+      "desc_zh": "STRATEGO 猫鼠控制示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/stratego/cruise.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the STRATEGO cruise-control example.",
-      "desc_zh": "STRATEGO 巡航控制示例的 XML 模型文件。"
+      "desc_zh": "STRATEGO 巡航控制示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/stratego/newspaper.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the STRATEGO newspaper-delivery example.",
-      "desc_zh": "STRATEGO 报纸投递示例的 XML 模型文件。"
+      "desc_zh": "STRATEGO 报纸投递示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/stratego/traffic.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the STRATEGO traffic-control example.",
-      "desc_zh": "STRATEGO 交通控制示例的 XML 模型文件。"
+      "desc_zh": "STRATEGO 交通控制示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/stratego/train-gate-strat.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the STRATEGO train-gate strategy example.",
-      "desc_zh": "STRATEGO 火车-道口策略示例的 XML 模型文件。"
+      "desc_zh": "STRATEGO 火车-道口策略示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/train-gate-orig.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the original train-gate example.",
-      "desc_zh": "原始火车-道口示例的 XML 模型文件。"
+      "desc_zh": "原始火车-道口示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/train-gate.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the classic train-gate example.",
-      "desc_zh": "经典火车-道口示例的 XML 模型文件。"
+      "desc_zh": "经典火车-道口示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/yggdrasil/onoff/onoff.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the Yggdrasil on/off toggling example.",
-      "desc_zh": "Yggdrasil 开关切换示例的 XML 模型文件。"
+      "desc_zh": "Yggdrasil 开关切换示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/beta_linux_5.1.0-beta5/demo/yggdrasil/updown/updown.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the Yggdrasil up/down counter example.",
-      "desc_zh": "Yggdrasil 加减计数器示例的 XML 模型文件。"
+      "desc_zh": "Yggdrasil 加减计数器示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/2doors.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the two-door access-control example.",
-      "desc_zh": "双门访问控制示例的 XML 模型文件。"
+      "desc_zh": "双门访问控制示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/SchedulingFramework.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the scheduling framework demo.",
-      "desc_zh": "调度框架演示示例的 XML 模型文件。"
+      "desc_zh": "调度框架演示示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/bridge.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the bridge-crossing coordination example.",
-      "desc_zh": "过桥协调示例的 XML 模型文件。"
+      "desc_zh": "过桥协调示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/fischer.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the classic Fischer mutual exclusion example.",
-      "desc_zh": "经典 Fischer 互斥示例的 XML 模型文件。"
+      "desc_zh": "经典 Fischer 互斥示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/fischer_symmetry.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the symmetry-reduced Fischer mutual exclusion example.",
-      "desc_zh": "带对称性约简的 Fischer 互斥示例的 XML 模型文件。"
+      "desc_zh": "带对称性约简的 Fischer 互斥示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/interrupt.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the interrupt-handling example.",
-      "desc_zh": "中断处理示例的 XML 模型文件。"
+      "desc_zh": "中断处理示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/lsc_example.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the live sequence chart example.",
-      "desc_zh": "LSC 现场序列图示例的 XML 模型文件。"
+      "desc_zh": "LSC 现场序列图示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/lsc_train-gate_parameters.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the parameterized live sequence chart train-gate example.",
-      "desc_zh": "参数化的 LSC 火车-道口示例的 XML 模型文件。"
+      "desc_zh": "参数化的 LSC 火车-道口示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/scheduling3.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the three-task scheduling example.",
-      "desc_zh": "三任务调度示例的 XML 模型文件。"
+      "desc_zh": "三任务调度示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/scheduling4.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the four-task scheduling example.",
-      "desc_zh": "四任务调度示例的 XML 模型文件。"
+      "desc_zh": "四任务调度示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/smc/ClientServer.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the client-server statistical model checking example.",
-      "desc_zh": "客户端-服务器统计模型检测示例的 XML 模型文件。"
+      "desc_zh": "客户端-服务器统计模型检测示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/smc/ball.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the bouncing-ball stochastic/hybrid example.",
-      "desc_zh": "弹跳小球随机/混合示例的 XML 模型文件。"
+      "desc_zh": "弹跳小球随机/混合示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/smc/bluetooth.cav.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the Bluetooth protocol case study from the CAV examples.",
-      "desc_zh": "CAV 示例中的 Bluetooth 协议案例的 XML 模型文件。"
+      "desc_zh": "CAV 示例中的 Bluetooth 协议案例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/smc/csma-ca.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the CSMA-CA protocol example.",
-      "desc_zh": "CSMA-CA 协议示例的 XML 模型文件。"
+      "desc_zh": "CSMA-CA 协议示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/smc/dice.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the dice-based statistical example.",
-      "desc_zh": "掷骰子统计示例的 XML 模型文件。"
+      "desc_zh": "掷骰子统计示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/smc/ex-proba1.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the first probability tutorial example.",
-      "desc_zh": "第一个概率教程示例的 XML 模型文件。"
+      "desc_zh": "第一个概率教程示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/smc/ex-proba2.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the second probability tutorial example.",
-      "desc_zh": "第二个概率教程示例的 XML 模型文件。"
+      "desc_zh": "第二个概率教程示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/smc/firewire.cav.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the FireWire protocol case study from the CAV examples.",
-      "desc_zh": "CAV 示例中的 FireWire 协议案例的 XML 模型文件。"
+      "desc_zh": "CAV 示例中的 FireWire 协议案例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/smc/fischer-stat.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the statistical Fischer mutual exclusion variant.",
-      "desc_zh": "Fischer 互斥的统计变体的 XML 模型文件。"
+      "desc_zh": "Fischer 互斥的统计变体的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/smc/genosc-hybrid.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the hybrid gene-oscillation example.",
-      "desc_zh": "混合基因振荡示例的 XML 模型文件。"
+      "desc_zh": "混合基因振荡示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/smc/genosc.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the gene-oscillation example.",
-      "desc_zh": "基因振荡示例的 XML 模型文件。"
+      "desc_zh": "基因振荡示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/smc/leader-election.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the leader-election statistical example.",
-      "desc_zh": "领导者选举统计示例的 XML 模型文件。"
+      "desc_zh": "领导者选举统计示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/smc/lmac6.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the six-node LMAC protocol example.",
-      "desc_zh": "六节点 LMAC 协议示例的 XML 模型文件。"
+      "desc_zh": "六节点 LMAC 协议示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/smc/oscillate.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the oscillation tutorial example.",
-      "desc_zh": "振荡教程示例的 XML 模型文件。"
+      "desc_zh": "振荡教程示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/smc/samplesmc.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the sample statistical model checking example.",
-      "desc_zh": "示例化统计模型检测案例的 XML 模型文件。"
+      "desc_zh": "示例化统计模型检测案例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/smc/train-gate-stat.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the statistical train-gate variant.",
-      "desc_zh": "火车-道口的统计变体的 XML 模型文件。"
+      "desc_zh": "火车-道口的统计变体的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/smc/trig.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the trigonometric/statistical tutorial example.",
-      "desc_zh": "三角函数/统计教程示例的 XML 模型文件。"
+      "desc_zh": "三角函数/统计教程示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/stratego/cat-and-mouse.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the STRATEGO cat-and-mouse control example.",
-      "desc_zh": "STRATEGO 猫鼠控制示例的 XML 模型文件。"
+      "desc_zh": "STRATEGO 猫鼠控制示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/stratego/cruise.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the STRATEGO cruise-control example.",
-      "desc_zh": "STRATEGO 巡航控制示例的 XML 模型文件。"
+      "desc_zh": "STRATEGO 巡航控制示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/stratego/newspaper.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the STRATEGO newspaper-delivery example.",
-      "desc_zh": "STRATEGO 报纸投递示例的 XML 模型文件。"
+      "desc_zh": "STRATEGO 报纸投递示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/stratego/traffic.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the STRATEGO traffic-control example.",
-      "desc_zh": "STRATEGO 交通控制示例的 XML 模型文件。"
+      "desc_zh": "STRATEGO 交通控制示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/stratego/train-gate-strat.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the STRATEGO train-gate strategy example.",
-      "desc_zh": "STRATEGO 火车-道口策略示例的 XML 模型文件。"
+      "desc_zh": "STRATEGO 火车-道口策略示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/train-gate-orig.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the original train-gate example.",
-      "desc_zh": "原始火车-道口示例的 XML 模型文件。"
+      "desc_zh": "原始火车-道口示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/train-gate.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the classic train-gate example.",
-      "desc_zh": "经典火车-道口示例的 XML 模型文件。"
+      "desc_zh": "经典火车-道口示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/yggdrasil/onoff/onoff.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the Yggdrasil on/off toggling example.",
-      "desc_zh": "Yggdrasil 开关切换示例的 XML 模型文件。"
+      "desc_zh": "Yggdrasil 开关切换示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "distribution/stable_linux_5.0.0/demo/yggdrasil/updown/updown.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the Yggdrasil up/down counter example.",
-      "desc_zh": "Yggdrasil 加减计数器示例的 XML 模型文件。"
+      "desc_zh": "Yggdrasil 加减计数器示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "linked/docs.uppaal.org/extensions/cora/jugs2.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for the two-jugs CORA example.",
-      "desc_zh": "两水壶 CORA 示例的性质/查询文件。"
+      "desc_zh": "两水壶 CORA 示例的性质/查询文件。",
+      "context_path": "linked/docs.uppaal.org/extensions/cora/jugs2.ta",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model jugs2.ta with parse_XTA(newxta=true); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/docs.uppaal.org/extensions/cora/jugs2.ta。详情：parsed via PropertyBuilder::parse(FILE*) using companion model jugs2.ta with parse_XTA(newxta=true); properties=1"
     },
     {
       "path": "linked/docs.uppaal.org/extensions/cora/jugs2.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for the two-jugs CORA example.",
-      "desc_zh": "两水壶 CORA 示例的文本模型文件。"
+      "desc_zh": "两水壶 CORA 示例的文本模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XTA(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XTA(newxta=true)"
     },
     {
       "path": "linked/docs.uppaal.org/extensions/tron/LightContr.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the TRON light controller example.",
-      "desc_zh": "TRON 灯光控制器示例的 XML 模型文件。"
+      "desc_zh": "TRON 灯光控制器示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "linked/uppaal.org/casestudies/cora/alp.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for the aircraft landing problem case study.",
-      "desc_zh": "飞机着陆问题案例的性质/查询文件。"
+      "desc_zh": "飞机着陆问题案例的性质/查询文件。",
+      "context_path": "linked/uppaal.org/casestudies/cora/alp.xml",
+      "status": "error",
+      "message": "no companion model made the query parse successfully: alp.xml: companion model parse failed: error: $syntax_error: $unexpected T_INT in /nta/declaration at line 3 column 6 to line 3 column 9; error: $Unknown_identifier: TYPES in /nta/declaration at line 9 column 10 to line 9 column 15; error: $syntax_error: $unexpected T_INT in /nta/declaration at line 12 column 6 to line 12 column 9; error: ... (41 total) | vrptw.xml: companion model parse failed: error: $syntax_error: $unexpected T_INT in /nta/declaration at line 2 column 6 to line 2 column 9; error: $syntax_error: $unexpected T_INT in /nta/declaration at line 12 column 6 to line 12 column 9; error: $Unknown_identifier: vehicles in /nta/declaration at line 38 column 16 to line 38 column 24; error: ... (139 total)",
+      "message_zh": "UTAP 实际解析失败。使用上下文文件 linked/uppaal.org/casestudies/cora/alp.xml。原因：no companion model made the query parse successfully: alp.xml: companion model parse failed: error: $syntax_error: $unexpected T_INT in /nta/declaration at line 3 column 6 to line 3 column 9; error: $Unknown_identifier: TYPES in /nta/declaration at line 9 column 10 to line 9 column 15; error: $syntax_error: $unexpected T_INT in /nta/declaration at line 12 column 6 to line 12 column 9; error: ... (41 total) | vrptw.xml: companion model parse failed: error: $syntax_error: $unexpected T_INT in /nta/declaration at line 2 column 6 to line 2 column 9; error: $syntax_error: $unexpected T_INT in /nta/declaration at line 12 column 6 to line 12 column 9; error: $Unknown_identifier: vehicles in /nta/declaration at line 38 column 16 to line 38 column 24; error: ... (139 total)"
     },
     {
       "path": "linked/uppaal.org/casestudies/cora/alp.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the aircraft landing problem case study.",
-      "desc_zh": "飞机着陆问题案例的 XML 模型文件。"
+      "desc_zh": "飞机着陆问题案例的 XML 模型文件。",
+      "context_path": null,
+      "status": "error",
+      "message": "parse_XML_file(newxta=true) failed: error: $Unknown_identifier: cost in /nta/template[2]/location[2]/label[1] at line 2 column 0 to line 2 column 4; error: $Unknown_identifier: cost in /nta/template[2]/location[3]/label[1] at line 2 column 0 to line 2 column 4 | parse_XML_file(newxta=false) failed: error: $syntax_error: $unexpected T_INT in /nta/declaration at line 3 column 6 to line 3 column 9; error: $Unknown_identifier: TYPES in /nta/declaration at line 9 column 10 to line 9 column 15; error: $syntax_error: $unexpected T_INT in /nta/declaration at line 12 column 6 to line 12 column 9; error: ... (41 total)",
+      "message_zh": "UTAP 实际解析失败。原因：parse_XML_file(newxta=true) failed: error: $Unknown_identifier: cost in /nta/template[2]/location[2]/label[1] at line 2 column 0 to line 2 column 4; error: $Unknown_identifier: cost in /nta/template[2]/location[3]/label[1] at line 2 column 0 to line 2 column 4 | parse_XML_file(newxta=false) failed: error: $syntax_error: $unexpected T_INT in /nta/declaration at line 3 column 6 to line 3 column 9; error: $Unknown_identifier: TYPES in /nta/declaration at line 9 column 10 to line 9 column 15; error: $syntax_error: $unexpected T_INT in /nta/declaration at line 12 column 6 to line 12 column 9; error: ... (41 total)"
     },
     {
       "path": "linked/uppaal.org/casestudies/cora/vrptw.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for the vehicle-routing-with-time-windows case study.",
-      "desc_zh": "带时间窗的车辆路径规划案例的性质/查询文件。"
+      "desc_zh": "带时间窗的车辆路径规划案例的性质/查询文件。",
+      "context_path": "linked/uppaal.org/casestudies/cora/vrptw.xml",
+      "status": "error",
+      "message": "no companion model made the query parse successfully: vrptw.xml: companion model parse failed: error: $syntax_error: $unexpected T_INT in /nta/declaration at line 2 column 6 to line 2 column 9; error: $syntax_error: $unexpected T_INT in /nta/declaration at line 12 column 6 to line 12 column 9; error: $Unknown_identifier: vehicles in /nta/declaration at line 38 column 16 to line 38 column 24; error: ... (139 total) | alp.xml: companion model parse failed: error: $syntax_error: $unexpected T_INT in /nta/declaration at line 3 column 6 to line 3 column 9; error: $Unknown_identifier: TYPES in /nta/declaration at line 9 column 10 to line 9 column 15; error: $syntax_error: $unexpected T_INT in /nta/declaration at line 12 column 6 to line 12 column 9; error: ... (41 total)",
+      "message_zh": "UTAP 实际解析失败。使用上下文文件 linked/uppaal.org/casestudies/cora/vrptw.xml。原因：no companion model made the query parse successfully: vrptw.xml: companion model parse failed: error: $syntax_error: $unexpected T_INT in /nta/declaration at line 2 column 6 to line 2 column 9; error: $syntax_error: $unexpected T_INT in /nta/declaration at line 12 column 6 to line 12 column 9; error: $Unknown_identifier: vehicles in /nta/declaration at line 38 column 16 to line 38 column 24; error: ... (139 total) | alp.xml: companion model parse failed: error: $syntax_error: $unexpected T_INT in /nta/declaration at line 3 column 6 to line 3 column 9; error: $Unknown_identifier: TYPES in /nta/declaration at line 9 column 10 to line 9 column 15; error: $syntax_error: $unexpected T_INT in /nta/declaration at line 12 column 6 to line 12 column 9; error: ... (41 total)"
     },
     {
       "path": "linked/uppaal.org/casestudies/cora/vrptw.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the vehicle-routing-with-time-windows case study.",
-      "desc_zh": "带时间窗的车辆路径规划案例的 XML 模型文件。"
+      "desc_zh": "带时间窗的车辆路径规划案例的 XML 模型文件。",
+      "context_path": null,
+      "status": "error",
+      "message": "parse_XML_file(newxta=true) failed: error: $Overflow in /nta/declaration at line 48 column 10 to line 48 column 22; error: $syntax_error: $unexpected T_ERROR in /nta/declaration at line 48 column 10 to line 48 column 22; error: $Overflow in /nta/declaration at line 48 column 23 to line 48 column 35; error: ... (15 total) | parse_XML_file(newxta=false) failed: error: $syntax_error: $unexpected T_INT in /nta/declaration at line 2 column 6 to line 2 column 9; error: $syntax_error: $unexpected T_INT in /nta/declaration at line 12 column 6 to line 12 column 9; error: $Unknown_identifier: vehicles in /nta/declaration at line 38 column 16 to line 38 column 24; error: ... (139 total)",
+      "message_zh": "UTAP 实际解析失败。原因：parse_XML_file(newxta=true) failed: error: $Overflow in /nta/declaration at line 48 column 10 to line 48 column 22; error: $syntax_error: $unexpected T_ERROR in /nta/declaration at line 48 column 10 to line 48 column 22; error: $Overflow in /nta/declaration at line 48 column 23 to line 48 column 35; error: ... (15 total) | parse_XML_file(newxta=false) failed: error: $syntax_error: $unexpected T_INT in /nta/declaration at line 2 column 6 to line 2 column 9; error: $syntax_error: $unexpected T_INT in /nta/declaration at line 12 column 6 to line 12 column 9; error: $Unknown_identifier: vehicles in /nta/declaration at line 38 column 16 to line 38 column 24; error: ... (139 total)"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/anova/discomfort.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for the discomfort objective used in the ANOVA trade-off example.",
-      "desc_zh": "ANOVA 权衡示例中的 discomfort 目标的性质/查询文件。"
+      "desc_zh": "ANOVA 权衡示例中的 discomfort 目标的性质/查询文件。",
+      "context_path": "linked/uppaal.org/casestudies/smc/anova/pareto.xml",
+      "status": "error",
+      "message": "no companion model made the query parse successfully: PropertyBuilder::parse(FILE*) failed with companion model pareto.xml using parse_XML_file(newxta=true): error: $syntax_error: $unexpected T_NAT, $expecting '[' at line 4 column 9 to line 4 column 13 | TigaPropertyBuilder::parse(FILE*) failed with companion model pareto.xml using parse_XML_file(newxta=true): error: $syntax_error: $unexpected T_NAT, $expecting '[' at line 4 column 9 to line 4 column 13",
+      "message_zh": "UTAP 实际解析失败。使用上下文文件 linked/uppaal.org/casestudies/smc/anova/pareto.xml。原因：no companion model made the query parse successfully: PropertyBuilder::parse(FILE*) failed with companion model pareto.xml using parse_XML_file(newxta=true): error: $syntax_error: $unexpected T_NAT, $expecting '[' at line 4 column 9 to line 4 column 13 | TigaPropertyBuilder::parse(FILE*) failed with companion model pareto.xml using parse_XML_file(newxta=true): error: $syntax_error: $unexpected T_NAT, $expecting '[' at line 4 column 9 to line 4 column 13"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/anova/pareto.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the Pareto/ANOVA trade-off example.",
-      "desc_zh": "Pareto/ANOVA 权衡示例的 XML 模型文件。"
+      "desc_zh": "Pareto/ANOVA 权衡示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/bluetooth.cav.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for the Bluetooth protocol case study from the CAV examples.",
-      "desc_zh": "CAV 示例中的 Bluetooth 协议案例的性质/查询文件。"
+      "desc_zh": "CAV 示例中的 Bluetooth 协议案例的性质/查询文件。",
+      "context_path": "linked/uppaal.org/casestudies/smc/bluetooth.cav.xml",
+      "status": "error",
+      "message": "no companion model made the query parse successfully: PropertyBuilder::parse(FILE*) failed with companion model bluetooth.cav.xml using parse_XML_file(newxta=true): error: $has_no_member_named energy at line 81 column 28 to line 81 column 44; error: $Integer_or_clock_expected at line 81 column 28 to line 81 column 37; error: $Unknown_identifier: step at line 86 column 3 to line 86 column 7; error: ... (8 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model bluetooth.cav.xml using parse_XML_file(newxta=true): error: $has_no_member_named energy at line 81 column 28 to line 81 column 44; error: $Integer_or_clock_expected at line 81 column 28 to line 81 column 37; error: $Unknown_identifier: step at line 86 column 3 to line 86 column 7; error: ... (8 total) | PropertyBuilder::parse(FILE*) failed with companion model firewire.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: time at line 6 column 3 to line 6 column 7; error: $Unknown_identifier: receiver1 at line 6 column 18 to line 6 column 27; error: false $is_not_a_structure at line 6 column 18 to line 6 column 33; error: ... (88 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model firewire.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: time at line 6 column 3 to line 6 column 7; error: $Unknown_identifier: receiver1 at line 6 column 18 to line 6 column 27; error: false $is_not_a_structure at line 6 column 18 to line 6 column 33; error: ... (88 total) | PropertyBuilder::parse(FILE*) failed with companion model lmac-bubble.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: receiver1 at line 6 column 18 to line 6 column 27; error: false $is_not_a_structure at line 6 column 18 to line 6 column 33; error: $Unknown_identifier: receiver1 at line 11 column 19 to line 11 column 28; error: ... (53 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model lmac-bubble.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: receiver1 at line 6 column 18 to line 6 column 27; error: false $is_not_a_structure at line 6 column 18 to line 6 column 33; error: $Unknown_identifier: receiver1 at line 11 column 19 to line 11 column 28; error: ... (53 total) | PropertyBuilder::parse(FILE*) failed with companion model lmac-star.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: receiver1 at line 6 column 18 to line 6 column 27; error: false $is_not_a_structure at line 6 column 18 to line 6 column 33; error: $Unknown_identifier: receiver1 at line 11 column 19 to line 11 column 28; error: ... (53 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model lmac-star.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: receiver1 at line 6 column 18 to line 6 column 27; error: false $is_not_a_structure at line 6 column 18 to line 6 column 33; error: $Unknown_identifier: receiver1 at line 11 column 19 to line 11 column 28; error: ... (53 total) | ... (9 candidates tried)",
+      "message_zh": "UTAP 实际解析失败。使用上下文文件 linked/uppaal.org/casestudies/smc/bluetooth.cav.xml。原因：no companion model made the query parse successfully: PropertyBuilder::parse(FILE*) failed with companion model bluetooth.cav.xml using parse_XML_file(newxta=true): error: $has_no_member_named energy at line 81 column 28 to line 81 column 44; error: $Integer_or_clock_expected at line 81 column 28 to line 81 column 37; error: $Unknown_identifier: step at line 86 column 3 to line 86 column 7; error: ... (8 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model bluetooth.cav.xml using parse_XML_file(newxta=true): error: $has_no_member_named energy at line 81 column 28 to line 81 column 44; error: $Integer_or_clock_expected at line 81 column 28 to line 81 column 37; error: $Unknown_identifier: step at line 86 column 3 to line 86 column 7; error: ... (8 total) | PropertyBuilder::parse(FILE*) failed with companion model firewire.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: time at line 6 column 3 to line 6 column 7; error: $Unknown_identifier: receiver1 at line 6 column 18 to line 6 column 27; error: false $is_not_a_structure at line 6 column 18 to line 6 column 33; error: ... (88 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model firewire.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: time at line 6 column 3 to line 6 column 7; error: $Unknown_identifier: receiver1 at line 6 column 18 to line 6 column 27; error: false $is_not_a_structure at line 6 column 18 to line 6 column 33; error: ... (88 total) | PropertyBuilder::parse(FILE*) failed with companion model lmac-bubble.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: receiver1 at line 6 column 18 to line 6 column 27; error: false $is_not_a_structure at line 6 column 18 to line 6 column 33; error: $Unknown_identifier: receiver1 at line 11 column 19 to line 11 column 28; error: ... (53 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model lmac-bubble.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: receiver1 at line 6 column 18 to line 6 column 27; error: false $is_not_a_structure at line 6 column 18 to line 6 column 33; error: $Unknown_identifier: receiver1 at line 11 column 19 to line 11 column 28; error: ... (53 total) | PropertyBuilder::parse(FILE*) failed with companion model lmac-star.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: receiver1 at line 6 column 18 to line 6 column 27; error: false $is_not_a_structure at line 6 column 18 to line 6 column 33; error: $Unknown_identifier: receiver1 at line 11 column 19 to line 11 column 28; error: ... (53 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model lmac-star.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: receiver1 at line 6 column 18 to line 6 column 27; error: false $is_not_a_structure at line 6 column 18 to line 6 column 33; error: $Unknown_identifier: receiver1 at line 11 column 19 to line 11 column 28; error: ... (53 total) | ... (9 candidates tried)"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/bluetooth.cav.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the Bluetooth protocol case study from the CAV examples.",
-      "desc_zh": "CAV 示例中的 Bluetooth 协议案例的 XML 模型文件。"
+      "desc_zh": "CAV 示例中的 Bluetooth 协议案例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/consmc/consmc-models/concur/concur05-consmc.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for the CONCUR'05 case study in its ConsMC variant.",
-      "desc_zh": "CONCUR'05 案例中的其 ConsMC 变体的性质/查询文件。"
+      "desc_zh": "CONCUR'05 案例中的其 ConsMC 变体的性质/查询文件。",
+      "context_path": "linked/uppaal.org/casestudies/smc/consmc/consmc-models/concur/concur05-consmc.xml",
+      "status": "ok",
+      "message": "parsed via TigaPropertyBuilder::parse(FILE*) using companion model concur05-consmc.xml with parse_XML_file(newxta=true); properties=6",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/uppaal.org/casestudies/smc/consmc/consmc-models/concur/concur05-consmc.xml。详情：parsed via TigaPropertyBuilder::parse(FILE*) using companion model concur05-consmc.xml with parse_XML_file(newxta=true); properties=6"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/consmc/consmc-models/concur/concur05-consmc.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the CONCUR'05 case study in its ConsMC variant.",
-      "desc_zh": "CONCUR'05 案例中的其 ConsMC 变体的 XML 模型文件。"
+      "desc_zh": "CONCUR'05 案例中的其 ConsMC 变体的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/consmc/consmc-models/jobshop2/jobshop2-consmc.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for the job-shop scheduling case study in its ConsMC variant.",
-      "desc_zh": "作业车间调度案例中的其 ConsMC 变体的性质/查询文件。"
+      "desc_zh": "作业车间调度案例中的其 ConsMC 变体的性质/查询文件。",
+      "context_path": "linked/uppaal.org/casestudies/smc/consmc/consmc-models/jobshop2/jobshop2-consmc.xml",
+      "status": "ok",
+      "message": "parsed via TigaPropertyBuilder::parse(FILE*) using companion model jobshop2-consmc.xml with parse_XML_file(newxta=true); properties=12",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/uppaal.org/casestudies/smc/consmc/consmc-models/jobshop2/jobshop2-consmc.xml。详情：parsed via TigaPropertyBuilder::parse(FILE*) using companion model jobshop2-consmc.xml with parse_XML_file(newxta=true); properties=12"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/consmc/consmc-models/jobshop2/jobshop2-consmc.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the job-shop scheduling case study in its ConsMC variant.",
-      "desc_zh": "作业车间调度案例中的其 ConsMC 变体的 XML 模型文件。"
+      "desc_zh": "作业车间调度案例中的其 ConsMC 变体的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/consmc/consmc-models/traingate2/traingate2-consmc.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for the train-gate control case study in its ConsMC variant.",
-      "desc_zh": "火车-道口控制案例中的其 ConsMC 变体的性质/查询文件。"
+      "desc_zh": "火车-道口控制案例中的其 ConsMC 变体的性质/查询文件。",
+      "context_path": "linked/uppaal.org/casestudies/smc/consmc/consmc-models/traingate2/traingate2-consmc.xml",
+      "status": "ok",
+      "message": "parsed via TigaPropertyBuilder::parse(FILE*) using companion model traingate2-consmc.xml with parse_XML_file(newxta=true); properties=6",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/uppaal.org/casestudies/smc/consmc/consmc-models/traingate2/traingate2-consmc.xml。详情：parsed via TigaPropertyBuilder::parse(FILE*) using companion model traingate2-consmc.xml with parse_XML_file(newxta=true); properties=6"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/consmc/consmc-models/traingate2/traingate2-consmc.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the train-gate control case study in its ConsMC variant.",
-      "desc_zh": "火车-道口控制案例中的其 ConsMC 变体的 XML 模型文件。"
+      "desc_zh": "火车-道口控制案例中的其 ConsMC 变体的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/consmc/manual-models/concur/concur05-game.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for the CONCUR'05 case study in its game-model variant.",
-      "desc_zh": "CONCUR'05 案例中的其博弈模型变体的性质/查询文件。"
+      "desc_zh": "CONCUR'05 案例中的其博弈模型变体的性质/查询文件。",
+      "context_path": "linked/uppaal.org/casestudies/smc/consmc/manual-models/concur/concur05-game.xml",
+      "status": "ok",
+      "message": "parsed via TigaPropertyBuilder::parse(FILE*) using companion model concur05-game.xml with parse_XML_file(newxta=true); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/uppaal.org/casestudies/smc/consmc/manual-models/concur/concur05-game.xml。详情：parsed via TigaPropertyBuilder::parse(FILE*) using companion model concur05-game.xml with parse_XML_file(newxta=true); properties=1"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/consmc/manual-models/concur/concur05-game.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the CONCUR'05 case study in its game-model variant.",
-      "desc_zh": "CONCUR'05 案例中的其博弈模型变体的 XML 模型文件。"
+      "desc_zh": "CONCUR'05 案例中的其博弈模型变体的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/consmc/manual-models/concur/concur05-mycon-mc.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for the CONCUR'05 case study in its manual-controller model-checking variant.",
-      "desc_zh": "CONCUR'05 案例中的其手工控制器模型检测变体的性质/查询文件。"
+      "desc_zh": "CONCUR'05 案例中的其手工控制器模型检测变体的性质/查询文件。",
+      "context_path": "linked/uppaal.org/casestudies/smc/consmc/manual-models/concur/concur05-mycon-mc.xml",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model concur05-mycon-mc.xml with parse_XML_file(newxta=true); properties=2",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/uppaal.org/casestudies/smc/consmc/manual-models/concur/concur05-mycon-mc.xml。详情：parsed via PropertyBuilder::parse(FILE*) using companion model concur05-mycon-mc.xml with parse_XML_file(newxta=true); properties=2"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/consmc/manual-models/concur/concur05-mycon-mc.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the CONCUR'05 case study in its manual-controller model-checking variant.",
-      "desc_zh": "CONCUR'05 案例中的其手工控制器模型检测变体的 XML 模型文件。"
+      "desc_zh": "CONCUR'05 案例中的其手工控制器模型检测变体的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/consmc/manual-models/concur/concur05-mycon-smc.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for the CONCUR'05 case study in its manual-controller statistical-checking variant.",
-      "desc_zh": "CONCUR'05 案例中的其手工控制器统计检验变体的性质/查询文件。"
+      "desc_zh": "CONCUR'05 案例中的其手工控制器统计检验变体的性质/查询文件。",
+      "context_path": "linked/uppaal.org/casestudies/smc/consmc/manual-models/concur/concur05-mycon-smc.xml",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model concur05-mycon-smc.xml with parse_XML_file(newxta=true); properties=3",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/uppaal.org/casestudies/smc/consmc/manual-models/concur/concur05-mycon-smc.xml。详情：parsed via PropertyBuilder::parse(FILE*) using companion model concur05-mycon-smc.xml with parse_XML_file(newxta=true); properties=3"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/consmc/manual-models/concur/concur05-mycon-smc.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the CONCUR'05 case study in its manual-controller statistical-checking variant.",
-      "desc_zh": "CONCUR'05 案例中的其手工控制器统计检验变体的 XML 模型文件。"
+      "desc_zh": "CONCUR'05 案例中的其手工控制器统计检验变体的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/consmc/manual-models/jobshop2/jobshop2-game.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for the job-shop scheduling case study in its game-model variant.",
-      "desc_zh": "作业车间调度案例中的其博弈模型变体的性质/查询文件。"
+      "desc_zh": "作业车间调度案例中的其博弈模型变体的性质/查询文件。",
+      "context_path": "linked/uppaal.org/casestudies/smc/consmc/manual-models/jobshop2/jobshop2-game.xml",
+      "status": "ok",
+      "message": "parsed via TigaPropertyBuilder::parse(FILE*) using companion model jobshop2-game.xml with parse_XML_file(newxta=true); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/uppaal.org/casestudies/smc/consmc/manual-models/jobshop2/jobshop2-game.xml。详情：parsed via TigaPropertyBuilder::parse(FILE*) using companion model jobshop2-game.xml with parse_XML_file(newxta=true); properties=1"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/consmc/manual-models/jobshop2/jobshop2-game.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the job-shop scheduling case study in its game-model variant.",
-      "desc_zh": "作业车间调度案例中的其博弈模型变体的 XML 模型文件。"
+      "desc_zh": "作业车间调度案例中的其博弈模型变体的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/consmc/manual-models/jobshop2/jobshop2-mycon-mc.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for the job-shop scheduling case study in its manual-controller model-checking variant.",
-      "desc_zh": "作业车间调度案例中的其手工控制器模型检测变体的性质/查询文件。"
+      "desc_zh": "作业车间调度案例中的其手工控制器模型检测变体的性质/查询文件。",
+      "context_path": "linked/uppaal.org/casestudies/smc/consmc/manual-models/jobshop2/jobshop2-mycon-mc.xml",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model jobshop2-mycon-mc.xml with parse_XML_file(newxta=true); properties=5",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/uppaal.org/casestudies/smc/consmc/manual-models/jobshop2/jobshop2-mycon-mc.xml。详情：parsed via PropertyBuilder::parse(FILE*) using companion model jobshop2-mycon-mc.xml with parse_XML_file(newxta=true); properties=5"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/consmc/manual-models/jobshop2/jobshop2-mycon-mc.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the job-shop scheduling case study in its manual-controller model-checking variant.",
-      "desc_zh": "作业车间调度案例中的其手工控制器模型检测变体的 XML 模型文件。"
+      "desc_zh": "作业车间调度案例中的其手工控制器模型检测变体的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/consmc/manual-models/jobshop2/jobshop2-mycon-smc.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for the job-shop scheduling case study in its manual-controller statistical-checking variant.",
-      "desc_zh": "作业车间调度案例中的其手工控制器统计检验变体的性质/查询文件。"
+      "desc_zh": "作业车间调度案例中的其手工控制器统计检验变体的性质/查询文件。",
+      "context_path": "linked/uppaal.org/casestudies/smc/consmc/manual-models/jobshop2/jobshop2-mycon-smc.xml",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model jobshop2-mycon-smc.xml with parse_XML_file(newxta=true); properties=7",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/uppaal.org/casestudies/smc/consmc/manual-models/jobshop2/jobshop2-mycon-smc.xml。详情：parsed via PropertyBuilder::parse(FILE*) using companion model jobshop2-mycon-smc.xml with parse_XML_file(newxta=true); properties=7"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/consmc/manual-models/jobshop2/jobshop2-mycon-smc.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the job-shop scheduling case study in its manual-controller statistical-checking variant.",
-      "desc_zh": "作业车间调度案例中的其手工控制器统计检验变体的 XML 模型文件。"
+      "desc_zh": "作业车间调度案例中的其手工控制器统计检验变体的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/consmc/manual-models/traingate2/traingate2-game.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for the train-gate control case study in its game-model variant.",
-      "desc_zh": "火车-道口控制案例中的其博弈模型变体的性质/查询文件。"
+      "desc_zh": "火车-道口控制案例中的其博弈模型变体的性质/查询文件。",
+      "context_path": "linked/uppaal.org/casestudies/smc/consmc/manual-models/traingate2/traingate2-game.xml",
+      "status": "ok",
+      "message": "parsed via TigaPropertyBuilder::parse(FILE*) using companion model traingate2-game.xml with parse_XML_file(newxta=true); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/uppaal.org/casestudies/smc/consmc/manual-models/traingate2/traingate2-game.xml。详情：parsed via TigaPropertyBuilder::parse(FILE*) using companion model traingate2-game.xml with parse_XML_file(newxta=true); properties=1"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/consmc/manual-models/traingate2/traingate2-game.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the train-gate control case study in its game-model variant.",
-      "desc_zh": "火车-道口控制案例中的其博弈模型变体的 XML 模型文件。"
+      "desc_zh": "火车-道口控制案例中的其博弈模型变体的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/consmc/manual-models/traingate2/traingate2-mycon-mc.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for the train-gate control case study in its manual-controller model-checking variant.",
-      "desc_zh": "火车-道口控制案例中的其手工控制器模型检测变体的性质/查询文件。"
+      "desc_zh": "火车-道口控制案例中的其手工控制器模型检测变体的性质/查询文件。",
+      "context_path": "linked/uppaal.org/casestudies/smc/consmc/manual-models/traingate2/traingate2-mycon-mc.xml",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model traingate2-mycon-mc.xml with parse_XML_file(newxta=true); properties=3",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/uppaal.org/casestudies/smc/consmc/manual-models/traingate2/traingate2-mycon-mc.xml。详情：parsed via PropertyBuilder::parse(FILE*) using companion model traingate2-mycon-mc.xml with parse_XML_file(newxta=true); properties=3"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/consmc/manual-models/traingate2/traingate2-mycon-mc.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the train-gate control case study in its manual-controller model-checking variant.",
-      "desc_zh": "火车-道口控制案例中的其手工控制器模型检测变体的 XML 模型文件。"
+      "desc_zh": "火车-道口控制案例中的其手工控制器模型检测变体的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/consmc/manual-models/traingate2/traingate2-mycon-smc.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for the train-gate control case study in its manual-controller statistical-checking variant.",
-      "desc_zh": "火车-道口控制案例中的其手工控制器统计检验变体的性质/查询文件。"
+      "desc_zh": "火车-道口控制案例中的其手工控制器统计检验变体的性质/查询文件。",
+      "context_path": "linked/uppaal.org/casestudies/smc/consmc/manual-models/traingate2/traingate2-mycon-smc.xml",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model traingate2-mycon-smc.xml with parse_XML_file(newxta=true); properties=3",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/uppaal.org/casestudies/smc/consmc/manual-models/traingate2/traingate2-mycon-smc.xml。详情：parsed via PropertyBuilder::parse(FILE*) using companion model traingate2-mycon-smc.xml with parse_XML_file(newxta=true); properties=3"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/consmc/manual-models/traingate2/traingate2-mycon-smc.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the train-gate control case study in its manual-controller statistical-checking variant.",
-      "desc_zh": "火车-道口控制案例中的其手工控制器统计检验变体的 XML 模型文件。"
+      "desc_zh": "火车-道口控制案例中的其手工控制器统计检验变体的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/firewire.cav.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for the FireWire protocol case study from the CAV examples.",
-      "desc_zh": "CAV 示例中的 FireWire 协议案例的性质/查询文件。"
+      "desc_zh": "CAV 示例中的 FireWire 协议案例的性质/查询文件。",
+      "context_path": "linked/uppaal.org/casestudies/smc/firewire.cav.xml",
+      "status": "error",
+      "message": "no companion model made the query parse successfully: PropertyBuilder::parse(FILE*) failed with companion model firewire.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: time at line 21 column 3 to line 21 column 7; error: $Clock_expected at line 21 column 3 to line 21 column 7; error: $Unknown_identifier: time at line 26 column 3 to line 26 column 7; error: ... (56 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model firewire.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: time at line 21 column 3 to line 21 column 7; error: $Clock_expected at line 21 column 3 to line 21 column 7; error: $Unknown_identifier: time at line 26 column 3 to line 26 column 7; error: ... (56 total) | PropertyBuilder::parse(FILE*) failed with companion model bluetooth.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: node1 at line 6 column 6 to line 6 column 11; error: false $is_not_a_structure at line 6 column 6 to line 6 column 13; error: $Unknown_identifier: node2 at line 6 column 22 to line 6 column 27; error: ... (130 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model bluetooth.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: node1 at line 6 column 6 to line 6 column 11; error: false $is_not_a_structure at line 6 column 6 to line 6 column 13; error: $Unknown_identifier: node2 at line 6 column 22 to line 6 column 27; error: ... (130 total) | PropertyBuilder::parse(FILE*) failed with companion model lmac-bubble.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: node1 at line 6 column 6 to line 6 column 11; error: false $is_not_a_structure at line 6 column 6 to line 6 column 13; error: $Unknown_identifier: node2 at line 6 column 22 to line 6 column 27; error: ... (130 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model lmac-bubble.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: node1 at line 6 column 6 to line 6 column 11; error: false $is_not_a_structure at line 6 column 6 to line 6 column 13; error: $Unknown_identifier: node2 at line 6 column 22 to line 6 column 27; error: ... (130 total) | PropertyBuilder::parse(FILE*) failed with companion model lmac-star.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: node1 at line 6 column 6 to line 6 column 11; error: false $is_not_a_structure at line 6 column 6 to line 6 column 13; error: $Unknown_identifier: node2 at line 6 column 22 to line 6 column 27; error: ... (130 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model lmac-star.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: node1 at line 6 column 6 to line 6 column 11; error: false $is_not_a_structure at line 6 column 6 to line 6 column 13; error: $Unknown_identifier: node2 at line 6 column 22 to line 6 column 27; error: ... (130 total) | ... (9 candidates tried)",
+      "message_zh": "UTAP 实际解析失败。使用上下文文件 linked/uppaal.org/casestudies/smc/firewire.cav.xml。原因：no companion model made the query parse successfully: PropertyBuilder::parse(FILE*) failed with companion model firewire.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: time at line 21 column 3 to line 21 column 7; error: $Clock_expected at line 21 column 3 to line 21 column 7; error: $Unknown_identifier: time at line 26 column 3 to line 26 column 7; error: ... (56 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model firewire.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: time at line 21 column 3 to line 21 column 7; error: $Clock_expected at line 21 column 3 to line 21 column 7; error: $Unknown_identifier: time at line 26 column 3 to line 26 column 7; error: ... (56 total) | PropertyBuilder::parse(FILE*) failed with companion model bluetooth.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: node1 at line 6 column 6 to line 6 column 11; error: false $is_not_a_structure at line 6 column 6 to line 6 column 13; error: $Unknown_identifier: node2 at line 6 column 22 to line 6 column 27; error: ... (130 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model bluetooth.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: node1 at line 6 column 6 to line 6 column 11; error: false $is_not_a_structure at line 6 column 6 to line 6 column 13; error: $Unknown_identifier: node2 at line 6 column 22 to line 6 column 27; error: ... (130 total) | PropertyBuilder::parse(FILE*) failed with companion model lmac-bubble.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: node1 at line 6 column 6 to line 6 column 11; error: false $is_not_a_structure at line 6 column 6 to line 6 column 13; error: $Unknown_identifier: node2 at line 6 column 22 to line 6 column 27; error: ... (130 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model lmac-bubble.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: node1 at line 6 column 6 to line 6 column 11; error: false $is_not_a_structure at line 6 column 6 to line 6 column 13; error: $Unknown_identifier: node2 at line 6 column 22 to line 6 column 27; error: ... (130 total) | PropertyBuilder::parse(FILE*) failed with companion model lmac-star.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: node1 at line 6 column 6 to line 6 column 11; error: false $is_not_a_structure at line 6 column 6 to line 6 column 13; error: $Unknown_identifier: node2 at line 6 column 22 to line 6 column 27; error: ... (130 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model lmac-star.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: node1 at line 6 column 6 to line 6 column 11; error: false $is_not_a_structure at line 6 column 6 to line 6 column 13; error: $Unknown_identifier: node2 at line 6 column 22 to line 6 column 27; error: ... (130 total) | ... (9 candidates tried)"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/firewire.cav.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the FireWire protocol case study from the CAV examples.",
-      "desc_zh": "CAV 示例中的 FireWire 协议案例的 XML 模型文件。"
+      "desc_zh": "CAV 示例中的 FireWire 协议案例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/lmac-bubble.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the bubble-topology LMAC case study.",
-      "desc_zh": "气泡拓扑 LMAC 案例的 XML 模型文件。"
+      "desc_zh": "气泡拓扑 LMAC 案例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/lmac-star.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the star-topology LMAC case study.",
-      "desc_zh": "星型拓扑 LMAC 案例的 XML 模型文件。"
+      "desc_zh": "星型拓扑 LMAC 案例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/lmac.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for the base LMAC protocol case study.",
-      "desc_zh": "基础 LMAC 协议案例的性质/查询文件。"
+      "desc_zh": "基础 LMAC 协议案例的性质/查询文件。",
+      "context_path": "linked/uppaal.org/casestudies/smc/lmac-bubble.xml",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model lmac-bubble.xml with parse_XML_file(newxta=true); properties=4",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/uppaal.org/casestudies/smc/lmac-bubble.xml。详情：parsed via PropertyBuilder::parse(FILE*) using companion model lmac-bubble.xml with parse_XML_file(newxta=true); properties=4"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/lmac6-cmp.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for the comparison variant of the six-node LMAC case study.",
-      "desc_zh": "六节点 LMAC 案例的比较变体的性质/查询文件。"
+      "desc_zh": "六节点 LMAC 案例的比较变体的性质/查询文件。",
+      "context_path": "linked/uppaal.org/casestudies/smc/lmac6-cmp.xml",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model lmac6-cmp.xml with parse_XML_file(newxta=true); properties=8",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/uppaal.org/casestudies/smc/lmac6-cmp.xml。详情：parsed via PropertyBuilder::parse(FILE*) using companion model lmac6-cmp.xml with parse_XML_file(newxta=true); properties=8"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/lmac6-cmp.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the comparison variant of the six-node LMAC case study.",
-      "desc_zh": "六节点 LMAC 案例的比较变体的 XML 模型文件。"
+      "desc_zh": "六节点 LMAC 案例的比较变体的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/lmac6-power.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for the power-focused variant of the six-node LMAC case study.",
-      "desc_zh": "六节点 LMAC 案例的功耗变体的性质/查询文件。"
+      "desc_zh": "六节点 LMAC 案例的功耗变体的性质/查询文件。",
+      "context_path": "linked/uppaal.org/casestudies/smc/lmac6-power.xml",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model lmac6-power.xml with parse_XML_file(newxta=true); properties=11",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/uppaal.org/casestudies/smc/lmac6-power.xml。详情：parsed via PropertyBuilder::parse(FILE*) using companion model lmac6-power.xml with parse_XML_file(newxta=true); properties=11"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/lmac6-power.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the power-focused variant of the six-node LMAC case study.",
-      "desc_zh": "六节点 LMAC 案例的功耗变体的 XML 模型文件。"
+      "desc_zh": "六节点 LMAC 案例的功耗变体的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/lmac6.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for the six-node LMAC protocol example.",
-      "desc_zh": "六节点 LMAC 协议示例的性质/查询文件。"
+      "desc_zh": "六节点 LMAC 协议示例的性质/查询文件。",
+      "context_path": "linked/uppaal.org/casestudies/smc/lmac6.xml",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model lmac6.xml with parse_XML_file(newxta=true); properties=12",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/uppaal.org/casestudies/smc/lmac6.xml。详情：parsed via PropertyBuilder::parse(FILE*) using companion model lmac6.xml with parse_XML_file(newxta=true); properties=12"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/lmac6.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the six-node LMAC protocol example.",
-      "desc_zh": "六节点 LMAC 协议示例的 XML 模型文件。"
+      "desc_zh": "六节点 LMAC 协议示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/polling.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for the polling protocol example.",
-      "desc_zh": "轮询协议示例的性质/查询文件。"
+      "desc_zh": "轮询协议示例的性质/查询文件。",
+      "context_path": "linked/uppaal.org/casestudies/smc/polling.xml",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model polling.xml with parse_XML_file(newxta=true); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/uppaal.org/casestudies/smc/polling.xml。详情：parsed via PropertyBuilder::parse(FILE*) using companion model polling.xml with parse_XML_file(newxta=true); properties=1"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/polling.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the polling protocol example.",
-      "desc_zh": "轮询协议示例的 XML 模型文件。"
+      "desc_zh": "轮询协议示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/pollingH.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for the hierarchical polling example.",
-      "desc_zh": "分层轮询示例的性质/查询文件。"
+      "desc_zh": "分层轮询示例的性质/查询文件。",
+      "context_path": "linked/uppaal.org/casestudies/smc/polling.xml",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model polling.xml with parse_XML_file(newxta=true); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/uppaal.org/casestudies/smc/polling.xml。详情：parsed via PropertyBuilder::parse(FILE*) using companion model polling.xml with parse_XML_file(newxta=true); properties=1"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/samplesmc.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for the sample statistical model checking example.",
-      "desc_zh": "示例化统计模型检测案例的性质/查询文件。"
+      "desc_zh": "示例化统计模型检测案例的性质/查询文件。",
+      "context_path": "linked/uppaal.org/casestudies/smc/samplesmc.xml",
+      "status": "error",
+      "message": "no companion model made the query parse successfully: PropertyBuilder::parse(FILE*) failed with companion model samplesmc.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: P at line 31 column 12 to line 31 column 13; error: false $is_not_a_structure at line 31 column 12 to line 31 column 16 | TigaPropertyBuilder::parse(FILE*) failed with companion model samplesmc.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: P at line 31 column 12 to line 31 column 13; error: false $is_not_a_structure at line 31 column 12 to line 31 column 16 | PropertyBuilder::parse(FILE*) failed with companion model bluetooth.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: steps at line 6 column 3 to line 6 column 8; error: $Unknown_identifier: Master at line 6 column 20 to line 6 column 26; error: false $is_not_a_structure at line 6 column 20 to line 6 column 29; error: ... (18 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model bluetooth.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: steps at line 6 column 3 to line 6 column 8; error: $Unknown_identifier: Master at line 6 column 20 to line 6 column 26; error: false $is_not_a_structure at line 6 column 20 to line 6 column 29; error: ... (18 total) | PropertyBuilder::parse(FILE*) failed with companion model firewire.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: steps at line 6 column 3 to line 6 column 8; error: $Unknown_identifier: Master at line 6 column 20 to line 6 column 26; error: false $is_not_a_structure at line 6 column 20 to line 6 column 29; error: ... (18 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model firewire.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: steps at line 6 column 3 to line 6 column 8; error: $Unknown_identifier: Master at line 6 column 20 to line 6 column 26; error: false $is_not_a_structure at line 6 column 20 to line 6 column 29; error: ... (18 total) | PropertyBuilder::parse(FILE*) failed with companion model lmac-bubble.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: steps at line 6 column 3 to line 6 column 8; error: $Unknown_identifier: Master at line 6 column 20 to line 6 column 26; error: false $is_not_a_structure at line 6 column 20 to line 6 column 29; error: ... (18 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model lmac-bubble.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: steps at line 6 column 3 to line 6 column 8; error: $Unknown_identifier: Master at line 6 column 20 to line 6 column 26; error: false $is_not_a_structure at line 6 column 20 to line 6 column 29; error: ... (18 total) | ... (9 candidates tried)",
+      "message_zh": "UTAP 实际解析失败。使用上下文文件 linked/uppaal.org/casestudies/smc/samplesmc.xml。原因：no companion model made the query parse successfully: PropertyBuilder::parse(FILE*) failed with companion model samplesmc.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: P at line 31 column 12 to line 31 column 13; error: false $is_not_a_structure at line 31 column 12 to line 31 column 16 | TigaPropertyBuilder::parse(FILE*) failed with companion model samplesmc.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: P at line 31 column 12 to line 31 column 13; error: false $is_not_a_structure at line 31 column 12 to line 31 column 16 | PropertyBuilder::parse(FILE*) failed with companion model bluetooth.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: steps at line 6 column 3 to line 6 column 8; error: $Unknown_identifier: Master at line 6 column 20 to line 6 column 26; error: false $is_not_a_structure at line 6 column 20 to line 6 column 29; error: ... (18 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model bluetooth.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: steps at line 6 column 3 to line 6 column 8; error: $Unknown_identifier: Master at line 6 column 20 to line 6 column 26; error: false $is_not_a_structure at line 6 column 20 to line 6 column 29; error: ... (18 total) | PropertyBuilder::parse(FILE*) failed with companion model firewire.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: steps at line 6 column 3 to line 6 column 8; error: $Unknown_identifier: Master at line 6 column 20 to line 6 column 26; error: false $is_not_a_structure at line 6 column 20 to line 6 column 29; error: ... (18 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model firewire.cav.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: steps at line 6 column 3 to line 6 column 8; error: $Unknown_identifier: Master at line 6 column 20 to line 6 column 26; error: false $is_not_a_structure at line 6 column 20 to line 6 column 29; error: ... (18 total) | PropertyBuilder::parse(FILE*) failed with companion model lmac-bubble.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: steps at line 6 column 3 to line 6 column 8; error: $Unknown_identifier: Master at line 6 column 20 to line 6 column 26; error: false $is_not_a_structure at line 6 column 20 to line 6 column 29; error: ... (18 total) | TigaPropertyBuilder::parse(FILE*) failed with companion model lmac-bubble.xml using parse_XML_file(newxta=true): error: $Unknown_identifier: steps at line 6 column 3 to line 6 column 8; error: $Unknown_identifier: Master at line 6 column 20 to line 6 column 26; error: false $is_not_a_structure at line 6 column 20 to line 6 column 29; error: ... (18 total) | ... (9 candidates tried)"
     },
     {
       "path": "linked/uppaal.org/casestudies/smc/samplesmc.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the sample statistical model checking example.",
-      "desc_zh": "示例化统计模型检测案例的 XML 模型文件。"
+      "desc_zh": "示例化统计模型检测案例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "linked/uppaal.org/casestudies/stratego/cruise.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the STRATEGO cruise-control example.",
-      "desc_zh": "STRATEGO 巡航控制示例的 XML 模型文件。"
+      "desc_zh": "STRATEGO 巡航控制示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "linked/uppaal.org/casestudies/stratego/newspaper.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the STRATEGO newspaper-delivery example.",
-      "desc_zh": "STRATEGO 报纸投递示例的 XML 模型文件。"
+      "desc_zh": "STRATEGO 报纸投递示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "linked/uppaal.org/casestudies/stratego/traffic.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the STRATEGO traffic-control example.",
-      "desc_zh": "STRATEGO 交通控制示例的 XML 模型文件。"
+      "desc_zh": "STRATEGO 交通控制示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "linked/uppaal.org/texts/smc-tutorial-fig22.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the SMC tutorial Figure 22 example.",
-      "desc_zh": "SMC 教程图 22 示例的 XML 模型文件。"
+      "desc_zh": "SMC 教程图 22 示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=true)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=true)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bando.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for the official `bando` benchmark case study.",
-      "desc_zh": "`bando` 官方基准案例的性质/查询文件。"
+      "desc_zh": "`bando` 官方基准案例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bando.ta",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model bando.ta with parse_XTA(newxta=false); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bando.ta。详情：parsed via PropertyBuilder::parse(FILE*) using companion model bando.ta with parse_XTA(newxta=false); properties=1"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bando.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for the official `bando` benchmark case study.",
-      "desc_zh": "`bando` 官方基准案例的文本模型文件。"
+      "desc_zh": "`bando` 官方基准案例的文本模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XTA(newxta=false)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XTA(newxta=false)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bocdp/bocdp.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for the official `bocdp` benchmark case study.",
-      "desc_zh": "`bocdp` 官方基准案例的性质/查询文件。"
+      "desc_zh": "`bocdp` 官方基准案例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bocdp/bocdp.xml",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model bocdp.xml with parse_XML_file(newxta=false); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bocdp/bocdp.xml。详情：parsed via PropertyBuilder::parse(FILE*) using companion model bocdp.xml with parse_XML_file(newxta=false); properties=1"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bocdp/bocdp.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for the official `bocdp` benchmark case study.",
-      "desc_zh": "`bocdp` 官方基准案例的文本模型文件。"
+      "desc_zh": "`bocdp` 官方基准案例的文本模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XTA(newxta=false)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XTA(newxta=false)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bocdp/bocdp.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the official `bocdp` benchmark case study.",
-      "desc_zh": "`bocdp` 官方基准案例的 XML 模型文件。"
+      "desc_zh": "`bocdp` 官方基准案例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=false)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=false)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bocdpFIXED/bocdpFIXED.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for the fixed variant of the official `bocdp` benchmark.",
-      "desc_zh": "`bocdp` 官方基准的 fixed 变体的性质/查询文件。"
+      "desc_zh": "`bocdp` 官方基准的 fixed 变体的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bocdpFIXED/bocdpFIXED.xml",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model bocdpFIXED.xml with parse_XML_file(newxta=false); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bocdpFIXED/bocdpFIXED.xml。详情：parsed via PropertyBuilder::parse(FILE*) using companion model bocdpFIXED.xml with parse_XML_file(newxta=false); properties=1"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bocdpFIXED/bocdpFIXED.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for the fixed variant of the official `bocdp` benchmark.",
-      "desc_zh": "`bocdp` 官方基准的 fixed 变体的文本模型文件。"
+      "desc_zh": "`bocdp` 官方基准的 fixed 变体的文本模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XTA(newxta=false)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XTA(newxta=false)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bocdpFIXED/bocdpFIXED.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the fixed variant of the official `bocdp` benchmark.",
-      "desc_zh": "`bocdp` 官方基准的 fixed 变体的 XML 模型文件。"
+      "desc_zh": "`bocdp` 官方基准的 fixed 变体的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=false)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=false)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bopdp/bopdp.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for the official `bopdp` benchmark case study.",
-      "desc_zh": "`bopdp` 官方基准案例的性质/查询文件。"
+      "desc_zh": "`bopdp` 官方基准案例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bopdp/bopdp.xml",
+      "status": "error",
+      "message": "no companion model made the query parse successfully: bopdp.xml: downloaded companion content is HTML, not a model | bopdp.ta: downloaded companion content is HTML, not a model",
+      "message_zh": "UTAP 实际解析失败。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bopdp/bopdp.xml。原因：no companion model made the query parse successfully: bopdp.xml: downloaded companion content is HTML, not a model | bopdp.ta: downloaded companion content is HTML, not a model"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bopdp/bopdp.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for the official `bopdp` benchmark case study.",
-      "desc_zh": "`bopdp` 官方基准案例的文本模型文件。"
+      "desc_zh": "`bopdp` 官方基准案例的文本模型文件。",
+      "context_path": null,
+      "status": "error",
+      "message": "downloaded content is HTML, not a textual model | downloaded content is HTML, not a textual model",
+      "message_zh": "UTAP 实际解析失败。原因：downloaded content is HTML, not a textual model | downloaded content is HTML, not a textual model"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bopdp/bopdp.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the official `bopdp` benchmark case study.",
-      "desc_zh": "`bopdp` 官方基准案例的 XML 模型文件。"
+      "desc_zh": "`bopdp` 官方基准案例的 XML 模型文件。",
+      "context_path": null,
+      "status": "error",
+      "message": "downloaded content is HTML, not an XML model | downloaded content is HTML, not an XML model",
+      "message_zh": "UTAP 实际解析失败。原因：downloaded content is HTML, not an XML model | downloaded content is HTML, not an XML model"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bopdpFIXED/bopdpFIXED.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for the fixed variant of the official `bopdp` benchmark.",
-      "desc_zh": "`bopdp` 官方基准的 fixed 变体的性质/查询文件。"
+      "desc_zh": "`bopdp` 官方基准的 fixed 变体的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bopdpFIXED/bopdpFIXED.xml",
+      "status": "error",
+      "message": "no companion model made the query parse successfully: bopdpFIXED.xml: downloaded companion content is HTML, not a model | bopdpFIXED.ta: downloaded companion content is HTML, not a model",
+      "message_zh": "UTAP 实际解析失败。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bopdpFIXED/bopdpFIXED.xml。原因：no companion model made the query parse successfully: bopdpFIXED.xml: downloaded companion content is HTML, not a model | bopdpFIXED.ta: downloaded companion content is HTML, not a model"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bopdpFIXED/bopdpFIXED.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for the fixed variant of the official `bopdp` benchmark.",
-      "desc_zh": "`bopdp` 官方基准的 fixed 变体的文本模型文件。"
+      "desc_zh": "`bopdp` 官方基准的 fixed 变体的文本模型文件。",
+      "context_path": null,
+      "status": "error",
+      "message": "downloaded content is HTML, not a textual model | downloaded content is HTML, not a textual model",
+      "message_zh": "UTAP 实际解析失败。原因：downloaded content is HTML, not a textual model | downloaded content is HTML, not a textual model"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/bopdpFIXED/bopdpFIXED.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the fixed variant of the official `bopdp` benchmark.",
-      "desc_zh": "`bopdp` 官方基准的 fixed 变体的 XML 模型文件。"
+      "desc_zh": "`bopdp` 官方基准的 fixed 变体的 XML 模型文件。",
+      "context_path": null,
+      "status": "error",
+      "message": "downloaded content is HTML, not an XML model | downloaded content is HTML, not an XML model",
+      "message_zh": "UTAP 实际解析失败。原因：downloaded content is HTML, not an XML model | downloaded content is HTML, not an XML model"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_02.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for CSMA benchmark instance 2.",
-      "desc_zh": "CSMA 基准的第 2 个实例的性质/查询文件。"
+      "desc_zh": "CSMA 基准的第 2 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_02.ta",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model csma_input_02.ta with parse_XTA(newxta=false); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_02.ta。详情：parsed via PropertyBuilder::parse(FILE*) using companion model csma_input_02.ta with parse_XTA(newxta=false); properties=1"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_02.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for CSMA benchmark instance 2.",
-      "desc_zh": "CSMA 基准的第 2 个实例的文本模型文件。"
+      "desc_zh": "CSMA 基准的第 2 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XTA(newxta=false)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XTA(newxta=false)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_03.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for CSMA benchmark instance 3.",
-      "desc_zh": "CSMA 基准的第 3 个实例的性质/查询文件。"
+      "desc_zh": "CSMA 基准的第 3 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_03.ta",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model csma_input_03.ta with parse_XTA(newxta=false); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_03.ta。详情：parsed via PropertyBuilder::parse(FILE*) using companion model csma_input_03.ta with parse_XTA(newxta=false); properties=1"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_03.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for CSMA benchmark instance 3.",
-      "desc_zh": "CSMA 基准的第 3 个实例的文本模型文件。"
+      "desc_zh": "CSMA 基准的第 3 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XTA(newxta=false)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XTA(newxta=false)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_04.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for CSMA benchmark instance 4.",
-      "desc_zh": "CSMA 基准的第 4 个实例的性质/查询文件。"
+      "desc_zh": "CSMA 基准的第 4 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_04.ta",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model csma_input_04.ta with parse_XTA(newxta=false); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_04.ta。详情：parsed via PropertyBuilder::parse(FILE*) using companion model csma_input_04.ta with parse_XTA(newxta=false); properties=1"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_04.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for CSMA benchmark instance 4.",
-      "desc_zh": "CSMA 基准的第 4 个实例的文本模型文件。"
+      "desc_zh": "CSMA 基准的第 4 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XTA(newxta=false)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XTA(newxta=false)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_05.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for CSMA benchmark instance 5.",
-      "desc_zh": "CSMA 基准的第 5 个实例的性质/查询文件。"
+      "desc_zh": "CSMA 基准的第 5 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_05.ta",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model csma_input_05.ta with parse_XTA(newxta=false); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_05.ta。详情：parsed via PropertyBuilder::parse(FILE*) using companion model csma_input_05.ta with parse_XTA(newxta=false); properties=1"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_05.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for CSMA benchmark instance 5.",
-      "desc_zh": "CSMA 基准的第 5 个实例的文本模型文件。"
+      "desc_zh": "CSMA 基准的第 5 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XTA(newxta=false)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XTA(newxta=false)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_06.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for CSMA benchmark instance 6.",
-      "desc_zh": "CSMA 基准的第 6 个实例的性质/查询文件。"
+      "desc_zh": "CSMA 基准的第 6 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_06.ta",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model csma_input_06.ta with parse_XTA(newxta=false); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_06.ta。详情：parsed via PropertyBuilder::parse(FILE*) using companion model csma_input_06.ta with parse_XTA(newxta=false); properties=1"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_06.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for CSMA benchmark instance 6.",
-      "desc_zh": "CSMA 基准的第 6 个实例的文本模型文件。"
+      "desc_zh": "CSMA 基准的第 6 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XTA(newxta=false)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XTA(newxta=false)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_07.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for CSMA benchmark instance 7.",
-      "desc_zh": "CSMA 基准的第 7 个实例的性质/查询文件。"
+      "desc_zh": "CSMA 基准的第 7 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_07.ta",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model csma_input_07.ta with parse_XTA(newxta=false); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_07.ta。详情：parsed via PropertyBuilder::parse(FILE*) using companion model csma_input_07.ta with parse_XTA(newxta=false); properties=1"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_07.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for CSMA benchmark instance 7.",
-      "desc_zh": "CSMA 基准的第 7 个实例的文本模型文件。"
+      "desc_zh": "CSMA 基准的第 7 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XTA(newxta=false)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XTA(newxta=false)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_08.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for CSMA benchmark instance 8.",
-      "desc_zh": "CSMA 基准的第 8 个实例的性质/查询文件。"
+      "desc_zh": "CSMA 基准的第 8 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_08.ta",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model csma_input_08.ta with parse_XTA(newxta=false); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_08.ta。详情：parsed via PropertyBuilder::parse(FILE*) using companion model csma_input_08.ta with parse_XTA(newxta=false); properties=1"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_08.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for CSMA benchmark instance 8.",
-      "desc_zh": "CSMA 基准的第 8 个实例的文本模型文件。"
+      "desc_zh": "CSMA 基准的第 8 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XTA(newxta=false)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XTA(newxta=false)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_09.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for CSMA benchmark instance 9.",
-      "desc_zh": "CSMA 基准的第 9 个实例的性质/查询文件。"
+      "desc_zh": "CSMA 基准的第 9 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_09.ta",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model csma_input_09.ta with parse_XTA(newxta=false); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_09.ta。详情：parsed via PropertyBuilder::parse(FILE*) using companion model csma_input_09.ta with parse_XTA(newxta=false); properties=1"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_09.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for CSMA benchmark instance 9.",
-      "desc_zh": "CSMA 基准的第 9 个实例的文本模型文件。"
+      "desc_zh": "CSMA 基准的第 9 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XTA(newxta=false)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XTA(newxta=false)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_10.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for CSMA benchmark instance 10.",
-      "desc_zh": "CSMA 基准的第 10 个实例的性质/查询文件。"
+      "desc_zh": "CSMA 基准的第 10 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_10.ta",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model csma_input_10.ta with parse_XTA(newxta=false); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_10.ta。详情：parsed via PropertyBuilder::parse(FILE*) using companion model csma_input_10.ta with parse_XTA(newxta=false); properties=1"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_10.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for CSMA benchmark instance 10.",
-      "desc_zh": "CSMA 基准的第 10 个实例的文本模型文件。"
+      "desc_zh": "CSMA 基准的第 10 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XTA(newxta=false)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XTA(newxta=false)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_11.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for CSMA benchmark instance 11.",
-      "desc_zh": "CSMA 基准的第 11 个实例的性质/查询文件。"
+      "desc_zh": "CSMA 基准的第 11 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_11.ta",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model csma_input_11.ta with parse_XTA(newxta=false); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_11.ta。详情：parsed via PropertyBuilder::parse(FILE*) using companion model csma_input_11.ta with parse_XTA(newxta=false); properties=1"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_11.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for CSMA benchmark instance 11.",
-      "desc_zh": "CSMA 基准的第 11 个实例的文本模型文件。"
+      "desc_zh": "CSMA 基准的第 11 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XTA(newxta=false)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XTA(newxta=false)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_12.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for CSMA benchmark instance 12.",
-      "desc_zh": "CSMA 基准的第 12 个实例的性质/查询文件。"
+      "desc_zh": "CSMA 基准的第 12 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_12.ta",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model csma_input_12.ta with parse_XTA(newxta=false); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_12.ta。详情：parsed via PropertyBuilder::parse(FILE*) using companion model csma_input_12.ta with parse_XTA(newxta=false); properties=1"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_12.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for CSMA benchmark instance 12.",
-      "desc_zh": "CSMA 基准的第 12 个实例的文本模型文件。"
+      "desc_zh": "CSMA 基准的第 12 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XTA(newxta=false)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XTA(newxta=false)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_13.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for CSMA benchmark instance 13.",
-      "desc_zh": "CSMA 基准的第 13 个实例的性质/查询文件。"
+      "desc_zh": "CSMA 基准的第 13 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_13.ta",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model csma_input_13.ta with parse_XTA(newxta=false); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_13.ta。详情：parsed via PropertyBuilder::parse(FILE*) using companion model csma_input_13.ta with parse_XTA(newxta=false); properties=1"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/csma/csma_input_13.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for CSMA benchmark instance 13.",
-      "desc_zh": "CSMA 基准的第 13 个实例的文本模型文件。"
+      "desc_zh": "CSMA 基准的第 13 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XTA(newxta=false)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XTA(newxta=false)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer.xml",
       "parse_kind": "XML_MODEL_FILE",
       "desc": "XML model file for the classic Fischer mutual exclusion example.",
-      "desc_zh": "经典 Fischer 互斥示例的 XML 模型文件。"
+      "desc_zh": "经典 Fischer 互斥示例的 XML 模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XML_file(newxta=false)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XML_file(newxta=false)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_02.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for Fischer mutual exclusion benchmark instance 2.",
-      "desc_zh": "Fischer 互斥基准的第 2 个实例的性质/查询文件。"
+      "desc_zh": "Fischer 互斥基准的第 2 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_02.ta",
+      "status": "error",
+      "message": "no companion model made the query parse successfully: fischer_input_02.ta: downloaded companion content is HTML, not a model | fischer_input_03.ta: downloaded companion content is HTML, not a model | fischer_input_04.ta: downloaded companion content is HTML, not a model | fischer_input_05.ta: downloaded companion content is HTML, not a model | ... (11 candidates tried)",
+      "message_zh": "UTAP 实际解析失败。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_02.ta。原因：no companion model made the query parse successfully: fischer_input_02.ta: downloaded companion content is HTML, not a model | fischer_input_03.ta: downloaded companion content is HTML, not a model | fischer_input_04.ta: downloaded companion content is HTML, not a model | fischer_input_05.ta: downloaded companion content is HTML, not a model | ... (11 candidates tried)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_02.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for Fischer mutual exclusion benchmark instance 2.",
-      "desc_zh": "Fischer 互斥基准的第 2 个实例的文本模型文件。"
+      "desc_zh": "Fischer 互斥基准的第 2 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "error",
+      "message": "downloaded content is HTML, not a textual model | downloaded content is HTML, not a textual model",
+      "message_zh": "UTAP 实际解析失败。原因：downloaded content is HTML, not a textual model | downloaded content is HTML, not a textual model"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_03.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for Fischer mutual exclusion benchmark instance 3.",
-      "desc_zh": "Fischer 互斥基准的第 3 个实例的性质/查询文件。"
+      "desc_zh": "Fischer 互斥基准的第 3 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_03.ta",
+      "status": "error",
+      "message": "no companion model made the query parse successfully: fischer_input_03.ta: downloaded companion content is HTML, not a model | fischer_input_02.ta: downloaded companion content is HTML, not a model | fischer_input_04.ta: downloaded companion content is HTML, not a model | fischer_input_05.ta: downloaded companion content is HTML, not a model | ... (11 candidates tried)",
+      "message_zh": "UTAP 实际解析失败。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_03.ta。原因：no companion model made the query parse successfully: fischer_input_03.ta: downloaded companion content is HTML, not a model | fischer_input_02.ta: downloaded companion content is HTML, not a model | fischer_input_04.ta: downloaded companion content is HTML, not a model | fischer_input_05.ta: downloaded companion content is HTML, not a model | ... (11 candidates tried)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_03.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for Fischer mutual exclusion benchmark instance 3.",
-      "desc_zh": "Fischer 互斥基准的第 3 个实例的文本模型文件。"
+      "desc_zh": "Fischer 互斥基准的第 3 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "error",
+      "message": "downloaded content is HTML, not a textual model | downloaded content is HTML, not a textual model",
+      "message_zh": "UTAP 实际解析失败。原因：downloaded content is HTML, not a textual model | downloaded content is HTML, not a textual model"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_04.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for Fischer mutual exclusion benchmark instance 4.",
-      "desc_zh": "Fischer 互斥基准的第 4 个实例的性质/查询文件。"
+      "desc_zh": "Fischer 互斥基准的第 4 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_04.ta",
+      "status": "error",
+      "message": "no companion model made the query parse successfully: fischer_input_04.ta: downloaded companion content is HTML, not a model | fischer_input_02.ta: downloaded companion content is HTML, not a model | fischer_input_03.ta: downloaded companion content is HTML, not a model | fischer_input_05.ta: downloaded companion content is HTML, not a model | ... (11 candidates tried)",
+      "message_zh": "UTAP 实际解析失败。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_04.ta。原因：no companion model made the query parse successfully: fischer_input_04.ta: downloaded companion content is HTML, not a model | fischer_input_02.ta: downloaded companion content is HTML, not a model | fischer_input_03.ta: downloaded companion content is HTML, not a model | fischer_input_05.ta: downloaded companion content is HTML, not a model | ... (11 candidates tried)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_04.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for Fischer mutual exclusion benchmark instance 4.",
-      "desc_zh": "Fischer 互斥基准的第 4 个实例的文本模型文件。"
+      "desc_zh": "Fischer 互斥基准的第 4 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "error",
+      "message": "downloaded content is HTML, not a textual model | downloaded content is HTML, not a textual model",
+      "message_zh": "UTAP 实际解析失败。原因：downloaded content is HTML, not a textual model | downloaded content is HTML, not a textual model"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_05.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for Fischer mutual exclusion benchmark instance 5.",
-      "desc_zh": "Fischer 互斥基准的第 5 个实例的性质/查询文件。"
+      "desc_zh": "Fischer 互斥基准的第 5 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_05.ta",
+      "status": "error",
+      "message": "no companion model made the query parse successfully: fischer_input_05.ta: downloaded companion content is HTML, not a model | fischer_input_02.ta: downloaded companion content is HTML, not a model | fischer_input_03.ta: downloaded companion content is HTML, not a model | fischer_input_04.ta: downloaded companion content is HTML, not a model | ... (11 candidates tried)",
+      "message_zh": "UTAP 实际解析失败。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_05.ta。原因：no companion model made the query parse successfully: fischer_input_05.ta: downloaded companion content is HTML, not a model | fischer_input_02.ta: downloaded companion content is HTML, not a model | fischer_input_03.ta: downloaded companion content is HTML, not a model | fischer_input_04.ta: downloaded companion content is HTML, not a model | ... (11 candidates tried)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_05.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for Fischer mutual exclusion benchmark instance 5.",
-      "desc_zh": "Fischer 互斥基准的第 5 个实例的文本模型文件。"
+      "desc_zh": "Fischer 互斥基准的第 5 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "error",
+      "message": "downloaded content is HTML, not a textual model | downloaded content is HTML, not a textual model",
+      "message_zh": "UTAP 实际解析失败。原因：downloaded content is HTML, not a textual model | downloaded content is HTML, not a textual model"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_06.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for Fischer mutual exclusion benchmark instance 6.",
-      "desc_zh": "Fischer 互斥基准的第 6 个实例的性质/查询文件。"
+      "desc_zh": "Fischer 互斥基准的第 6 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_06.ta",
+      "status": "error",
+      "message": "no companion model made the query parse successfully: fischer_input_06.ta: downloaded companion content is HTML, not a model | fischer_input_02.ta: downloaded companion content is HTML, not a model | fischer_input_03.ta: downloaded companion content is HTML, not a model | fischer_input_04.ta: downloaded companion content is HTML, not a model | ... (11 candidates tried)",
+      "message_zh": "UTAP 实际解析失败。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_06.ta。原因：no companion model made the query parse successfully: fischer_input_06.ta: downloaded companion content is HTML, not a model | fischer_input_02.ta: downloaded companion content is HTML, not a model | fischer_input_03.ta: downloaded companion content is HTML, not a model | fischer_input_04.ta: downloaded companion content is HTML, not a model | ... (11 candidates tried)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_06.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for Fischer mutual exclusion benchmark instance 6.",
-      "desc_zh": "Fischer 互斥基准的第 6 个实例的文本模型文件。"
+      "desc_zh": "Fischer 互斥基准的第 6 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "error",
+      "message": "downloaded content is HTML, not a textual model | downloaded content is HTML, not a textual model",
+      "message_zh": "UTAP 实际解析失败。原因：downloaded content is HTML, not a textual model | downloaded content is HTML, not a textual model"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_07.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for Fischer mutual exclusion benchmark instance 7.",
-      "desc_zh": "Fischer 互斥基准的第 7 个实例的性质/查询文件。"
+      "desc_zh": "Fischer 互斥基准的第 7 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_07.ta",
+      "status": "error",
+      "message": "no companion model made the query parse successfully: fischer_input_07.ta: downloaded companion content is HTML, not a model | fischer_input_02.ta: downloaded companion content is HTML, not a model | fischer_input_03.ta: downloaded companion content is HTML, not a model | fischer_input_04.ta: downloaded companion content is HTML, not a model | ... (11 candidates tried)",
+      "message_zh": "UTAP 实际解析失败。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_07.ta。原因：no companion model made the query parse successfully: fischer_input_07.ta: downloaded companion content is HTML, not a model | fischer_input_02.ta: downloaded companion content is HTML, not a model | fischer_input_03.ta: downloaded companion content is HTML, not a model | fischer_input_04.ta: downloaded companion content is HTML, not a model | ... (11 candidates tried)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_07.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for Fischer mutual exclusion benchmark instance 7.",
-      "desc_zh": "Fischer 互斥基准的第 7 个实例的文本模型文件。"
+      "desc_zh": "Fischer 互斥基准的第 7 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "error",
+      "message": "downloaded content is HTML, not a textual model | downloaded content is HTML, not a textual model",
+      "message_zh": "UTAP 实际解析失败。原因：downloaded content is HTML, not a textual model | downloaded content is HTML, not a textual model"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_08.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for Fischer mutual exclusion benchmark instance 8.",
-      "desc_zh": "Fischer 互斥基准的第 8 个实例的性质/查询文件。"
+      "desc_zh": "Fischer 互斥基准的第 8 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_08.ta",
+      "status": "error",
+      "message": "no companion model made the query parse successfully: fischer_input_08.ta: downloaded companion content is HTML, not a model | fischer_input_02.ta: downloaded companion content is HTML, not a model | fischer_input_03.ta: downloaded companion content is HTML, not a model | fischer_input_04.ta: downloaded companion content is HTML, not a model | ... (11 candidates tried)",
+      "message_zh": "UTAP 实际解析失败。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_08.ta。原因：no companion model made the query parse successfully: fischer_input_08.ta: downloaded companion content is HTML, not a model | fischer_input_02.ta: downloaded companion content is HTML, not a model | fischer_input_03.ta: downloaded companion content is HTML, not a model | fischer_input_04.ta: downloaded companion content is HTML, not a model | ... (11 candidates tried)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_08.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for Fischer mutual exclusion benchmark instance 8.",
-      "desc_zh": "Fischer 互斥基准的第 8 个实例的文本模型文件。"
+      "desc_zh": "Fischer 互斥基准的第 8 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "error",
+      "message": "downloaded content is HTML, not a textual model | downloaded content is HTML, not a textual model",
+      "message_zh": "UTAP 实际解析失败。原因：downloaded content is HTML, not a textual model | downloaded content is HTML, not a textual model"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_09.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for Fischer mutual exclusion benchmark instance 9.",
-      "desc_zh": "Fischer 互斥基准的第 9 个实例的性质/查询文件。"
+      "desc_zh": "Fischer 互斥基准的第 9 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_09.ta",
+      "status": "error",
+      "message": "no companion model made the query parse successfully: fischer_input_09.ta: downloaded companion content is HTML, not a model | fischer_input_02.ta: downloaded companion content is HTML, not a model | fischer_input_03.ta: downloaded companion content is HTML, not a model | fischer_input_04.ta: downloaded companion content is HTML, not a model | ... (11 candidates tried)",
+      "message_zh": "UTAP 实际解析失败。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_09.ta。原因：no companion model made the query parse successfully: fischer_input_09.ta: downloaded companion content is HTML, not a model | fischer_input_02.ta: downloaded companion content is HTML, not a model | fischer_input_03.ta: downloaded companion content is HTML, not a model | fischer_input_04.ta: downloaded companion content is HTML, not a model | ... (11 candidates tried)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_09.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for Fischer mutual exclusion benchmark instance 9.",
-      "desc_zh": "Fischer 互斥基准的第 9 个实例的文本模型文件。"
+      "desc_zh": "Fischer 互斥基准的第 9 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "error",
+      "message": "downloaded content is HTML, not a textual model | downloaded content is HTML, not a textual model",
+      "message_zh": "UTAP 实际解析失败。原因：downloaded content is HTML, not a textual model | downloaded content is HTML, not a textual model"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_10.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for Fischer mutual exclusion benchmark instance 10.",
-      "desc_zh": "Fischer 互斥基准的第 10 个实例的性质/查询文件。"
+      "desc_zh": "Fischer 互斥基准的第 10 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_10.ta",
+      "status": "error",
+      "message": "no companion model made the query parse successfully: fischer_input_10.ta: downloaded companion content is HTML, not a model | fischer_input_02.ta: downloaded companion content is HTML, not a model | fischer_input_03.ta: downloaded companion content is HTML, not a model | fischer_input_04.ta: downloaded companion content is HTML, not a model | ... (11 candidates tried)",
+      "message_zh": "UTAP 实际解析失败。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_10.ta。原因：no companion model made the query parse successfully: fischer_input_10.ta: downloaded companion content is HTML, not a model | fischer_input_02.ta: downloaded companion content is HTML, not a model | fischer_input_03.ta: downloaded companion content is HTML, not a model | fischer_input_04.ta: downloaded companion content is HTML, not a model | ... (11 candidates tried)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_10.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for Fischer mutual exclusion benchmark instance 10.",
-      "desc_zh": "Fischer 互斥基准的第 10 个实例的文本模型文件。"
+      "desc_zh": "Fischer 互斥基准的第 10 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "error",
+      "message": "downloaded content is HTML, not a textual model | downloaded content is HTML, not a textual model",
+      "message_zh": "UTAP 实际解析失败。原因：downloaded content is HTML, not a textual model | downloaded content is HTML, not a textual model"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_11.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for Fischer mutual exclusion benchmark instance 11.",
-      "desc_zh": "Fischer 互斥基准的第 11 个实例的性质/查询文件。"
+      "desc_zh": "Fischer 互斥基准的第 11 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_11.ta",
+      "status": "error",
+      "message": "no companion model made the query parse successfully: fischer_input_11.ta: downloaded companion content is HTML, not a model | fischer_input_02.ta: downloaded companion content is HTML, not a model | fischer_input_03.ta: downloaded companion content is HTML, not a model | fischer_input_04.ta: downloaded companion content is HTML, not a model | ... (11 candidates tried)",
+      "message_zh": "UTAP 实际解析失败。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_11.ta。原因：no companion model made the query parse successfully: fischer_input_11.ta: downloaded companion content is HTML, not a model | fischer_input_02.ta: downloaded companion content is HTML, not a model | fischer_input_03.ta: downloaded companion content is HTML, not a model | fischer_input_04.ta: downloaded companion content is HTML, not a model | ... (11 candidates tried)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_11.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for Fischer mutual exclusion benchmark instance 11.",
-      "desc_zh": "Fischer 互斥基准的第 11 个实例的文本模型文件。"
+      "desc_zh": "Fischer 互斥基准的第 11 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "error",
+      "message": "downloaded content is HTML, not a textual model | downloaded content is HTML, not a textual model",
+      "message_zh": "UTAP 实际解析失败。原因：downloaded content is HTML, not a textual model | downloaded content is HTML, not a textual model"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_12.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for Fischer mutual exclusion benchmark instance 12.",
-      "desc_zh": "Fischer 互斥基准的第 12 个实例的性质/查询文件。"
+      "desc_zh": "Fischer 互斥基准的第 12 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_12.ta",
+      "status": "error",
+      "message": "no companion model made the query parse successfully: fischer_input_12.ta: downloaded companion content is HTML, not a model | fischer_input_02.ta: downloaded companion content is HTML, not a model | fischer_input_03.ta: downloaded companion content is HTML, not a model | fischer_input_04.ta: downloaded companion content is HTML, not a model | ... (11 candidates tried)",
+      "message_zh": "UTAP 实际解析失败。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_12.ta。原因：no companion model made the query parse successfully: fischer_input_12.ta: downloaded companion content is HTML, not a model | fischer_input_02.ta: downloaded companion content is HTML, not a model | fischer_input_03.ta: downloaded companion content is HTML, not a model | fischer_input_04.ta: downloaded companion content is HTML, not a model | ... (11 candidates tried)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/fischer/fischer_input_12.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for Fischer mutual exclusion benchmark instance 12.",
-      "desc_zh": "Fischer 互斥基准的第 12 个实例的文本模型文件。"
+      "desc_zh": "Fischer 互斥基准的第 12 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "error",
+      "message": "downloaded content is HTML, not a textual model | downloaded content is HTML, not a textual model",
+      "message_zh": "UTAP 实际解析失败。原因：downloaded content is HTML, not a textual model | downloaded content is HTML, not a textual model"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_02.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for HDDI benchmark instance 2.",
-      "desc_zh": "HDDI 基准的第 2 个实例的性质/查询文件。"
+      "desc_zh": "HDDI 基准的第 2 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_02.ta",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model hddi_input_02.ta with parse_XTA(newxta=false); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_02.ta。详情：parsed via PropertyBuilder::parse(FILE*) using companion model hddi_input_02.ta with parse_XTA(newxta=false); properties=1"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_02.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for HDDI benchmark instance 2.",
-      "desc_zh": "HDDI 基准的第 2 个实例的文本模型文件。"
+      "desc_zh": "HDDI 基准的第 2 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XTA(newxta=false)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XTA(newxta=false)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_03.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for HDDI benchmark instance 3.",
-      "desc_zh": "HDDI 基准的第 3 个实例的性质/查询文件。"
+      "desc_zh": "HDDI 基准的第 3 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_03.ta",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model hddi_input_03.ta with parse_XTA(newxta=false); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_03.ta。详情：parsed via PropertyBuilder::parse(FILE*) using companion model hddi_input_03.ta with parse_XTA(newxta=false); properties=1"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_03.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for HDDI benchmark instance 3.",
-      "desc_zh": "HDDI 基准的第 3 个实例的文本模型文件。"
+      "desc_zh": "HDDI 基准的第 3 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XTA(newxta=false)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XTA(newxta=false)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_04.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for HDDI benchmark instance 4.",
-      "desc_zh": "HDDI 基准的第 4 个实例的性质/查询文件。"
+      "desc_zh": "HDDI 基准的第 4 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_04.ta",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model hddi_input_04.ta with parse_XTA(newxta=false); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_04.ta。详情：parsed via PropertyBuilder::parse(FILE*) using companion model hddi_input_04.ta with parse_XTA(newxta=false); properties=1"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_04.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for HDDI benchmark instance 4.",
-      "desc_zh": "HDDI 基准的第 4 个实例的文本模型文件。"
+      "desc_zh": "HDDI 基准的第 4 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XTA(newxta=false)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XTA(newxta=false)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_05.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for HDDI benchmark instance 5.",
-      "desc_zh": "HDDI 基准的第 5 个实例的性质/查询文件。"
+      "desc_zh": "HDDI 基准的第 5 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_05.ta",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model hddi_input_05.ta with parse_XTA(newxta=false); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_05.ta。详情：parsed via PropertyBuilder::parse(FILE*) using companion model hddi_input_05.ta with parse_XTA(newxta=false); properties=1"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_05.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for HDDI benchmark instance 5.",
-      "desc_zh": "HDDI 基准的第 5 个实例的文本模型文件。"
+      "desc_zh": "HDDI 基准的第 5 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XTA(newxta=false)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XTA(newxta=false)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_06.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for HDDI benchmark instance 6.",
-      "desc_zh": "HDDI 基准的第 6 个实例的性质/查询文件。"
+      "desc_zh": "HDDI 基准的第 6 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_06.ta",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model hddi_input_06.ta with parse_XTA(newxta=false); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_06.ta。详情：parsed via PropertyBuilder::parse(FILE*) using companion model hddi_input_06.ta with parse_XTA(newxta=false); properties=1"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_06.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for HDDI benchmark instance 6.",
-      "desc_zh": "HDDI 基准的第 6 个实例的文本模型文件。"
+      "desc_zh": "HDDI 基准的第 6 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XTA(newxta=false)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XTA(newxta=false)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_07.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for HDDI benchmark instance 7.",
-      "desc_zh": "HDDI 基准的第 7 个实例的性质/查询文件。"
+      "desc_zh": "HDDI 基准的第 7 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_07.ta",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model hddi_input_07.ta with parse_XTA(newxta=false); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_07.ta。详情：parsed via PropertyBuilder::parse(FILE*) using companion model hddi_input_07.ta with parse_XTA(newxta=false); properties=1"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_07.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for HDDI benchmark instance 7.",
-      "desc_zh": "HDDI 基准的第 7 个实例的文本模型文件。"
+      "desc_zh": "HDDI 基准的第 7 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XTA(newxta=false)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XTA(newxta=false)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_08.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for HDDI benchmark instance 8.",
-      "desc_zh": "HDDI 基准的第 8 个实例的性质/查询文件。"
+      "desc_zh": "HDDI 基准的第 8 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_08.ta",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model hddi_input_08.ta with parse_XTA(newxta=false); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_08.ta。详情：parsed via PropertyBuilder::parse(FILE*) using companion model hddi_input_08.ta with parse_XTA(newxta=false); properties=1"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_08.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for HDDI benchmark instance 8.",
-      "desc_zh": "HDDI 基准的第 8 个实例的文本模型文件。"
+      "desc_zh": "HDDI 基准的第 8 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XTA(newxta=false)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XTA(newxta=false)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_09.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for HDDI benchmark instance 9.",
-      "desc_zh": "HDDI 基准的第 9 个实例的性质/查询文件。"
+      "desc_zh": "HDDI 基准的第 9 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_09.ta",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model hddi_input_09.ta with parse_XTA(newxta=false); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_09.ta。详情：parsed via PropertyBuilder::parse(FILE*) using companion model hddi_input_09.ta with parse_XTA(newxta=false); properties=1"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_09.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for HDDI benchmark instance 9.",
-      "desc_zh": "HDDI 基准的第 9 个实例的文本模型文件。"
+      "desc_zh": "HDDI 基准的第 9 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XTA(newxta=false)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XTA(newxta=false)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_10.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for HDDI benchmark instance 10.",
-      "desc_zh": "HDDI 基准的第 10 个实例的性质/查询文件。"
+      "desc_zh": "HDDI 基准的第 10 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_10.ta",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model hddi_input_10.ta with parse_XTA(newxta=false); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_10.ta。详情：parsed via PropertyBuilder::parse(FILE*) using companion model hddi_input_10.ta with parse_XTA(newxta=false); properties=1"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_10.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for HDDI benchmark instance 10.",
-      "desc_zh": "HDDI 基准的第 10 个实例的文本模型文件。"
+      "desc_zh": "HDDI 基准的第 10 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XTA(newxta=false)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XTA(newxta=false)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_11.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for HDDI benchmark instance 11.",
-      "desc_zh": "HDDI 基准的第 11 个实例的性质/查询文件。"
+      "desc_zh": "HDDI 基准的第 11 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_11.ta",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model hddi_input_11.ta with parse_XTA(newxta=false); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_11.ta。详情：parsed via PropertyBuilder::parse(FILE*) using companion model hddi_input_11.ta with parse_XTA(newxta=false); properties=1"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_11.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for HDDI benchmark instance 11.",
-      "desc_zh": "HDDI 基准的第 11 个实例的文本模型文件。"
+      "desc_zh": "HDDI 基准的第 11 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XTA(newxta=false)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XTA(newxta=false)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_12.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for HDDI benchmark instance 12.",
-      "desc_zh": "HDDI 基准的第 12 个实例的性质/查询文件。"
+      "desc_zh": "HDDI 基准的第 12 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_12.ta",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model hddi_input_12.ta with parse_XTA(newxta=false); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_12.ta。详情：parsed via PropertyBuilder::parse(FILE*) using companion model hddi_input_12.ta with parse_XTA(newxta=false); properties=1"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_12.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for HDDI benchmark instance 12.",
-      "desc_zh": "HDDI 基准的第 12 个实例的文本模型文件。"
+      "desc_zh": "HDDI 基准的第 12 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XTA(newxta=false)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XTA(newxta=false)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_13.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for HDDI benchmark instance 13.",
-      "desc_zh": "HDDI 基准的第 13 个实例的性质/查询文件。"
+      "desc_zh": "HDDI 基准的第 13 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_13.ta",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model hddi_input_13.ta with parse_XTA(newxta=false); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_13.ta。详情：parsed via PropertyBuilder::parse(FILE*) using companion model hddi_input_13.ta with parse_XTA(newxta=false); properties=1"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_13.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for HDDI benchmark instance 13.",
-      "desc_zh": "HDDI 基准的第 13 个实例的文本模型文件。"
+      "desc_zh": "HDDI 基准的第 13 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XTA(newxta=false)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XTA(newxta=false)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_14.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for HDDI benchmark instance 14.",
-      "desc_zh": "HDDI 基准的第 14 个实例的性质/查询文件。"
+      "desc_zh": "HDDI 基准的第 14 个实例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_14.ta",
+      "status": "ok",
+      "message": "parsed via PropertyBuilder::parse(FILE*) using companion model hddi_input_14.ta with parse_XTA(newxta=false); properties=1",
+      "message_zh": "UTAP 实际解析成功。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_14.ta。详情：parsed via PropertyBuilder::parse(FILE*) using companion model hddi_input_14.ta with parse_XTA(newxta=false); properties=1"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_14.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for HDDI benchmark instance 14.",
-      "desc_zh": "HDDI 基准的第 14 个实例的文本模型文件。"
+      "desc_zh": "HDDI 基准的第 14 个实例的文本模型文件。",
+      "context_path": null,
+      "status": "ok",
+      "message": "parsed via parse_XTA(newxta=false)",
+      "message_zh": "UTAP 实际解析成功。详情：parsed via parse_XTA(newxta=false)"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/philaudio/philaudio.q",
       "parse_kind": "QUERY_PROPERTY_FILE",
       "desc": "Query/property file for the official `philaudio` benchmark case study.",
-      "desc_zh": "`philaudio` 官方基准案例的性质/查询文件。"
+      "desc_zh": "`philaudio` 官方基准案例的性质/查询文件。",
+      "context_path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/philaudio/philaudio.ta",
+      "status": "error",
+      "message": "no companion model made the query parse successfully: philaudio.ta: downloaded companion content is HTML, not a model",
+      "message_zh": "UTAP 实际解析失败。使用上下文文件 linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/philaudio/philaudio.ta。原因：no companion model made the query parse successfully: philaudio.ta: downloaded companion content is HTML, not a model"
     },
     {
       "path": "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/philaudio/philaudio.ta",
       "parse_kind": "TEXTUAL_MODEL_FILE",
       "desc": "Textual model file for the official `philaudio` benchmark case study.",
-      "desc_zh": "`philaudio` 官方基准案例的文本模型文件。"
+      "desc_zh": "`philaudio` 官方基准案例的文本模型文件。",
+      "context_path": null,
+      "status": "error",
+      "message": "downloaded content is HTML, not a textual model | downloaded content is HTML, not a textual model",
+      "message_zh": "UTAP 实际解析失败。原因：downloaded content is HTML, not a textual model | downloaded content is HTML, not a textual model"
     }
-  ]
+  ],
+  "status_enum": {
+    "ok": {
+      "desc": "The file was parsed successfully with real UTAP APIs.",
+      "desc_zh": "该文件已通过真实 UTAP API 成功解析。"
+    },
+    "error": {
+      "desc": "The file could not be parsed successfully with real UTAP APIs.",
+      "desc_zh": "该文件未能通过真实 UTAP API 成功解析。"
+    }
+  }
 }

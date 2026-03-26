@@ -8,6 +8,7 @@ ROOT = Path(__file__).resolve().parent.parent
 OFFICIAL_DIR = ROOT / "test" / "testfile" / "official"
 MANIFEST_PATH = OFFICIAL_DIR / "manifest.json"
 OUTPUT_PATH = OFFICIAL_DIR / "catalog.json"
+STATUS_FIELDS = ("context_path", "status", "message", "message_zh")
 
 
 PARSE_KIND_ENUM = {
@@ -183,6 +184,12 @@ def describe_entry(relative_path: Path) -> Tuple[str, str]:
 
 def build_catalog() -> Dict[str, object]:
     manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+    existing_catalog = {}
+    existing_status_enum = None
+    if OUTPUT_PATH.exists():
+        loaded = json.loads(OUTPUT_PATH.read_text(encoding="utf-8"))
+        existing_catalog = {item["path"]: item for item in loaded.get("files", [])}
+        existing_status_enum = loaded.get("status_enum")
     entries = []
 
     for item in sorted(manifest, key=lambda x: x["local_path"]):
@@ -190,22 +197,28 @@ def build_catalog() -> Dict[str, object]:
         relative_path = local_path.relative_to(OFFICIAL_DIR)
         parse_kind = parse_kind_for(relative_path)
         desc, desc_zh = describe_entry(relative_path)
-        entries.append(
-            {
-                "path": relative_path.as_posix(),
-                "parse_kind": parse_kind,
-                "desc": desc,
-                "desc_zh": desc_zh,
-            }
-        )
+        entry = {
+            "path": relative_path.as_posix(),
+            "parse_kind": parse_kind,
+            "desc": desc,
+            "desc_zh": desc_zh,
+        }
+        previous = existing_catalog.get(entry["path"], {})
+        for field in STATUS_FIELDS:
+            if field in previous:
+                entry[field] = previous[field]
+        entries.append(entry)
 
-    return {
+    result = {
         "version": 1,
         "base_dir": ".",
         "generated_from": "manifest.json",
         "parse_kind_enum": PARSE_KIND_ENUM,
         "files": entries,
     }
+    if existing_status_enum is not None:
+        result["status_enum"] = existing_status_enum
+    return result
 
 
 def main() -> None:

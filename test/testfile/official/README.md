@@ -21,7 +21,7 @@ Stored layout:
   - source URL / archive member / local path / hash / size for every collected file
 - `catalog.json`
   - parser-oriented catalog for every collected example file
-  - records each file's path relative to this directory, finite parse-kind enum, and short English/Chinese descriptions
+  - records each file's path relative to this directory, finite parse-kind enum, short English/Chinese descriptions, parse status, parse message, and optional `context_path` for context-dependent query files
 - `failures.json`
   - official links that were still referenced by official pages but returned download failures during collection
 
@@ -36,6 +36,7 @@ Collection summary at fetch time:
 Notes:
 
 - Official pages currently expose some textual model examples as `.ta` rather than `.xta`. They are included here to avoid missing official textual examples.
+- The `status` / `message` / `message_zh` / `context_path` fields in `catalog.json` are filled from real UTAP API probing, using the compiled local `UTAP` library rather than filename-only inference.
 - Two official docs links were still referenced but were not downloadable from the public site at fetch time:
   - `https://docs.uppaal.org/extensions/cora/airland1R2.q`
   - `https://docs.uppaal.org/extensions/cora/airland1R2.xta`
