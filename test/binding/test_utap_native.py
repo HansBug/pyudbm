@@ -11,6 +11,16 @@ from .utap_phase0_data import (
     MINIMAL_XML_PATH,
     MINIMAL_XTA_PATH,
 )
+from .utap_phase4_data import (
+    REPRESENTATIVE_MIXED_CONTEXT,
+    REPRESENTATIVE_MIXED_QUERY,
+    REPRESENTATIVE_PROPERTY_CONTEXT,
+    REPRESENTATIVE_PROPERTY_QUERY,
+    REPRESENTATIVE_TIGA_CONTEXT,
+    REPRESENTATIVE_TIGA_QUERY,
+    query_expectation,
+    resolve_official_path,
+)
 
 
 @pytest.mark.unittest
@@ -25,6 +35,9 @@ class TestUtapNative:
         assert callable(utap_module.loads_xml)
         assert callable(utap_module.load_xta)
         assert callable(utap_module.loads_xta)
+        assert callable(utap_module.load_query)
+        assert callable(utap_module.loads_query)
+        assert callable(utap_module.parse_query)
         assert callable(utap_module.builtin_declarations)
 
     def test_builtin_declarations_snapshot(self):
@@ -112,3 +125,61 @@ class TestUtapNative:
         assert type(buffer_exc_info.value) is ParseError
         assert file_exc_info.value.args == ("XTA parse failed: $No_such_process: Missing",)
         assert buffer_exc_info.value.args == ("XTA parse failed: $No_such_process: Missing",)
+
+    def test_native_query_entrypoints_parse_property_and_tiga_queries(self):
+        property_document = utap_module.load_xml(resolve_official_path(REPRESENTATIVE_PROPERTY_CONTEXT))
+        tiga_document = utap_module.load_xml(resolve_official_path(REPRESENTATIVE_TIGA_CONTEXT))
+        property_queries = utap_module.load_query(resolve_official_path(REPRESENTATIVE_PROPERTY_QUERY), property_document)
+        tiga_queries = utap_module.load_query(resolve_official_path(REPRESENTATIVE_TIGA_QUERY), tiga_document)
+
+        assert type(property_queries) is list
+        assert type(tiga_queries) is list
+        assert len(property_queries) == len(query_expectation(REPRESENTATIVE_PROPERTY_QUERY)["queries"])
+        assert len(tiga_queries) == len(query_expectation(REPRESENTATIVE_TIGA_QUERY)["queries"])
+        assert property_queries[0]["builder"] == "property"
+        assert property_queries[0]["quantifier"] == "AG"
+        assert property_queries[0]["text"] == "A[] !deadlock"
+        assert property_queries[0]["expression"]["kind"] == 103
+        assert property_queries[0]["expression"]["size"] == 1
+        assert property_queries[0]["options"] == []
+        assert property_queries[0]["expectation"] is None
+        assert tiga_queries[0]["builder"] == "tiga"
+        assert tiga_queries[0]["quantifier"] == "control_AF"
+        assert tiga_queries[0]["text"] == "A<> Main.goal"
+        assert tiga_queries[0]["expression"]["kind"] == 102
+        assert tiga_queries[0]["expression"]["size"] == 1
+        assert tiga_queries[0]["options"] == []
+        assert tiga_queries[0]["expectation"] is None
+
+    def test_native_query_entrypoints_support_buffer_and_explicit_builder_paths(self):
+        mixed_document = utap_module.load_xml(resolve_official_path(REPRESENTATIVE_MIXED_CONTEXT))
+        mixed_query_text = resolve_official_path(REPRESENTATIVE_MIXED_QUERY).read_text(encoding="utf-8")
+        explicit_tiga = utap_module.load_query(resolve_official_path(REPRESENTATIVE_MIXED_QUERY), mixed_document, builder="tiga")
+        from_buffer = utap_module.loads_query(mixed_query_text, mixed_document, builder="tiga")
+        from_alias = utap_module.parse_query(mixed_query_text, mixed_document, builder="tiga")
+
+        assert len(explicit_tiga) == 6
+        assert [item["builder"] for item in explicit_tiga] == ["tiga"] * 6
+        assert [item["quantifier"] for item in explicit_tiga] == [
+            "control_AF",
+            "probaDiamond",
+            "probaExpected",
+            "probaExpected",
+            "AE",
+            "AE",
+        ]
+        assert [item["text"] for item in explicit_tiga] == [item["text"] for item in from_buffer]
+        assert [item["text"] for item in explicit_tiga] == [item["text"] for item in from_alias]
+
+    def test_native_query_entrypoints_report_invalid_builder_and_builder_mismatch(self):
+        tiga_document = utap_module.load_xml(resolve_official_path(REPRESENTATIVE_TIGA_CONTEXT))
+
+        with pytest.raises(ValueError) as invalid_builder:
+            utap_module.load_query(resolve_official_path(REPRESENTATIVE_TIGA_QUERY), tiga_document, builder="missing")
+        with pytest.raises(ParseError) as property_builder_error:
+            utap_module.load_query(resolve_official_path(REPRESENTATIVE_TIGA_QUERY), tiga_document, builder="property")
+
+        assert type(invalid_builder.value) is ValueError
+        assert invalid_builder.value.args == ("Unknown query builder: missing",)
+        assert type(property_builder_error.value) is ParseError
+        assert property_builder_error.value.args == ("query parse failed with property builder: $Invalid_property_type",)

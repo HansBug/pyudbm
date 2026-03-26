@@ -3,9 +3,11 @@
 
 #include <utap/common.h>
 #include <utap/document.h>
+#include <utap/property.h>
 #include <utap/utap.h>
 
 #include <cstdint>
+#include <cstdio>
 #include <filesystem>
 #include <fstream>
 #include <memory>
@@ -204,6 +206,103 @@ std::string query_status_name(UTAP::query_status_t status)
     return "Unknown";
 }
 
+std::string quantifier_name(UTAP::quant_t quantifier)
+{
+    switch (quantifier) {
+    case UTAP::quant_t::empty: return "empty";
+    case UTAP::quant_t::AG: return "AG";
+    case UTAP::quant_t::EE: return "EE";
+    case UTAP::quant_t::EG: return "EG";
+    case UTAP::quant_t::AE: return "AE";
+    case UTAP::quant_t::leads_to: return "leads_to";
+    case UTAP::quant_t::probaMinBox: return "probaMinBox";
+    case UTAP::quant_t::probaMinDiamond: return "probaMinDiamond";
+    case UTAP::quant_t::probaBox: return "probaBox";
+    case UTAP::quant_t::probaDiamond: return "probaDiamond";
+    case UTAP::quant_t::probaCompare: return "probaCompare";
+    case UTAP::quant_t::probaExpected: return "probaExpected";
+    case UTAP::quant_t::probaSimulate: return "probaSimulate";
+    case UTAP::quant_t::probaSimulateReach: return "probaSimulateReach";
+    case UTAP::quant_t::Mitl: return "Mitl";
+    case UTAP::quant_t::control_AF: return "control_AF";
+    case UTAP::quant_t::control_AUntil: return "control_AUntil";
+    case UTAP::quant_t::control_AG: return "control_AG";
+    case UTAP::quant_t::control_AWeakUntil: return "control_AWeakUntil";
+    case UTAP::quant_t::control_AB: return "control_AB";
+    case UTAP::quant_t::control_ABuchi: return "control_ABuchi";
+    case UTAP::quant_t::EF_control_AF: return "EF_control_AF";
+    case UTAP::quant_t::EF_control_AUntil: return "EF_control_AUntil";
+    case UTAP::quant_t::EF_control_AG: return "EF_control_AG";
+    case UTAP::quant_t::EF_control_AWeakUntil: return "EF_control_AWeakUntil";
+    case UTAP::quant_t::control_opt_AF: return "control_opt_AF";
+    case UTAP::quant_t::control_opt_AUntil: return "control_opt_AUntil";
+    case UTAP::quant_t::control_opt_Def1_AF: return "control_opt_Def1_AF";
+    case UTAP::quant_t::control_opt_Def1_AUntil: return "control_opt_Def1_AUntil";
+    case UTAP::quant_t::control_opt_Def2_AF: return "control_opt_Def2_AF";
+    case UTAP::quant_t::control_opt_Def2_AUntil: return "control_opt_Def2_AUntil";
+    case UTAP::quant_t::PO_control_AF: return "PO_control_AF";
+    case UTAP::quant_t::PO_control_AUntil: return "PO_control_AUntil";
+    case UTAP::quant_t::PO_control_AG: return "PO_control_AG";
+    case UTAP::quant_t::PO_control_AWeakUntil: return "PO_control_AWeakUntil";
+    case UTAP::quant_t::control_SMC_AUntil: return "control_SMC_AUntil";
+    case UTAP::quant_t::control_SMC_AF: return "control_SMC_AF";
+    case UTAP::quant_t::control_MinExp: return "control_MinExp";
+    case UTAP::quant_t::control_MaxExp: return "control_MaxExp";
+    case UTAP::quant_t::strategy_load: return "strategy_load";
+    case UTAP::quant_t::strategy_save: return "strategy_save";
+    case UTAP::quant_t::supremum: return "supremum";
+    case UTAP::quant_t::infimum: return "infimum";
+    case UTAP::quant_t::bounds: return "bounds";
+    case UTAP::quant_t::PMax: return "PMax";
+    case UTAP::quant_t::scenario: return "scenario";
+    }
+    return "unknown";
+}
+
+std::string strategy_type_name(UTAP::StrategyType strategy_type)
+{
+    switch (strategy_type) {
+    case UTAP::StrategyType::None: return "None";
+    case UTAP::StrategyType::ZoneStrategy: return "ZoneStrategy";
+    case UTAP::StrategyType::NonZoneStrategy: return "NonZoneStrategy";
+    }
+    return "Unknown";
+}
+
+std::string property_status_name(UTAP::status_t status)
+{
+    switch (status) {
+    case UTAP::status_t::WAITING: return "WAITING";
+    case UTAP::status_t::RUNNING: return "RUNNING";
+    case UTAP::status_t::DONE_TRUE: return "DONE_TRUE";
+    case UTAP::status_t::DONE_FALSE: return "DONE_FALSE";
+    case UTAP::status_t::DONE_MAYBE_TRUE: return "DONE_MAYBE_TRUE";
+    case UTAP::status_t::DONE_MAYBE_FALSE: return "DONE_MAYBE_FALSE";
+    case UTAP::status_t::DONE_ERROR: return "DONE_ERROR";
+    }
+    return "UNKNOWN";
+}
+
+bool quantifier_is_smc(UTAP::quant_t quantifier)
+{
+    switch (quantifier) {
+    case UTAP::quant_t::probaMinBox:
+    case UTAP::quant_t::probaMinDiamond:
+    case UTAP::quant_t::probaBox:
+    case UTAP::quant_t::probaDiamond:
+    case UTAP::quant_t::probaCompare:
+    case UTAP::quant_t::probaExpected:
+    case UTAP::quant_t::probaSimulate:
+    case UTAP::quant_t::probaSimulateReach:
+    case UTAP::quant_t::Mitl:
+    case UTAP::quant_t::control_SMC_AUntil:
+    case UTAP::quant_t::control_SMC_AF:
+    case UTAP::quant_t::control_MinExp:
+    case UTAP::quant_t::control_MaxExp: return true;
+    default: return false;
+    }
+}
+
 py::dict expectation_to_dict(const UTAP::expectation_t& expectation)
 {
     py::dict result;
@@ -383,8 +482,16 @@ py::dict type_to_dict(const UTAP::Document& document, const UTAP::type_t& type)
     py::dict result;
     const bool is_unknown = type.unknown();
     result["kind"] = static_cast<int>(type.get_kind());
-    result["position"] = is_unknown ? make_unknown_position_dict() : make_position_dict(document, type.get_position());
-    result["size"] = is_unknown ? 0U : type.size();
+    try {
+        result["position"] = is_unknown ? make_unknown_position_dict() : make_position_dict(document, type.get_position());
+    } catch (const std::exception&) {
+        result["position"] = make_unknown_position_dict();
+    }
+    try {
+        result["size"] = is_unknown ? 0U : type.size();
+    } catch (const std::exception&) {
+        result["size"] = 0U;
+    }
     result["text"] = type_text_or_empty(type);
     result["declaration"] = type_declaration_or_empty(type);
     result["is_unknown"] = is_unknown;
@@ -407,17 +514,39 @@ py::dict expression_to_dict(const UTAP::Document& document, const UTAP::expressi
 {
     py::dict result;
     const bool is_empty = expression.empty();
-    result["text"] = is_empty ? std::string{} : expression.str();
-    result["kind"] = is_empty ? -1 : static_cast<int>(expression.get_kind());
-    result["position"] = is_empty ? make_unknown_position_dict() : make_position_dict(document, expression.get_position());
-    result["type"] = type_to_dict(document, is_empty ? UTAP::type_t{} : expression.get_type());
-    result["size"] = is_empty ? 0U : expression.get_size();
+    result["text"] = is_empty ? std::string{} : expression_text_or_empty(expression);
+    try {
+        result["kind"] = is_empty ? -1 : static_cast<int>(expression.get_kind());
+    } catch (const std::exception&) {
+        result["kind"] = -1;
+    }
+    try {
+        result["position"] = is_empty ? make_unknown_position_dict() : make_position_dict(document, expression.get_position());
+    } catch (const std::exception&) {
+        result["position"] = make_unknown_position_dict();
+    }
+    try {
+        result["type"] = type_to_dict(document, is_empty ? UTAP::type_t{} : expression.get_type());
+    } catch (const std::exception&) {
+        result["type"] = type_to_dict(document, UTAP::type_t{});
+    }
+    std::size_t child_count = 0;
+    try {
+        child_count = is_empty ? 0U : expression.get_size();
+    } catch (const std::exception&) {
+        child_count = 0U;
+    }
+    result["size"] = child_count;
     result["is_empty"] = is_empty;
 
     py::list children;
     if (!is_empty) {
-        for (std::size_t index = 0; index < expression.get_size(); ++index) {
-            children.append(expression_to_dict(document, expression.get(index)));
+        for (std::size_t index = 0; index < child_count; ++index) {
+            try {
+                children.append(expression_to_dict(document, expression.get(index)));
+            } catch (const std::exception&) {
+                children.append(expression_to_dict(document, UTAP::expression_t{}));
+            }
         }
     }
     result["children"] = children;
@@ -579,6 +708,18 @@ py::list diagnostics_to_list(const std::vector<UTAP::error_t>& diagnostics)
     return result;
 }
 
+void restore_diagnostics(UTAP::Document& document, const std::vector<UTAP::error_t>& errors, const std::vector<UTAP::error_t>& warnings)
+{
+    document.clear_errors();
+    document.clear_warnings();
+    for (const auto& error : errors) {
+        document.add_error(error.position, error.msg, error.context);
+    }
+    for (const auto& warning : warnings) {
+        document.add_warning(warning.position, warning.msg, warning.context);
+    }
+}
+
 py::dict features_to_dict(const UTAP::Document& document)
 {
     py::dict result;
@@ -649,6 +790,8 @@ public:
         oss << "<_utap._NativeDocument errors=" << error_count() << " warnings=" << warning_count() << ">";
         return oss.str();
     }
+
+    UTAP::Document& document() const { return *document_; }
 
 private:
     std::shared_ptr<UTAP::Document> document_;
@@ -766,6 +909,225 @@ std::shared_ptr<NativeDocument> parse_xta_file(const std::filesystem::path& path
     return parse_xta_buffer(read_text_file(path), newxta, strict);
 }
 
+py::object property_expectation_to_object(const UTAP::expectation* expectation)
+{
+    if (expectation == nullptr) {
+        return py::none();
+    }
+
+    py::dict result;
+    if (std::holds_alternative<UTAP::status_t>(expectation->result)) {
+        result["result_kind"] = "status";
+        result["status"] = property_status_name(std::get<UTAP::status_t>(expectation->result));
+        result["value"] = py::none();
+    } else {
+        result["result_kind"] = "numeric";
+        result["status"] = py::none();
+        result["value"] = std::get<double>(expectation->result);
+    }
+    result["time_ms"] = expectation->time_ms;
+    result["mem_kib"] = expectation->mem_kib;
+    return result;
+}
+
+py::dict prop_info_to_dict(
+    const UTAP::Document& document,
+    const UTAP::PropInfo& property,
+    const std::string& builder_name
+)
+{
+    py::dict result;
+    auto expression_payload = expression_to_dict(document, property.intermediate);
+    const auto fallback_text = expression_payload["text"].cast<std::string>().empty() ? quantifier_name(property.type) : "";
+    result["line"] = property.line;
+    result["no"] = property.no;
+    result["builder"] = builder_name;
+    result["text"] = fallback_text.empty() ? expression_payload["text"] : py::str(fallback_text);
+    result["quantifier"] = quantifier_name(property.type);
+    result["options"] = options_to_list(property.options);
+    if (!fallback_text.empty()) {
+        expression_payload["text"] = py::str(fallback_text);
+    }
+    result["expression"] = expression_payload;
+    result["is_smc"] = quantifier_is_smc(property.type);
+    result["declaration"] = property.declaration;
+    result["result_type"] = strategy_type_name(property.result_type);
+    result["expectation"] = property.expect ? property_expectation_to_object(property.expect.get()) : py::none();
+    return result;
+}
+
+template <typename Builder>
+struct QueryParseAttempt
+{
+    bool ok{false};
+    py::list properties;
+    std::string message;
+};
+
+template <typename Builder>
+QueryParseAttempt<Builder> parse_query_with_builder(
+    UTAP::Document& document,
+    const std::string& buffer,
+    const std::string& builder_name
+)
+{
+    QueryParseAttempt<Builder> attempt;
+    const auto original_errors = document.get_errors();
+    const auto original_warnings = document.get_warnings();
+    document.clear_errors();
+    document.clear_warnings();
+
+    try {
+        Builder builder(document);
+        std::unique_ptr<FILE, decltype(&std::fclose)> file(std::tmpfile(), &std::fclose);
+        if (!file) {
+            throw std::runtime_error("Unable to create temporary query file");
+        }
+        if (!buffer.empty()) {
+            const auto written = std::fwrite(buffer.data(), 1, buffer.size(), file.get());
+            if (written != buffer.size()) {
+                throw std::runtime_error("Unable to write temporary query file");
+            }
+        }
+        std::rewind(file.get());
+        builder.parse(file.get());
+        if (document.has_errors()) {
+            attempt.message = first_error_message(document);
+        } else {
+            for (const auto& property : builder.getProperties()) {
+                attempt.properties.append(prop_info_to_dict(document, property, builder_name));
+            }
+            attempt.ok = true;
+        }
+    } catch (const std::exception& ex) {
+        attempt.message = ex.what();
+    }
+
+    if (attempt.message.empty() && !attempt.ok) {
+        attempt.message = "query parse failed";
+    }
+
+    restore_diagnostics(document, original_errors, original_warnings);
+    return attempt;
+}
+
+template <typename Builder>
+QueryParseAttempt<Builder> parse_query_file_with_builder(
+    UTAP::Document& document,
+    const std::filesystem::path& path,
+    const std::string& builder_name
+)
+{
+    QueryParseAttempt<Builder> attempt;
+    const auto original_errors = document.get_errors();
+    const auto original_warnings = document.get_warnings();
+    document.clear_errors();
+    document.clear_warnings();
+
+    try {
+        std::unique_ptr<FILE, decltype(&std::fclose)> file(std::fopen(path.string().c_str(), "rb"), &std::fclose);
+        if (!file) {
+            throw_file_not_found(path);
+        }
+
+        Builder builder(document);
+        builder.parse(file.get());
+        if (document.has_errors()) {
+            attempt.message = first_error_message(document);
+        } else {
+            for (const auto& property : builder.getProperties()) {
+                attempt.properties.append(prop_info_to_dict(document, property, builder_name));
+            }
+            attempt.ok = true;
+        }
+    } catch (const std::exception& ex) {
+        attempt.message = ex.what();
+    }
+
+    if (attempt.message.empty() && !attempt.ok) {
+        attempt.message = "query parse failed";
+    }
+
+    restore_diagnostics(document, original_errors, original_warnings);
+    return attempt;
+}
+
+py::list parse_query_buffer(const std::shared_ptr<NativeDocument>& native_document, const std::string& buffer, const std::string& builder)
+{
+    auto& document = native_document->document();
+    if (builder == "property") {
+        const auto attempt = parse_query_with_builder<UTAP::PropertyBuilder>(document, buffer, "property");
+        if (!attempt.ok) {
+            throw ParseError("query parse failed with property builder: " + attempt.message);
+        }
+        return attempt.properties;
+    }
+    if (builder == "tiga") {
+        const auto attempt = parse_query_with_builder<UTAP::TigaPropertyBuilder>(document, buffer, "tiga");
+        if (!attempt.ok) {
+            throw ParseError("query parse failed with tiga builder: " + attempt.message);
+        }
+        return attempt.properties;
+    }
+    if (builder != "auto") {
+        throw py::value_error("Unknown query builder: " + builder);
+    }
+
+    const auto property_attempt = parse_query_with_builder<UTAP::PropertyBuilder>(document, buffer, "property");
+    if (property_attempt.ok) {
+        return property_attempt.properties;
+    }
+
+    const auto tiga_attempt = parse_query_with_builder<UTAP::TigaPropertyBuilder>(document, buffer, "tiga");
+    if (tiga_attempt.ok) {
+        return tiga_attempt.properties;
+    }
+
+    throw ParseError(
+        "query parse failed with auto builder: property=" + property_attempt.message + "; tiga=" + tiga_attempt.message
+    );
+}
+
+py::list parse_query_file(
+    const std::shared_ptr<NativeDocument>& native_document,
+    const std::filesystem::path& path,
+    const std::string& builder
+)
+{
+    auto& document = native_document->document();
+    if (builder == "property") {
+        const auto attempt = parse_query_file_with_builder<UTAP::PropertyBuilder>(document, path, "property");
+        if (!attempt.ok) {
+            throw ParseError("query parse failed with property builder: " + attempt.message);
+        }
+        return attempt.properties;
+    }
+    if (builder == "tiga") {
+        const auto attempt = parse_query_file_with_builder<UTAP::TigaPropertyBuilder>(document, path, "tiga");
+        if (!attempt.ok) {
+            throw ParseError("query parse failed with tiga builder: " + attempt.message);
+        }
+        return attempt.properties;
+    }
+    if (builder != "auto") {
+        throw py::value_error("Unknown query builder: " + builder);
+    }
+
+    const auto property_attempt = parse_query_file_with_builder<UTAP::PropertyBuilder>(document, path, "property");
+    if (property_attempt.ok) {
+        return property_attempt.properties;
+    }
+
+    const auto tiga_attempt = parse_query_file_with_builder<UTAP::TigaPropertyBuilder>(document, path, "tiga");
+    if (tiga_attempt.ok) {
+        return tiga_attempt.properties;
+    }
+
+    throw ParseError(
+        "query parse failed with auto builder: property=" + property_attempt.message + "; tiga=" + tiga_attempt.message
+    );
+}
+
 }  // namespace
 
 PYBIND11_MODULE(_utap, m)
@@ -813,5 +1175,32 @@ PYBIND11_MODULE(_utap, m)
         py::arg("strict") = true
     );
     m.def("loads_xta", &parse_xta_buffer, py::arg("buffer"), py::arg("newxta") = true, py::arg("strict") = true);
+    m.def(
+        "load_query",
+        [](const py::object& path, const std::shared_ptr<NativeDocument>& document, const std::string& builder) {
+            return parse_query_file(document, std::filesystem::path{py_fspath(path)}, builder);
+        },
+        py::arg("path"),
+        py::arg("document"),
+        py::arg("builder") = "auto"
+    );
+    m.def(
+        "loads_query",
+        [](const std::string& buffer, const std::shared_ptr<NativeDocument>& document, const std::string& builder) {
+            return parse_query_buffer(document, buffer, builder);
+        },
+        py::arg("buffer"),
+        py::arg("document"),
+        py::arg("builder") = "auto"
+    );
+    m.def(
+        "parse_query",
+        [](const std::string& buffer, const std::shared_ptr<NativeDocument>& document, const std::string& builder) {
+            return parse_query_buffer(document, buffer, builder);
+        },
+        py::arg("buffer"),
+        py::arg("document"),
+        py::arg("builder") = "auto"
+    );
     m.def("builtin_declarations", []() { return std::string(utap_builtin_declarations()); });
 }

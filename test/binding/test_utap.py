@@ -4,7 +4,21 @@ import pytest
 
 import pyudbm.binding as binding_module
 import pyudbm.binding.utap as utap_module
-from pyudbm.binding import Diagnostic, MAPPED_FIELDS, ModelDocument, UNMAPPED_FIELDS, load_xml, load_xta, loads_xml, loads_xta
+from pyudbm.binding import (
+    Diagnostic,
+    MAPPED_FIELDS,
+    ModelDocument,
+    ParsedQuery,
+    ParsedQueryExpectation,
+    UNMAPPED_FIELDS,
+    load_query,
+    load_xml,
+    load_xta,
+    loads_query,
+    loads_xml,
+    loads_xta,
+    parse_query,
+)
 
 from .utap_phase0_data import (
     DUPLICATE_LOCATION_ID_WARNING_XML,
@@ -28,6 +42,11 @@ class TestUtapApi:
         assert binding_module.loads_xml is loads_xml
         assert binding_module.load_xta is load_xta
         assert binding_module.loads_xta is loads_xta
+        assert binding_module.load_query is load_query
+        assert binding_module.loads_query is loads_query
+        assert binding_module.parse_query is parse_query
+        assert binding_module.ParsedQuery is ParsedQuery
+        assert binding_module.ParsedQueryExpectation is ParsedQueryExpectation
         assert binding_module.MAPPED_FIELDS is MAPPED_FIELDS
         assert binding_module.UNMAPPED_FIELDS is UNMAPPED_FIELDS
 

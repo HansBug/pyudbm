@@ -28,6 +28,8 @@ __all__ = [
     "MAPPED_FIELDS",
     "ModelDocument",
     "Option",
+    "ParsedQuery",
+    "ParsedQueryExpectation",
     "Position",
     "Process",
     "Query",
@@ -37,10 +39,13 @@ __all__ = [
     "TypeInfo",
     "UNMAPPED_FIELDS",
     "builtin_declarations",
+    "load_query",
     "load_xml",
     "load_xta",
+    "loads_query",
     "loads_xml",
     "loads_xta",
+    "parse_query",
 ]
 
 
@@ -75,6 +80,19 @@ MAPPED_FIELDS = {
         "select_symbols",
     ),
     "Query": ("formula", "comment", "options", "expectation", "location"),
+    "ParsedQuery": (
+        "line",
+        "no",
+        "builder",
+        "text",
+        "quantifier",
+        "options",
+        "expression",
+        "is_smc",
+        "declaration",
+        "result_type",
+        "expectation",
+    ),
     "expression_t": ("text", "kind", "position", "type", "size", "children", "is_empty"),
     "type_t": (
         "kind",
@@ -108,6 +126,7 @@ UNMAPPED_FIELDS = {
     "Location": ("name_expression",),
     "Edge": ("select_values",),
     "Query": ("results",),
+    "ParsedQuery": ("subjections", "imitation"),
     "expression_t": ("value", "double_value", "sync", "record_label_index", "string_value", "symbol"),
     "type_t": ("children", "range", "labels"),
     "symbol_t": ("frame", "user_data"),
@@ -251,6 +270,30 @@ class Query:
     options: Tuple[Option, ...]
     expectation: Expectation
     location: str
+
+
+@dataclass(frozen=True)
+class ParsedQueryExpectation:
+    result_kind: str
+    status: Optional[str]
+    value: Optional[float]
+    time_ms: int
+    mem_kib: int
+
+
+@dataclass(frozen=True)
+class ParsedQuery:
+    line: int
+    no: int
+    builder: str
+    text: str
+    quantifier: str
+    options: Tuple[Option, ...]
+    expression: Expression
+    is_smc: bool
+    declaration: str
+    result_type: str
+    expectation: Optional[ParsedQueryExpectation]
 
 
 @dataclass(frozen=True)
@@ -428,6 +471,34 @@ def _to_query(payload: Mapping[str, Any]) -> Query:
     )
 
 
+def _to_parsed_query_expectation(payload: Optional[Mapping[str, Any]]) -> Optional[ParsedQueryExpectation]:
+    if payload is None:
+        return None
+    return ParsedQueryExpectation(
+        result_kind=payload["result_kind"],
+        status=payload["status"],
+        value=payload["value"],
+        time_ms=payload["time_ms"],
+        mem_kib=payload["mem_kib"],
+    )
+
+
+def _to_parsed_query(payload: Mapping[str, Any]) -> ParsedQuery:
+    return ParsedQuery(
+        line=payload["line"],
+        no=payload["no"],
+        builder=payload["builder"],
+        text=payload["text"],
+        quantifier=payload["quantifier"],
+        options=tuple(_to_option(item) for item in payload["options"]),
+        expression=_to_expression(payload["expression"]),
+        is_smc=payload["is_smc"],
+        declaration=payload["declaration"],
+        result_type=payload["result_type"],
+        expectation=_to_parsed_query_expectation(payload["expectation"]),
+    )
+
+
 def _to_process(payload: Mapping[str, Any]) -> Process:
     return Process(
         name=payload["name"],
@@ -487,9 +558,36 @@ class ModelDocument:
             len(self.templates), len(self.processes), len(self.queries), len(self.errors), len(self.warnings)
         )
 
+    def load_query(self, path: Any, *, builder: str = "auto") -> Tuple[ParsedQuery, ...]:
+        return tuple(_to_parsed_query(item) for item in _utap.load_query(path, self._native, builder=builder))
+
+    def loads_query(self, buffer: str, *, builder: str = "auto") -> Tuple[ParsedQuery, ...]:
+        return tuple(_to_parsed_query(item) for item in _utap.loads_query(buffer, self._native, builder=builder))
+
+    def parse_query(self, buffer: str, *, builder: str = "auto") -> Tuple[ParsedQuery, ...]:
+        return tuple(_to_parsed_query(item) for item in _utap.parse_query(buffer, self._native, builder=builder))
+
 
 def builtin_declarations() -> str:
     return _utap.builtin_declarations()
+
+
+def _native_document(document: ModelDocument) -> _utap._NativeDocument:
+    if type(document) is not ModelDocument:
+        raise TypeError("document must be a ModelDocument")
+    return document._native
+
+
+def load_query(path: Any, document: ModelDocument, *, builder: str = "auto") -> Tuple[ParsedQuery, ...]:
+    return tuple(_to_parsed_query(item) for item in _utap.load_query(path, _native_document(document), builder=builder))
+
+
+def loads_query(buffer: str, document: ModelDocument, *, builder: str = "auto") -> Tuple[ParsedQuery, ...]:
+    return tuple(_to_parsed_query(item) for item in _utap.loads_query(buffer, _native_document(document), builder=builder))
+
+
+def parse_query(buffer: str, document: ModelDocument, *, builder: str = "auto") -> Tuple[ParsedQuery, ...]:
+    return tuple(_to_parsed_query(item) for item in _utap.parse_query(buffer, _native_document(document), builder=builder))
 
 
 def load_xml(path: Any, newxta: bool = True, strict: bool = True, libpaths: Iterable[Any] = ()) -> ModelDocument:
