@@ -22,6 +22,7 @@ message(STATUS "Using dependency prefix: ${PYUDBM_INSTALL_PREFIX}")
 list(PREPEND CMAKE_PREFIX_PATH "${PYUDBM_INSTALL_PREFIX}")
 
 find_package(pybind11 REQUIRED)
+find_package(LibXml2 REQUIRED)
 find_package(UUtils CONFIG REQUIRED)
 find_package(UDBM CONFIG REQUIRED)
 find_package(UCDD CONFIG REQUIRED)
