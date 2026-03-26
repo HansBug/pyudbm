@@ -1441,6 +1441,36 @@ checklist：
 * [ ] 平台 smoke 测试覆盖最小 query parse。
 * [ ] 平台测试仍遵循“字段尽量精确断言”的原则，而不是只看进程退出码。
 
+已完成进度回填：
+
+本轮已经落地的内容：
+
+* [x] 新增 `test/binding/utap_phase7_data.py`。
+* [x] 新增 `test/binding/test_utap_phase7.py`。
+* [x] 只通过 `pyudbm.binding.utap` 的 public module / method / class / function / field 补了 expectation 相关覆盖，不依赖 `_utap` 私有路径。
+* [x] `builtin_declarations()` 已补 public 断言。
+* [x] `load_query()` / `loads_query()` / `parse_query()` 及其 `ModelDocument` 同名 method 已补 `/* EXPECT:... */` 注释语法的 expectation 解析断言。
+* [x] `ModelDocument.dumps()` / `dump()` 已补 expectation XML 序列化分支覆盖，包括：
+  * [x] 带 document-level option 的 `<queries>` 注入
+  * [x] query-level option 写出
+  * [x] 带 `<resource .../>` 子节点的 `<expect ...>...</expect>`
+  * [x] 只有 attributes 的 `<expect .../>`
+  * [x] 兜底空形态 `<expect/>`
+
+本轮对应的验证：
+
+* [x] `python -m pytest test/binding/test_utap_phase7.py -m unittest -q`
+* [x] `python -m pytest test/binding/test_utap_phase0.py test/binding/test_utap.py test/binding/test_utap_field_matrix.py test/binding/test_utap_query.py test/binding/test_utap_roundtrip.py test/binding/test_utap_phase7.py test/binding/test_utap_phase8.py --cov=pyudbm.binding.utap --cov-report=term-missing -q`
+
+对应结果摘要：
+
+* [x] `test_utap_phase7.py`：新增 public expectation / builtin coverage 测试通过。
+* [x] public-only UTAP 测试集合覆盖率从 `93%` 提升到 `99%`。
+* [x] 上述覆盖率统计只使用 `pyudbm.binding.utap` 的公开接口，不依赖 `_utap`。
+
+当前状态：
+本轮面向 public API 的 Phase 7 覆盖补强已经完成；官方样本集 CI 接入、平台 smoke 与 wheel/runtime 硬化仍保持待办。
+
 ### Phase 8：桥接前置层与第一阶段收口
 
 目标：
@@ -1463,6 +1493,36 @@ checklist：
 * [ ] 形成第一阶段总体验收测试，并覆盖字段覆盖测试。
 * [ ] 形成第一阶段总体验收测试，并覆盖 round-trip 测试。
 * [ ] 形成第一阶段总体验收测试，并覆盖平台 smoke。
+
+已完成进度回填：
+
+本轮已经落地的内容：
+
+* [x] 新增 `test/binding/utap_phase8_data.py`。
+* [x] 新增 `test/binding/test_utap_phase8.py`。
+* [x] 只通过 public `ModelDocument.write_xml()` / `dumps()` 行为补了 dump 边界路径覆盖，不触碰 `_utap` 内部对象。
+* [x] 已补 `dumps()` 在 writer 输出缺少尾部换行时对 `<queries>` 注入前补换行的路径。
+* [x] 已补 `dumps()` 对 malformed writer 输出的公开错误边界：
+  * [x] 缺少 `<declaration>`
+  * [x] 缺少 `</declaration>`
+  * [x] 缺少 `</nta>`
+
+本轮对应的第一阶段收口结论：
+
+* [x] 以 public-only 测试集合统计，`pyudbm.binding.utap` 当前达到 `99%` 覆盖率。
+* [x] 当前仅剩一行未覆盖：`pyudbm/binding/utap.py` 中 `_to_resource(...)` 的 `Resource(...)` 转换分支。
+* [x] 该剩余分支之所以未覆盖，是因为在当前仓库暴露的 public `load_xml()` / `loads_xml()` / `load_xta()` / `loads_xta()` / `ModelDocument.dumps()` 工作流下，没有公开输入路径能把 query expectation 的 `resource` payload 再 round-trip 回 Python facade；因此这 1 行不是“漏写测试”，而是当前 public surface 的真实可达性边界。
+
+已实际跑过的验证命令与结果摘要：
+
+* [x] `python -m pytest test/binding/test_utap_phase8.py -m unittest -q`
+* [x] `python -m pytest test/binding/test_utap_phase0.py test/binding/test_utap.py test/binding/test_utap_field_matrix.py test/binding/test_utap_query.py test/binding/test_utap_roundtrip.py test/binding/test_utap_phase7.py test/binding/test_utap_phase8.py --cov=pyudbm.binding.utap --cov-report=term-missing -q`
+* [x] 新增 `phase7 + phase8`：`10 passed`
+* [x] public-only UTAP 阶段测试总计：`256 passed`
+* [x] `pyudbm.binding.utap`：`387` 行中 `386` 行覆盖，`99%`
+
+当前状态：
+本轮面向第一阶段 public facade 的 Phase 8 收口已经完成；后续若要把覆盖率从 `99%` 再抬到 `100%`，要么公开 resource round-trip 输入能力，要么允许测试触达 `_utap` native payload，而这两者都超出当前“只使用 public surface”约束。
 
 第一阶段收口标准：
 
