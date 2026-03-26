@@ -161,11 +161,18 @@
 本方案建议把第一阶段的 `UTAP` 集成目标限定为下面几类能力：
 
 - 提供 `XML` / `XTA` 的 Python 侧导入接口
-- 提供文档对象的只读访问能力
+- 提供尽可能完整的文档对象只读访问能力
 - 提供查询 / property 的 Python 侧解析接口
 - 提供 pretty print / 规范化文本输出能力
+- 提供 `dump` / `dumps` 风格的语义级 XML 导出接口
 - 提供模型的 feature summary / capability summary
 - 提供面向后续语义桥接的稳定中间层
+
+这里需要明确一个补充目标：
+
+- Python 侧应尽量能访问到 `UTAP` 自身已经拿到的全部关键语义信息
+- 优先保证“语义层面完整没有关键缺失”
+- 不以“字节级、排版级、布局级绝对无损”作为第一阶段目标
 
 ### 2. 明确不在第一阶段范围内的内容
 
@@ -177,6 +184,7 @@
 - 完整验证工作流
 - witness / trace replay / simulator 风格接口
 - 与 `verifyta` 的命令级绑定
+- 字节级、排版级、布局级完全无损 round-trip
 
 ### 3. 实施原则
 
@@ -205,6 +213,26 @@
 
 不要把 `UTAP` 内部复杂对象图直接暴露成最终 public API。应当由 Python 层提供更稳定、更薄、更容易长期维护的 facade。
 
+#### 原则五：读路径尽量完整，写路径以语义保真为准
+
+第一阶段不应只暴露“方便演示的 summary”。
+
+更合适的要求是：
+
+- 只要 `UTAP` 原生已经有的关键信息，Python 侧应尽量能拿到
+- 导出时允许重新规范化 XML
+- 只要 reparse 后模型在语义上仍然是那个模型，就符合第一阶段目标
+
+因此第一阶段追求的是：
+
+- semantic completeness
+- semantic round-trip
+
+而不是：
+
+- byte-perfect round-trip
+- original layout preservation
+
 ## 四、推荐的分层结构
 
 ### 1. 总体分层
@@ -222,7 +250,7 @@
 - 持有 native `UTAP::Document`
 - 调用 `parse_XML_*` / `parse_XTA`
 - 调用 query parser / property parser
-- 提供少量稳定的原生只读访问器
+- 提供尽可能完整但只读的原生访问器
 - 负责 C++ 生命周期管理
 
 该层不应直接成为最终 public API。
@@ -237,8 +265,14 @@
 
 - 对 `_utap` 的 native handle 做 Pythonic 包装
 - 定义面向用户的对象命名与行为
-- 负责把 native object graph 转成更稳定的只读视图或 dataclass
+- 负责把 native object graph 包装成更稳定的只读视图
 - 负责异常信息、可选参数、文本接口与文档字符串
+
+这里要特别强调：
+
+- Python 包装层不应把 `UTAP` 已有语义对象压缩成只剩 summary 的轻薄壳
+- 对后续分析有价值的细节，第一阶段就应尽量保留访问路径
+- 真正要克制的是“可变编辑能力”，不是“语义读取能力”
 
 #### C. 更高层 workflow / model 层
 
@@ -280,15 +314,29 @@
 - `parse_query(text, document, *, tiga=False) -> ParsedQuery`
 - `builtin_declarations() -> str`
 
-如果 `UTAP` 某些底层写接口只支持文件路径，则 Python 层可以先只公开：
+在写出方向，建议第一阶段直接把 `dump` / `dumps` 作为正式接口规划进去：
 
-- `document.write_xml(path)`
+- `document.dump(path) -> None`
+- `document.dumps() -> str`
 
-不要在第一阶段为了“必须支持字符串写出”而强行发明不稳定方案。
+同时可以保留更直白的别名：
+
+- `document.write_xml(path) -> None`
+- `document.to_xml() -> str`
+
+实现策略上：
+
+- `dump(path)` 应直接对应 `UTAP` 的 `write_XML_file`
+- `dumps()` 第一阶段允许通过受控临时文件桥接实现
+- 如果后续增加内存写出包装，再把 `dumps()` 切换到更直接的 native 实现
+
+也就是说，第一阶段不要求“原始文本无损”，但要求：
+
+- Python 侧能稳定写出一个语义等价、可重新解析的 XML
 
 ### 2. 第一阶段推荐暴露的对象
 
-建议 Python 层以“只读 facade + 小型 value object”为主，优先提供：
+建议 Python 层以“完整只读 facade + 小型 value object 辅助”为主，优先提供：
 
 - `ModelDocument`
 - `ModelTemplate`
@@ -312,6 +360,8 @@
 - `has_strict_invariants`
 - `has_stop_watch`
 - `has_urgent_transition`
+- `dump(path)`
+- `dumps()`
 - `pretty()`
 - `write_xml(path)`
 
@@ -324,25 +374,25 @@
 
 ### 4. 表达式对象的建议边界
 
-表达式是整个接口设计里最需要克制的一块。
+表达式是整个接口设计里最需要控制复杂度的一块，但这不意味着应当把它削成只剩字符串。
 
-不建议第一阶段就把 `UTAP::expression_t` 的完整 AST 结构原样暴露给 Python。
+更合适的目标是：
 
-更稳妥的做法是：
+- 第一阶段尽量让 Python 侧拿到 `UTAP::expression_t` 已有的关键只读语义信息
+- 不急着开放可变 AST 编辑
+- 允许先不覆盖极少数很冷门的内部细节，但不能把表达式整体降级成“仅文本”
 
-- 第一阶段只提供规范化文本表示和基础元数据
-- 第二阶段如果确实需要，再逐步补 AST 访问能力
-
-第一阶段的表达式包装建议只暴露：
+因此第一阶段的表达式包装建议至少覆盖：
 
 - `text`
 - `kind`
 - `position`
-- `is_empty` 或类似基础状态
+- `type`
+- `size`
+- `children`
+- `is_empty`
 
-如果某些位置目前没有稳定的 kind/value 提取接口，也可以先只暴露：
-
-- `text`
+如果某些节点种类还需要补更多专用 accessor，也应按“增加读取能力”的方向补，而不是退回只有 `text`。
 
 ### 5. 查询对象的建议边界
 
@@ -362,7 +412,10 @@
 - `declaration`
 - `expectation`
 
-对于复杂 query 子结构，可以先保留为规范化文本，不要一开始就追求完整结构化。
+对于复杂 query 子结构，第一阶段仍可接受部分位置先保留规范化文本，但总体方向应是：
+
+- 尽量把 `UTAP` 原生已经拿到的 property 语义信息暴露出来
+- 不要把 query 层过度压扁成只有一段字符串
 
 ## 六、native binding 设计建议
 
@@ -385,7 +438,8 @@
 因此第一阶段建议优先采用：
 
 - `Document` 由 native handle 持有
-- 其他对象以只读 snapshot 或受控 view 的形式暴露
+- 其他对象以只读 wrapper 或受控 view 的形式暴露
+- 对 `UTAP` 已有的重要语义字段尽量提供访问器，而不是只给摘要
 
 ### 2. 建议的 native 暴露策略
 
@@ -413,7 +467,8 @@
 综合来看，第一阶段更推荐：
 
 - `Document` 保持 handle
-- template / location / edge / query 多数以 snapshot 或轻量只读 wrapper 提供
+- template / location / edge / query / expression 多数以轻量只读 wrapper 提供
+- snapshot 只作为辅助，不应成为唯一读路径
 
 ### 3. Builder 接口为什么不宜先开放
 
@@ -576,6 +631,7 @@ Windows 上 `UTAP` 默认更偏静态构建，这可能减轻一部分 runtime D
 - process 数量
 - query 数量
 - location / edge 基本信息
+- expression / declaration / option 等关键语义字段可访问
 - feature flags
 
 #### C. 查询解析测试
@@ -592,7 +648,14 @@ Windows 上 `UTAP` 默认更偏静态构建，这可能减轻一部分 runtime D
 如果第一阶段引入 pretty print 或 XML 写出，则应补：
 
 - parse -> pretty / write -> reparse
-- 关键字段保持可识别一致
+- 关键语义字段保持一致
+- `dump(path)` 与 `dumps()` 都覆盖
+
+这里的验收标准应明确写成：
+
+- 不要求字节级一致
+- 不要求图形布局一致
+- 要求 reparse 后模型在语义层面没有关键缺失
 
 #### E. 语义桥接前置测试
 
@@ -624,6 +687,7 @@ Windows 上 `UTAP` 默认更偏静态构建，这可能减轻一部分 runtime D
 
 - 模型导入 / 检查 / 查询解析前端
 - 与 `UDBM/UCDD` 互补的前端层
+- 语义级 round-trip 的模型读写层，而不是字节级无损 XML 保真层
 
 ### 2. 用户示例建议
 
@@ -639,6 +703,7 @@ Windows 上 `UTAP` 默认更偏静态构建，这可能减轻一部分 runtime D
 至少要明确写出：
 
 - 当前不保证完整 AST 编辑能力
+- 当前优先保证读路径的语义完整，而不是原始 XML 的字节级保真
 - 当前不保证任意表达式都能编译到 `Federation/CDD`
 - 当前 query parse 不等于 query 执行
 
@@ -676,12 +741,13 @@ Windows 上 `UTAP` 默认更偏静态构建，这可能减轻一部分 runtime D
 
 - 增加 `pyudbm.binding.utap`
 - 暴露 `load_xml` / `loads_xml` / `parse_query`
-- 暴露只读 `ModelDocument` / `ModelQuery`
+- 暴露尽可能完整的只读 `ModelDocument` / `ModelQuery`
 
 完成标准：
 
 - 能读取上游样例模型
 - 能列出模板与查询
+- 能访问关键 declaration / expression / option / feature 信息
 - 能解析至少一批典型 query
 
 ### Phase 3：pretty / roundtrip / introspection 完善
@@ -689,12 +755,14 @@ Windows 上 `UTAP` 默认更偏静态构建，这可能减轻一部分 runtime D
 目标：
 
 - 增加 pretty print
+- 增加 `dump` / `dumps`
 - 增加更多 feature flags
 - 增加 clock / declaration introspection
 
 完成标准：
 
-- 能做一轮 parse + pretty / write + reparse 验证
+- 能做一轮 parse + dump / dumps + reparse 验证
+- 语义层面 round-trip 无关键缺失
 
 ### Phase 4：与 `UDBM/UCDD` 的子集桥接
 
@@ -721,6 +789,11 @@ Windows 上 `UTAP` 默认更偏静态构建，这可能减轻一部分 runtime D
 
 如果第一阶段就完整暴露整个对象图，后续会很难收敛 public API。
 
+这里要区分两种“宽”：
+
+- 读路径上的语义信息完整，这是需要的
+- 可变编辑面和 callback 面过宽，这是要避免的
+
 ### 2. 误判语义覆盖范围
 
 如果过早承诺“UTAP 模型可直接变成 `Federation/CDD`”，很容易制造错误语义预期。
@@ -739,9 +812,10 @@ query AST 是一个容易膨胀的方向。第一阶段应该先满足 parse / c
 
 1. 接入 `_utap` 原生模块，先把构建和 import 跑通。
 2. 只做最小 parse + 只读 document/query 包装。
-3. 用 `UTAP/test/models` 补齐 Python 测试。
-4. 完成 pretty / feature summary / clock 提取。
-5. 再开始 subset compiler 和 `UDBM/UCDD` 桥接。
+3. 把读路径补到尽量完整，不只停留在 summary 级对象。
+4. 用 `UTAP/test/models` 补齐 Python 测试。
+5. 完成 `dump` / `dumps`、feature summary、clock 提取。
+6. 再开始 subset compiler 和 `UDBM/UCDD` 桥接。
 
 ## 十四、结论
 
@@ -754,7 +828,9 @@ query AST 是一个容易膨胀的方向。第一阶段应该先满足 parse / c
 因此，推荐路线是：
 
 - 先做 `_utap + pyudbm.binding.utap`
-- 先做只读导入、query parse、pretty print、模型 introspection
+- 先把 Python 侧读路径做到尽量完整
+- 在此基础上提供 `dump` / `dumps` 和语义级 round-trip
+- 再做 query parse、pretty print、模型 introspection 的完善
 - 再做 subset compiler 与符号语义桥接
 - 暂不在第一阶段承诺完整可编辑 AST 与完整验证语义
 
