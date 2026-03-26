@@ -1,14 +1,21 @@
 """
 High-level read-only UTAP API.
 
-This module layers immutable Python snapshots on top of the native
-``pyudbm.binding._utap`` module. The public API intentionally stays read-only
-for now:
+This module layers immutable Python snapshot objects on top of the native
+``pyudbm.binding._utap`` bindings. It is the public high-level inspection
+layer for parsed UPPAAL models and queries.
 
-* parsing returns a :class:`ModelDocument`;
-* nested model objects are immutable dataclass snapshots;
-* the owning :class:`ModelDocument` still keeps the native document alive for
-  future phases such as XML round-trip helpers.
+The surface is intentionally read-only in this phase:
+
+* model parsing returns a :class:`ModelDocument`;
+* nested model objects are frozen dataclass snapshots;
+* query parsing returns immutable :class:`ParsedQuery` values;
+* the owning :class:`ModelDocument` retains the native document for XML
+  round-tripping helpers.
+
+Compared with :mod:`pyudbm.binding._utap`, this module focuses on a stable
+Python-facing object model for templates, processes, locations, edges,
+queries, diagnostics, and selected document-level declarations.
 """
 
 from __future__ import annotations
@@ -20,7 +27,17 @@ from dataclasses import dataclass
 from typing import Any, Iterable, Mapping, Optional, Tuple
 from xml.sax.saxutils import escape, quoteattr
 
-from . import _utap
+from ._utap import (
+    _NativeDocument,
+    builtin_declarations as _builtin_declarations,
+    load_query as _load_query,
+    load_xml as _load_xml,
+    load_xta as _load_xta,
+    loads_query as _loads_query,
+    loads_xml as _loads_xml,
+    loads_xta as _loads_xta,
+    parse_query as _parse_query,
+)
 
 __all__ = [
     "Branchpoint",
@@ -56,6 +73,10 @@ __all__ = [
 ]
 
 
+#: Public snapshot fields currently exposed for each native UTAP payload type.
+#:
+#: This mapping documents the first-phase Python-facing surface that
+#: :class:`ModelDocument` and related value objects guarantee to populate.
 MAPPED_FIELDS = {
     "Document": ("templates", "processes", "queries", "options", "features", "errors", "warnings", "modified"),
     "Template": (
@@ -187,6 +208,11 @@ MAPPED_FIELDS = {
     "diagnostic_t": ("message", "context", "position", "line", "column", "end_line", "end_column", "path"),
 }
 
+#: Additional compatibility notes for selected mapped fields.
+#:
+#: These notes explain conservative wrappers and intentionally restricted
+#: representations where the Python layer avoids exposing unstable native
+#: pretty-printer or parser internals directly.
 MAPPED_FIELD_NOTES = {
     "Template": {
         "declaration": "Conservative first-phase field. The current binding keeps this empty instead of calling unstable upstream pretty-printers on every template.",
@@ -200,6 +226,8 @@ MAPPED_FIELD_NOTES = {
     },
 }
 
+#: Native UTAP fields that are currently not promoted to the public snapshot
+#: layer.
 UNMAPPED_FIELDS = {
     "Document": ("globals", "before_update", "after_update", "chan_priorities", "strings"),
     "Template": ("messages", "updates", "conditions", "dynamic_evals"),
@@ -219,6 +247,8 @@ UNMAPPED_FIELDS = {
     "diagnostic_t": (),
 }
 
+#: Explanations for why entries in :data:`UNMAPPED_FIELDS` are not yet exposed
+#: directly in the high-level Python API.
 UNMAPPED_FIELD_REASONS = {
     "Document": {
         "globals": "Exposed via global_declarations() instead of re-exporting raw declarations_t as a first-phase value object.",
@@ -278,6 +308,29 @@ _EXPECTATION_TYPE_TO_XML = {
 
 @dataclass(frozen=True)
 class Position:
+    """
+    Source span of one parsed UTAP object.
+
+    Positions are immutable snapshots produced from UTAP source metadata.
+    Line, column, and path information may be absent for synthesized nodes
+    that do not correspond to a concrete file-backed location.
+
+    :param start: Start offset in the normalized source buffer.
+    :type start: int
+    :param end: End offset in the normalized source buffer.
+    :type end: int
+    :param line: One-based starting line number, if available.
+    :type line: int or None
+    :param column: One-based starting column number, if available.
+    :type column: int or None
+    :param end_line: One-based ending line number, if available.
+    :type end_line: int or None
+    :param end_column: One-based ending column number, if available.
+    :type end_column: int or None
+    :param path: Source path associated with the position, if available.
+    :type path: str or None
+    """
+
     start: int
     end: int
     line: Optional[int]
@@ -289,12 +342,32 @@ class Position:
 
 @dataclass(frozen=True)
 class Option:
+    """
+    One XML or query option expressed as a key/value pair.
+
+    :param name: Option name.
+    :type name: str
+    :param value: Option value as text.
+    :type value: str
+    """
+
     name: str
     value: str
 
 
 @dataclass(frozen=True)
 class Resource:
+    """
+    One resource measurement attached to a query expectation.
+
+    :param name: Resource kind, for example time or memory.
+    :type name: str
+    :param value: Resource value as text.
+    :type value: str
+    :param unit: Optional unit associated with the value.
+    :type unit: str or None
+    """
+
     name: str
     value: str
     unit: Optional[str]
@@ -302,6 +375,23 @@ class Resource:
 
 @dataclass(frozen=True)
 class Expectation:
+    """
+    Expected verification outcome stored with a model query.
+
+    ``value_type`` and ``status`` mirror UTAP's expectation metadata, while
+    ``resources`` stores optional time or memory budgets.
+
+    :param value_type: Expectation category such as ``"Symbolic"`` or
+        ``"Probability"``.
+    :type value_type: str
+    :param status: Expected outcome status.
+    :type status: str
+    :param value: Expected scalar value rendered as text, when present.
+    :type value: str
+    :param resources: Optional resource constraints or measurements.
+    :type resources: Tuple[Resource, ...]
+    """
+
     value_type: str
     status: str
     value: str
@@ -310,6 +400,80 @@ class Expectation:
 
 @dataclass(frozen=True)
 class TypeInfo:
+    """
+    Immutable snapshot of one UTAP ``type_t`` descriptor.
+
+    The boolean flags mirror native predicate helpers so callers can inspect
+    semantic categories without depending on unstable native internals.
+
+    :param kind: Native ``type_t`` kind code.
+    :type kind: int
+    :param position: Source position of the type node.
+    :type position: Position
+    :param size: Native size or arity field.
+    :type size: int
+    :param text: Safe pretty-printed type text.
+    :type text: str
+    :param declaration: Safe pretty-printed declaration text.
+    :type declaration: str
+    :param is_unknown: Whether the type is unresolved.
+    :type is_unknown: bool
+    :param is_range: Whether the type is a ranged integer type.
+    :type is_range: bool
+    :param is_integer: Whether the type is an integer type.
+    :type is_integer: bool
+    :param is_boolean: Whether the type is a boolean type.
+    :type is_boolean: bool
+    :param is_function: Whether the type denotes a function.
+    :type is_function: bool
+    :param is_function_external: Whether the function type is external.
+    :type is_function_external: bool
+    :param is_clock: Whether the type denotes a clock.
+    :type is_clock: bool
+    :param is_process: Whether the type denotes a process.
+    :type is_process: bool
+    :param is_process_set: Whether the type denotes a process set.
+    :type is_process_set: bool
+    :param is_location: Whether the type denotes a location.
+    :type is_location: bool
+    :param is_location_expr: Whether the type denotes a location expression.
+    :type is_location_expr: bool
+    :param is_instance_line: Whether the type denotes an instance line.
+    :type is_instance_line: bool
+    :param is_branchpoint: Whether the type denotes a branchpoint.
+    :type is_branchpoint: bool
+    :param is_channel: Whether the type denotes a channel.
+    :type is_channel: bool
+    :param is_record: Whether the type denotes a record.
+    :type is_record: bool
+    :param is_array: Whether the type denotes an array.
+    :type is_array: bool
+    :param is_scalar: Whether the type denotes a scalar set.
+    :type is_scalar: bool
+    :param is_diff: Whether the type denotes a clock-difference form.
+    :type is_diff: bool
+    :param is_void: Whether the type denotes ``void``.
+    :type is_void: bool
+    :param is_cost: Whether the type denotes a cost quantity.
+    :type is_cost: bool
+    :param is_integral: Whether the type is integral.
+    :type is_integral: bool
+    :param is_invariant: Whether the type denotes an invariant expression.
+    :type is_invariant: bool
+    :param is_probability: Whether the type denotes a probability.
+    :type is_probability: bool
+    :param is_guard: Whether the type denotes a guard expression.
+    :type is_guard: bool
+    :param is_constraint: Whether the type denotes a constraint.
+    :type is_constraint: bool
+    :param is_formula: Whether the type denotes a formula.
+    :type is_formula: bool
+    :param is_double: Whether the type denotes a floating-point value.
+    :type is_double: bool
+    :param is_string: Whether the type denotes a string.
+    :type is_string: bool
+    """
+
     kind: int
     position: Position
     size: int
@@ -347,6 +511,17 @@ class TypeInfo:
 
 @dataclass(frozen=True)
 class Symbol:
+    """
+    Immutable snapshot of one UTAP symbol reference.
+
+    :param name: Symbol name.
+    :type name: str
+    :param type: Symbol type information.
+    :type type: TypeInfo
+    :param position: Source position of the symbol declaration or reference.
+    :type position: Position
+    """
+
     name: str
     type: TypeInfo
     position: Position
@@ -354,6 +529,28 @@ class Symbol:
 
 @dataclass(frozen=True)
 class Expression:
+    """
+    Immutable snapshot of one parsed expression tree node.
+
+    ``children`` contains recursively converted expression nodes and
+    ``is_empty`` marks optional fields that UTAP reports as structurally empty.
+
+    :param text: Safe pretty-printed expression text.
+    :type text: str
+    :param kind: Native ``expression_t`` kind code.
+    :type kind: int
+    :param position: Source position of the expression node.
+    :type position: Position
+    :param type: Static type information for the expression.
+    :type type: TypeInfo
+    :param size: Native size or child-count field.
+    :type size: int
+    :param children: Child expressions in native order.
+    :type children: Tuple[Expression, ...]
+    :param is_empty: Whether the expression is structurally empty.
+    :type is_empty: bool
+    """
+
     text: str
     kind: int
     position: Position
@@ -365,6 +562,27 @@ class Expression:
 
 @dataclass(frozen=True)
 class Diagnostic:
+    """
+    One parser or semantic diagnostic emitted by UTAP.
+
+    :param message: Primary diagnostic message.
+    :type message: str
+    :param context: Additional context text from UTAP.
+    :type context: str
+    :param position: Structured source span for the diagnostic.
+    :type position: Position
+    :param line: One-based starting line number, if available.
+    :type line: int or None
+    :param column: One-based starting column number, if available.
+    :type column: int or None
+    :param end_line: One-based ending line number, if available.
+    :type end_line: int or None
+    :param end_column: One-based ending column number, if available.
+    :type end_column: int or None
+    :param path: Source path associated with the diagnostic, if available.
+    :type path: str or None
+    """
+
     message: str
     context: str
     position: Position
@@ -377,6 +595,44 @@ class Diagnostic:
 
 @dataclass(frozen=True)
 class FeatureFlags:
+    """
+    Supported-language and capability flags detected for a document.
+
+    These fields summarize whether the parsed document uses or supports major
+    UTAP feature families such as priorities, stochastic constructs, or
+    symbolic verification.
+
+    :param has_priority_declaration: Whether channel priorities are declared.
+    :type has_priority_declaration: bool
+    :param has_strict_invariants: Whether strict invariants are used.
+    :type has_strict_invariants: bool
+    :param has_stop_watch: Whether stop-watch clocks are used.
+    :type has_stop_watch: bool
+    :param has_strict_lower_bound_on_controllable_edges: Whether strict lower
+        bounds on controllable edges are used.
+    :type has_strict_lower_bound_on_controllable_edges: bool
+    :param has_clock_guard_recv_broadcast: Whether receive-broadcast guards use
+        clock constraints.
+    :type has_clock_guard_recv_broadcast: bool
+    :param has_urgent_transition: Whether urgent transitions are present.
+    :type has_urgent_transition: bool
+    :param has_dynamic_templates: Whether dynamic templates are present.
+    :type has_dynamic_templates: bool
+    :param all_broadcast: Whether synchronization is broadcast-only.
+    :type all_broadcast: bool
+    :param sync_used: Native synchronization-usage summary code.
+    :type sync_used: int
+    :param supports_symbolic: Whether the document is suitable for symbolic
+        analysis.
+    :type supports_symbolic: bool
+    :param supports_stochastic: Whether the document is suitable for
+        stochastic analysis.
+    :type supports_stochastic: bool
+    :param supports_concrete: Whether the document is suitable for concrete
+        simulation.
+    :type supports_concrete: bool
+    """
+
     has_priority_declaration: bool
     has_strict_invariants: bool
     has_stop_watch: bool
@@ -393,6 +649,19 @@ class FeatureFlags:
 
 @dataclass(frozen=True)
 class Branchpoint:
+    """
+    Immutable snapshot of one branchpoint declared inside a template.
+
+    :param name: Branchpoint name.
+    :type name: str
+    :param index: Native branchpoint index within the template.
+    :type index: int
+    :param position: Source position of the branchpoint.
+    :type position: Position
+    :param symbol: Symbol information for the branchpoint.
+    :type symbol: Symbol
+    """
+
     name: str
     index: int
     position: Position
@@ -401,6 +670,34 @@ class Branchpoint:
 
 @dataclass(frozen=True)
 class Location:
+    """
+    Immutable snapshot of one template location.
+
+    Expression fields such as ``invariant`` and ``cost_rate`` are already
+    converted to Python expression snapshots.
+
+    :param name: Location name.
+    :type name: str
+    :param index: Native location index within the template.
+    :type index: int
+    :param position: Source position of the location.
+    :type position: Position
+    :param symbol: Symbol information for the location.
+    :type symbol: Symbol
+    :param name_expression: Optional name expression payload.
+    :type name_expression: Expression
+    :param invariant: Invariant expression.
+    :type invariant: Expression
+    :param exp_rate: Exponential-rate expression.
+    :type exp_rate: Expression
+    :param cost_rate: Cost-rate expression.
+    :type cost_rate: Expression
+    :param is_urgent: Whether the location is urgent.
+    :type is_urgent: bool
+    :param is_committed: Whether the location is committed.
+    :type is_committed: bool
+    """
+
     name: str
     index: int
     position: Position
@@ -415,6 +712,42 @@ class Location:
 
 @dataclass(frozen=True)
 class Edge:
+    """
+    Immutable snapshot of one template edge.
+
+    Guard, assignment, synchronization, probability, and select metadata are
+    exposed through converted expression and symbol snapshots.
+
+    :param index: Native edge index within the template.
+    :type index: int
+    :param control: Whether the edge is controllable.
+    :type control: bool
+    :param action_name: Edge action name.
+    :type action_name: str
+    :param source_name: Source node name.
+    :type source_name: str
+    :param source_kind: Source node kind.
+    :type source_kind: str
+    :param target_name: Target node name.
+    :type target_name: str
+    :param target_kind: Target node kind.
+    :type target_kind: str
+    :param guard: Guard expression.
+    :type guard: Expression
+    :param assign: Assignment expression.
+    :type assign: Expression
+    :param sync: Synchronization expression.
+    :type sync: Expression
+    :param prob: Probability expression.
+    :type prob: Expression
+    :param select_text: Raw select clause text.
+    :type select_text: str
+    :param select_symbols: Symbols introduced by the select clause.
+    :type select_symbols: Tuple[Symbol, ...]
+    :param select_values: Native select values associated with the symbols.
+    :type select_values: Tuple[int, ...]
+    """
+
     index: int
     control: bool
     action_name: str
@@ -433,6 +766,21 @@ class Edge:
 
 @dataclass(frozen=True)
 class Query:
+    """
+    One query entry stored in the parsed document.
+
+    :param formula: Query formula text.
+    :type formula: str
+    :param comment: Query comment text.
+    :type comment: str
+    :param options: Query-local option entries.
+    :type options: Tuple[Option, ...]
+    :param expectation: Stored expectation metadata.
+    :type expectation: Expectation
+    :param location: Query source-location text.
+    :type location: str
+    """
+
     formula: str
     comment: str
     options: Tuple[Option, ...]
@@ -442,6 +790,21 @@ class Query:
 
 @dataclass(frozen=True)
 class ParsedQueryExpectation:
+    """
+    Structured expectation metadata produced by query parsing helpers.
+
+    :param result_kind: Parsed result kind.
+    :type result_kind: str
+    :param status: Parsed expectation status, if present.
+    :type status: str or None
+    :param value: Parsed expectation numeric value, if present.
+    :type value: float or None
+    :param time_ms: Expected time budget or measurement in milliseconds.
+    :type time_ms: int
+    :param mem_kib: Expected memory budget or measurement in KiB.
+    :type mem_kib: int
+    """
+
     result_kind: str
     status: Optional[str]
     value: Optional[float]
@@ -451,6 +814,36 @@ class ParsedQueryExpectation:
 
 @dataclass(frozen=True)
 class ParsedQuery:
+    """
+    Immutable snapshot of one query parsed against a document context.
+
+    The parsed expression tree, detected builder, and optional expectation
+    metadata are all detached from the native parsing result.
+
+    :param line: One-based source line of the query.
+    :type line: int
+    :param no: Query number reported by UTAP.
+    :type no: int
+    :param builder: Selected query builder name.
+    :type builder: str
+    :param text: Original query text.
+    :type text: str
+    :param quantifier: Top-level query quantifier.
+    :type quantifier: str
+    :param options: Parsed query options.
+    :type options: Tuple[Option, ...]
+    :param expression: Parsed query expression tree.
+    :type expression: Expression
+    :param is_smc: Whether the query is an SMC query.
+    :type is_smc: bool
+    :param declaration: Query-local declaration block.
+    :type declaration: str
+    :param result_type: Parsed query result type.
+    :type result_type: str
+    :param expectation: Structured expectation metadata, if present.
+    :type expectation: ParsedQueryExpectation or None
+    """
+
     line: int
     no: int
     builder: str
@@ -466,6 +859,31 @@ class ParsedQuery:
 
 @dataclass(frozen=True)
 class Process:
+    """
+    Immutable snapshot of one instantiated process in the system section.
+
+    :param name: Process instance name.
+    :type name: str
+    :param index: Native process index.
+    :type index: int
+    :param position: Source position of the process declaration.
+    :type position: Position
+    :param template_name: Name of the referenced template.
+    :type template_name: str
+    :param parameters: Template parameter text.
+    :type parameters: str
+    :param arguments: Instantiation argument text.
+    :type arguments: str
+    :param mapping: Native process mapping text.
+    :type mapping: str
+    :param argument_count: Number of supplied arguments.
+    :type argument_count: int
+    :param unbound_count: Number of unresolved parameters.
+    :type unbound_count: int
+    :param restricted_symbols: Restricted symbols associated with the process.
+    :type restricted_symbols: Tuple[Symbol, ...]
+    """
+
     name: str
     index: int
     position: Position
@@ -480,6 +898,46 @@ class Process:
 
 @dataclass(frozen=True)
 class Template:
+    """
+    Immutable snapshot of one UTAP template.
+
+    Locations, branchpoints, and edges are eagerly converted into immutable
+    nested snapshots.
+
+    :param name: Template name.
+    :type name: str
+    :param index: Native template index.
+    :type index: int
+    :param position: Source position of the template.
+    :type position: Position
+    :param parameter: Template parameter declaration text.
+    :type parameter: str
+    :param declaration: Template declaration text currently exposed by the
+        high-level wrapper.
+    :type declaration: str
+    :param init_name: Name of the initial location.
+    :type init_name: str
+    :param type: Template type name.
+    :type type: str
+    :param mode: Template mode string.
+    :type mode: str
+    :param is_ta: Whether the template is a timed automaton.
+    :type is_ta: bool
+    :param is_instantiated: Whether the template is instantiated in the
+        system section.
+    :type is_instantiated: bool
+    :param dynamic: Whether the template is dynamic.
+    :type dynamic: bool
+    :param is_defined: Whether the template is fully defined.
+    :type is_defined: bool
+    :param locations: Template locations.
+    :type locations: Tuple[Location, ...]
+    :param branchpoints: Template branchpoints.
+    :type branchpoints: Tuple[Branchpoint, ...]
+    :param edges: Template edges.
+    :type edges: Tuple[Edge, ...]
+    """
+
     name: str
     index: int
     position: Position
@@ -738,9 +1196,31 @@ class ModelDocument:
     native document payload. The owning native document is still retained on
     this object for later phases, but nested wrappers do not depend on it for
     field access.
+
+    The public attributes ``templates``, ``processes``, ``queries``,
+    ``options``, ``features``, ``errors``, ``warnings``, and ``modified`` are
+    populated eagerly during initialization.
+
+    :ivar templates: Parsed template snapshots.
+    :ivar processes: Parsed process snapshots.
+    :ivar queries: Stored model queries.
+    :ivar options: Top-level query option entries.
+    :ivar features: Document feature and capability summary.
+    :ivar errors: Parser or semantic errors reported by UTAP.
+    :ivar warnings: Parser or semantic warnings reported by UTAP.
+    :ivar modified: Whether UTAP reports the document as modified.
     """
 
-    def __init__(self, native_document: _utap._NativeDocument):
+    def __init__(self, native_document: _NativeDocument):
+        """
+        Initialize one immutable document snapshot from a native UTAP document.
+
+        :param native_document: Parsed native document returned by
+            :mod:`pyudbm.binding._utap`.
+        :type native_document: _NativeDocument
+        :return: ``None``.
+        :rtype: None
+        """
         self._native = native_document
         payload = native_document.snapshot()
         self.templates = tuple(_to_template(item) for item in payload["templates"])
@@ -758,9 +1238,34 @@ class ModelDocument:
         )
 
     def write_xml(self, path: Any) -> None:
+        """
+        Write the native XML serialization to ``path``.
+
+        This delegates directly to the underlying native document writer,
+        before Python-side query reinjection performed by :meth:`dumps`.
+
+        :param path: Output path accepted by the native binding.
+        :type path: Any
+        :return: ``None``.
+        :rtype: None
+        """
+
         self._native.write_xml(path)
 
     def dumps(self) -> str:
+        """
+        Serialize the document to one XML string.
+
+        The native UTAP writer is used as the structural base. Global
+        declarations and query blocks are then patched back into the emitted
+        XML so the round-tripped text matches the higher-level Python view.
+
+        :return: XML serialization of the current snapshot.
+        :rtype: str
+        :raises RuntimeError: If the native XML output does not contain the
+            expected ``<declaration>`` or ``</nta>`` structure.
+        """
+
         with tempfile.TemporaryDirectory(prefix="pyudbm-utap-") as tempdir:
             temp_path = os.path.join(tempdir, "document.xml")
             self.write_xml(temp_path)
@@ -770,34 +1275,111 @@ class ModelDocument:
         return _inject_queries_block(xml_text, self.options, self.queries)
 
     def to_xml(self) -> str:
+        """
+        Return the XML serialization of the document.
+
+        This is a convenience alias for :meth:`dumps`.
+
+        :return: XML serialization of the current snapshot.
+        :rtype: str
+        """
+
         return self.dumps()
 
     def dump(self, path: Any) -> None:
+        """
+        Write the XML serialization of the document to ``path``.
+
+        :param path: Output path.
+        :type path: Any
+        :return: ``None``.
+        :rtype: None
+        """
+
         with open(os.fspath(path), "w", encoding="utf-8", newline="\n") as file:
             file.write(self.dumps())
 
     def global_declarations(self) -> str:
+        """
+        Return the global declaration block as plain text.
+
+        :return: Global declarations.
+        :rtype: str
+        """
+
         return self._native.global_declarations()
 
     def before_update_text(self) -> str:
+        """
+        Return the ``before_update`` declaration text, if present.
+
+        :return: ``before_update`` declaration text.
+        :rtype: str
+        """
+
         return self._native.before_update_text()
 
     def after_update_text(self) -> str:
+        """
+        Return the ``after_update`` declaration text, if present.
+
+        :return: ``after_update`` declaration text.
+        :rtype: str
+        """
+
         return self._native.after_update_text()
 
     def channel_priority_texts(self) -> Tuple[str, ...]:
+        """
+        Return channel-priority declarations.
+
+        :return: Channel-priority declaration texts.
+        :rtype: Tuple[str, ...]
+        """
+
         return tuple(self._native.channel_priority_texts())
 
     def global_clock_names(self) -> Tuple[str, ...]:
+        """
+        Return the global clock names reported by the native document.
+
+        :return: Global clock names.
+        :rtype: Tuple[str, ...]
+        """
+
         return tuple(self._native.global_clock_names())
 
     def template_clock_names(self) -> Mapping[str, Tuple[str, ...]]:
+        """
+        Return per-template clock names.
+
+        :return: Mapping ``{template_name: (clock_names...)}``.
+        :rtype: Mapping[str, Tuple[str, ...]]
+        """
+
         return {name: tuple(values) for name, values in self._native.template_clock_names().items()}
 
     def feature_summary(self) -> Mapping[str, Any]:
+        """
+        Return feature flags as a plain mapping.
+
+        Keys follow :data:`MAPPED_FIELDS["FeatureFlags"]`.
+
+        :return: Feature-flag mapping.
+        :rtype: Mapping[str, Any]
+        """
+
         return {name: getattr(self.features, name) for name in MAPPED_FIELDS["FeatureFlags"]}
 
     def capability_summary(self) -> Mapping[str, bool]:
+        """
+        Return the coarse-grained capability summary.
+
+        :return: Mapping with ``supports_symbolic``,
+            ``supports_stochastic``, and ``supports_concrete`` entries.
+        :rtype: Mapping[str, bool]
+        """
+
         return {
             "supports_symbolic": self.features.supports_symbolic,
             "supports_stochastic": self.features.supports_stochastic,
@@ -805,6 +1387,16 @@ class ModelDocument:
         }
 
     def pretty(self) -> str:
+        """
+        Return a JSON-formatted summary of the document.
+
+        This helper is intended for debugging, snapshots, and human inspection,
+        not as a stable machine-readable interchange contract.
+
+        :return: Pretty-printed JSON summary.
+        :rtype: str
+        """
+
         payload = {
             "global_declarations": self.global_declarations(),
             "before_update": self.before_update_text(),
@@ -853,17 +1445,69 @@ class ModelDocument:
         return json.dumps(payload, indent=2, sort_keys=True)
 
     def load_query(self, path: Any, *, builder: str = "auto") -> Tuple[ParsedQuery, ...]:
-        return tuple(_to_parsed_query(item) for item in _utap.load_query(path, self._native, builder=builder))
+        """
+        Parse queries from ``path`` against this document.
+
+        :param path: Query-file path accepted by the native binding.
+        :type path: Any
+        :param builder: Query parser selection such as ``"auto"`` or a
+            concrete builder name.
+        :type builder: str
+        :return: Parsed query snapshots.
+        :rtype: Tuple[ParsedQuery, ...]
+        :raises FileNotFoundError: If ``path`` does not exist.
+        :raises pyudbm.binding._utap.ParseError: If UTAP fails to parse the
+            query file.
+        """
+
+        return tuple(_to_parsed_query(item) for item in _load_query(path, self._native, builder=builder))
 
     def loads_query(self, buffer: str, *, builder: str = "auto") -> Tuple[ParsedQuery, ...]:
-        return tuple(_to_parsed_query(item) for item in _utap.loads_query(buffer, self._native, builder=builder))
+        """
+        Parse queries from an in-memory string against this document.
+
+        :param buffer: Query text buffer.
+        :type buffer: str
+        :param builder: Query parser selection such as ``"auto"`` or a
+            concrete builder name.
+        :type builder: str
+        :return: Parsed query snapshots.
+        :rtype: Tuple[ParsedQuery, ...]
+        :raises pyudbm.binding._utap.ParseError: If UTAP fails to parse the
+            query text.
+        """
+
+        return tuple(_to_parsed_query(item) for item in _loads_query(buffer, self._native, builder=builder))
 
     def parse_query(self, buffer: str, *, builder: str = "auto") -> Tuple[ParsedQuery, ...]:
-        return tuple(_to_parsed_query(item) for item in _utap.parse_query(buffer, self._native, builder=builder))
+        """
+        Parse inline query text against this document.
+
+        This is a convenience alias over the native inline query parser.
+
+        :param buffer: Query text buffer.
+        :type buffer: str
+        :param builder: Query parser selection such as ``"auto"`` or a
+            concrete builder name.
+        :type builder: str
+        :return: Parsed query snapshots.
+        :rtype: Tuple[ParsedQuery, ...]
+        :raises pyudbm.binding._utap.ParseError: If UTAP fails to parse the
+            query text.
+        """
+
+        return tuple(_to_parsed_query(item) for item in _parse_query(buffer, self._native, builder=builder))
 
 
 def builtin_declarations() -> str:
-    return _utap.builtin_declarations()
+    """
+    Return the built-in declaration block injected by the UTAP parser.
+
+    :return: Built-in declarations understood by the parser.
+    :rtype: str
+    """
+
+    return _builtin_declarations()
 
 
 def _expectation_is_implicit_default(expectation: Expectation) -> bool:
@@ -965,35 +1609,160 @@ def _replace_global_declaration_block(xml_text: str, declaration_text: str) -> s
     return xml_text[:content_start] + escape(declaration_text) + xml_text[end_index:]
 
 
-def _native_document(document: ModelDocument) -> _utap._NativeDocument:
+def _native_document(document: ModelDocument) -> _NativeDocument:
     if type(document) is not ModelDocument:
         raise TypeError("document must be a ModelDocument")
     return document._native
 
 
 def load_query(path: Any, document: ModelDocument, *, builder: str = "auto") -> Tuple[ParsedQuery, ...]:
-    return tuple(_to_parsed_query(item) for item in _utap.load_query(path, _native_document(document), builder=builder))
+    """
+    Parse queries from ``path`` against a parsed model document.
+
+    :param path: Query-file path accepted by the native binding.
+    :type path: Any
+    :param document: Parsed model document that provides the declaration
+        context.
+    :type document: ModelDocument
+    :param builder: Query parser selection such as ``"auto"`` or a concrete
+        builder name.
+    :type builder: str
+    :return: Parsed query snapshots.
+    :rtype: Tuple[ParsedQuery, ...]
+    :raises FileNotFoundError: If ``path`` does not exist.
+    :raises TypeError: If ``document`` is not a :class:`ModelDocument`.
+    :raises pyudbm.binding._utap.ParseError: If UTAP fails to parse the query
+        file.
+    """
+
+    return tuple(_to_parsed_query(item) for item in _load_query(path, _native_document(document), builder=builder))
 
 
 def loads_query(buffer: str, document: ModelDocument, *, builder: str = "auto") -> Tuple[ParsedQuery, ...]:
-    return tuple(_to_parsed_query(item) for item in _utap.loads_query(buffer, _native_document(document), builder=builder))
+    """
+    Parse queries from an in-memory string against a parsed model document.
+
+    :param buffer: Query text buffer.
+    :type buffer: str
+    :param document: Parsed model document that provides the declaration
+        context.
+    :type document: ModelDocument
+    :param builder: Query parser selection such as ``"auto"`` or a concrete
+        builder name.
+    :type builder: str
+    :return: Parsed query snapshots.
+    :rtype: Tuple[ParsedQuery, ...]
+    :raises TypeError: If ``document`` is not a :class:`ModelDocument`.
+    :raises pyudbm.binding._utap.ParseError: If UTAP fails to parse the query
+        text.
+    """
+
+    return tuple(
+        _to_parsed_query(item) for item in _loads_query(buffer, _native_document(document), builder=builder)
+    )
 
 
 def parse_query(buffer: str, document: ModelDocument, *, builder: str = "auto") -> Tuple[ParsedQuery, ...]:
-    return tuple(_to_parsed_query(item) for item in _utap.parse_query(buffer, _native_document(document), builder=builder))
+    """
+    Parse inline query text against a parsed model document.
+
+    :param buffer: Query text buffer.
+    :type buffer: str
+    :param document: Parsed model document that provides the declaration
+        context.
+    :type document: ModelDocument
+    :param builder: Query parser selection such as ``"auto"`` or a concrete
+        builder name.
+    :type builder: str
+    :return: Parsed query snapshots.
+    :rtype: Tuple[ParsedQuery, ...]
+    :raises TypeError: If ``document`` is not a :class:`ModelDocument`.
+    :raises pyudbm.binding._utap.ParseError: If UTAP fails to parse the query
+        text.
+    """
+
+    return tuple(
+        _to_parsed_query(item) for item in _parse_query(buffer, _native_document(document), builder=builder)
+    )
 
 
 def load_xml(path: Any, newxta: bool = True, strict: bool = True, libpaths: Iterable[Any] = ()) -> ModelDocument:
-    return ModelDocument(_utap.load_xml(path, newxta=newxta, strict=strict, libpaths=tuple(libpaths)))
+    """
+    Parse one XML model file into a :class:`ModelDocument`.
+
+    :param path: XML model path.
+    :type path: Any
+    :param newxta: Whether to enable the ``newxta`` parser mode.
+    :type newxta: bool
+    :param strict: Whether to request strict parsing.
+    :type strict: bool
+    :param libpaths: Additional include-library search paths.
+    :type libpaths: Iterable[Any]
+    :return: Parsed immutable document snapshot.
+    :rtype: ModelDocument
+    :raises FileNotFoundError: If ``path`` does not exist.
+    :raises pyudbm.binding._utap.ParseError: If UTAP fails to parse the XML
+        model.
+    """
+
+    return ModelDocument(_load_xml(path, newxta=newxta, strict=strict, libpaths=tuple(libpaths)))
 
 
 def loads_xml(buffer: str, newxta: bool = True, strict: bool = True, libpaths: Iterable[Any] = ()) -> ModelDocument:
-    return ModelDocument(_utap.loads_xml(buffer, newxta=newxta, strict=strict, libpaths=tuple(libpaths)))
+    """
+    Parse one XML model string into a :class:`ModelDocument`.
+
+    :param buffer: XML model text.
+    :type buffer: str
+    :param newxta: Whether to enable the ``newxta`` parser mode.
+    :type newxta: bool
+    :param strict: Whether to request strict parsing.
+    :type strict: bool
+    :param libpaths: Additional include-library search paths.
+    :type libpaths: Iterable[Any]
+    :return: Parsed immutable document snapshot.
+    :rtype: ModelDocument
+    :raises pyudbm.binding._utap.ParseError: If UTAP fails to parse the XML
+        model.
+    """
+
+    return ModelDocument(_loads_xml(buffer, newxta=newxta, strict=strict, libpaths=tuple(libpaths)))
 
 
 def load_xta(path: Any, newxta: bool = True, strict: bool = True) -> ModelDocument:
-    return ModelDocument(_utap.load_xta(path, newxta=newxta, strict=strict))
+    """
+    Parse one textual XTA model file into a :class:`ModelDocument`.
+
+    :param path: XTA model path.
+    :type path: Any
+    :param newxta: Whether to enable the ``newxta`` parser mode.
+    :type newxta: bool
+    :param strict: Whether to request strict parsing.
+    :type strict: bool
+    :return: Parsed immutable document snapshot.
+    :rtype: ModelDocument
+    :raises FileNotFoundError: If ``path`` does not exist.
+    :raises pyudbm.binding._utap.ParseError: If UTAP fails to parse the XTA
+        model.
+    """
+
+    return ModelDocument(_load_xta(path, newxta=newxta, strict=strict))
 
 
 def loads_xta(buffer: str, newxta: bool = True, strict: bool = True) -> ModelDocument:
-    return ModelDocument(_utap.loads_xta(buffer, newxta=newxta, strict=strict))
+    """
+    Parse one textual XTA model string into a :class:`ModelDocument`.
+
+    :param buffer: XTA model text.
+    :type buffer: str
+    :param newxta: Whether to enable the ``newxta`` parser mode.
+    :type newxta: bool
+    :param strict: Whether to request strict parsing.
+    :type strict: bool
+    :return: Parsed immutable document snapshot.
+    :rtype: ModelDocument
+    :raises pyudbm.binding._utap.ParseError: If UTAP fails to parse the XTA
+        model.
+    """
+
+    return ModelDocument(_loads_xta(buffer, newxta=newxta, strict=strict))
