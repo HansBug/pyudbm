@@ -5,12 +5,15 @@ import pytest
 import pyudbm.binding as binding_module
 import pyudbm.binding.utap as utap_module
 from pyudbm.binding import (
+    Branchpoint,
     Diagnostic,
     MAPPED_FIELDS,
+    MAPPED_FIELD_NOTES,
     ModelDocument,
     ParsedQuery,
     ParsedQueryExpectation,
     UNMAPPED_FIELDS,
+    UNMAPPED_FIELD_REASONS,
     load_query,
     load_xml,
     load_xta,
@@ -45,10 +48,13 @@ class TestUtapApi:
         assert binding_module.load_query is load_query
         assert binding_module.loads_query is loads_query
         assert binding_module.parse_query is parse_query
+        assert binding_module.Branchpoint is Branchpoint
         assert binding_module.ParsedQuery is ParsedQuery
         assert binding_module.ParsedQueryExpectation is ParsedQueryExpectation
         assert binding_module.MAPPED_FIELDS is MAPPED_FIELDS
+        assert binding_module.MAPPED_FIELD_NOTES is MAPPED_FIELD_NOTES
         assert binding_module.UNMAPPED_FIELDS is UNMAPPED_FIELDS
+        assert binding_module.UNMAPPED_FIELD_REASONS is UNMAPPED_FIELD_REASONS
 
     @pytest.mark.parametrize(
         ("model_path", "newxta"),
@@ -227,8 +233,41 @@ class TestUtapApi:
         assert warning.position.path == "/nta/template[1]/location[2]/name"
 
     def test_field_mapping_manifests_are_exposed(self):
-        assert MAPPED_FIELDS["Document"] == ("templates", "processes", "queries", "options", "features", "errors", "warnings")
-        assert MAPPED_FIELDS["Template"] == ("name", "index", "position", "parameter", "declaration", "init_name", "locations", "edges")
+        assert MAPPED_FIELDS["Document"] == (
+            "templates",
+            "processes",
+            "queries",
+            "options",
+            "features",
+            "errors",
+            "warnings",
+            "modified",
+        )
+        assert MAPPED_FIELDS["Template"] == (
+            "name",
+            "index",
+            "position",
+            "parameter",
+            "declaration",
+            "init_name",
+            "type",
+            "mode",
+            "is_ta",
+            "is_instantiated",
+            "dynamic",
+            "is_defined",
+            "locations",
+            "branchpoints",
+            "edges",
+        )
+        assert MAPPED_FIELDS["Branchpoint"] == ("name", "index", "position", "symbol")
         assert MAPPED_FIELDS["expression_t"] == ("text", "kind", "position", "type", "size", "children", "is_empty")
         assert UNMAPPED_FIELDS["Document"] == ("globals", "before_update", "after_update", "chan_priorities", "strings")
-        assert UNMAPPED_FIELDS["Edge"] == ("select_values",)
+        assert UNMAPPED_FIELDS["Edge"] == ()
+        assert MAPPED_FIELD_NOTES["Template"]["declaration"] == (
+            "Conservative first-phase field. The current binding keeps this empty instead of calling unstable "
+            "upstream pretty-printers on every template."
+        )
+        assert UNMAPPED_FIELD_REASONS["type_t"]["children"] == (
+            "Deferred until recursive type-shape wrappers are stabilized for records, arrays, and process fields."
+        )

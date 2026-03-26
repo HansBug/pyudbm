@@ -495,13 +495,28 @@ py::dict type_to_dict(const UTAP::Document& document, const UTAP::type_t& type)
     result["text"] = type_text_or_empty(type);
     result["declaration"] = type_declaration_or_empty(type);
     result["is_unknown"] = is_unknown;
+    result["is_range"] = type.is_range();
     result["is_integer"] = type.is_integer();
     result["is_boolean"] = type.isBoolean();
+    result["is_function"] = type.is_function();
+    result["is_function_external"] = type.is_function_external();
     result["is_clock"] = type.is_clock();
     result["is_process"] = type.is_process();
+    result["is_process_set"] = type.is_process_set();
+    result["is_location"] = type.is_location();
+    result["is_location_expr"] = type.is_location_expr();
+    result["is_instance_line"] = type.is_instance_line();
+    result["is_branchpoint"] = type.is_branchpoint();
+    result["is_channel"] = type.is_channel();
     result["is_record"] = type.is_record();
     result["is_array"] = type.is_array();
+    result["is_scalar"] = type.is_scalar();
+    result["is_diff"] = type.is_diff();
+    result["is_void"] = type.is_void();
+    result["is_cost"] = type.is_cost();
     result["is_integral"] = type.is_integral();
+    result["is_invariant"] = type.is_invariant();
+    result["is_probability"] = type.is_probability();
     result["is_guard"] = type.is_guard();
     result["is_constraint"] = type.is_constraint();
     result["is_formula"] = type.is_formula();
@@ -569,6 +584,25 @@ py::list frame_symbols_to_list(const UTAP::Document& document, const UTAP::frame
     return result;
 }
 
+py::list symbol_set_to_list(const UTAP::Document& document, const std::set<UTAP::symbol_t>& symbols)
+{
+    py::list result;
+    for (const auto& symbol : symbols) {
+        result.append(symbol_to_dict(document, symbol));
+    }
+    return result;
+}
+
+py::dict branchpoint_to_dict(const UTAP::Document& document, const UTAP::branchpoint_t& branchpoint)
+{
+    py::dict result;
+    result["name"] = branchpoint.uid.get_name();
+    result["index"] = branchpoint.bpNr;
+    result["position"] = make_position_dict(document, branchpoint.uid.get_position());
+    result["symbol"] = symbol_to_dict(document, branchpoint.uid);
+    return result;
+}
+
 py::dict location_to_dict(const UTAP::Document& document, const UTAP::location_t& location)
 {
     py::dict result;
@@ -576,6 +610,7 @@ py::dict location_to_dict(const UTAP::Document& document, const UTAP::location_t
     result["index"] = location.nr;
     result["position"] = make_position_dict(document, location.uid.get_position());
     result["symbol"] = symbol_to_dict(document, location.uid);
+    result["name_expression"] = expression_to_dict(document, location.name);
     result["invariant"] = expression_to_dict(document, location.invariant);
     result["exp_rate"] = expression_to_dict(document, location.exp_rate);
     result["cost_rate"] = expression_to_dict(document, location.cost_rate);
@@ -624,6 +659,11 @@ py::dict edge_to_dict(const UTAP::Document& document, const UTAP::edge_t& edge)
     result["prob"] = expression_to_dict(document, edge.prob);
     result["select_text"] = frame_to_string(edge.select);
     result["select_symbols"] = frame_symbols_to_list(document, edge.select);
+    py::list select_values;
+    for (const auto value : edge.selectValues) {
+        select_values.append(value);
+    }
+    result["select_values"] = select_values;
     return result;
 }
 
@@ -650,6 +690,7 @@ py::dict instance_to_dict(const UTAP::Document& document, const UTAP::instance_t
     result["mapping"] = mapping_to_string(instance);
     result["argument_count"] = instance.arguments;
     result["unbound_count"] = instance.unbound;
+    result["restricted_symbols"] = symbol_set_to_list(document, instance.restricted);
     return result;
 }
 
@@ -674,6 +715,12 @@ py::dict template_to_dict(const UTAP::Document& document, const UTAP::template_t
         locations.append(location_to_dict(document, location));
     }
     result["locations"] = locations;
+
+    py::list branchpoints;
+    for (const auto& branchpoint : templ.branchpoints) {
+        branchpoints.append(branchpoint_to_dict(document, branchpoint));
+    }
+    result["branchpoints"] = branchpoints;
 
     py::list edges;
     for (const auto& edge : templ.edges) {
@@ -781,6 +828,7 @@ public:
         result["features"] = features_to_dict(*document_);
         result["errors"] = diagnostics_to_list(document_->get_errors());
         result["warnings"] = diagnostics_to_list(document_->get_warnings());
+        result["modified"] = document_->is_modified();
         return result;
     }
 

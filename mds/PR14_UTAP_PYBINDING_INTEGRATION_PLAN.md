@@ -1278,17 +1278,66 @@ Phase 4 已完成；official `.q` 文件工作流、自动 builder 路径与 pub
 
 checklist：
 
-* [ ] 逐项补齐字段覆盖清单中的已承诺字段。
-* [ ] 对每类对象形成字段矩阵，并区分“已实现 / 暂缓 / 不适合第一阶段暴露”。
-* [ ] 对暂缓字段补明确说明，不允许 silent drop。
-* [ ] 确保 Python facade 不会把底层结构压扁成仅字符串摘要。
+* [x] 逐项补齐字段覆盖清单中的已承诺字段。
+* [x] 对每类对象形成字段矩阵，并区分“已实现 / 暂缓 / 不适合第一阶段暴露”。
+* [x] 对暂缓字段补明确说明，不允许 silent drop。
+* [x] 确保 Python facade 不会把底层结构压扁成仅字符串摘要。
 
 阶段测试要求：
 
-* [ ] 新增“字段矩阵驱动”的 parameterized 测试。
-* [ ] 每个对象类型至少有一个代表样本组。
-* [ ] 每个字段默认做精确比较，包括精确值、精确枚举、精确列表、精确位置对象。
-* [ ] 如果某字段因为平台差异只能做归一化比较，测试里必须写明理由。
+* [x] 新增“字段矩阵驱动”的 parameterized 测试。
+* [x] 每个对象类型至少有一个代表样本组。
+* [x] 每个字段默认做精确比较，包括精确值、精确枚举、精确列表、精确位置对象。
+* [x] 如果某字段因为平台差异只能做归一化比较，测试里必须写明理由。
+
+已完成进度回填：
+
+当前已经落地的内容：
+
+* [x] `_utap._NativeDocument.snapshot()` 现已补齐 `Document.modified`、`Template.branchpoints`、`Location.name_expression`、`Edge.select_values`、`Process.restricted_symbols`。
+* [x] `type_t` 现已补齐第一阶段需要的关键只读布尔判定，包括 `is_range`、`is_function`、`is_function_external`、`is_process_set`、`is_location`、`is_location_expr`、`is_instance_line`、`is_branchpoint`、`is_channel`、`is_scalar`、`is_diff`、`is_void`、`is_cost`、`is_invariant`、`is_probability`。
+* [x] `pyudbm.binding.utap` 已新增 `Branchpoint` dataclass，并把新增 native payload 接入 Python facade。
+* [x] `MAPPED_FIELDS` 已扩展为完整字段矩阵，并额外覆盖 `Option`、`FeatureFlags`、`expectation_t`、`diagnostic_t`。
+* [x] `UNMAPPED_FIELDS` 已为全部纳入矩阵的对象类型给出状态，其中“无缺口”的对象类型显式记录为 `()`，避免 silent drop。
+* [x] `MAPPED_FIELD_NOTES` / `UNMAPPED_FIELD_REASONS` 已补成第一阶段字段说明矩阵，形成“已实现 / 暂缓”双清单。
+
+已经新增的对应文件：
+
+* [x] `test/binding/utap_phase5_data.py`
+* [x] `test/binding/test_utap_field_matrix.py`
+
+本阶段已经实际完成的验证：
+
+* [x] 字段矩阵 manifest 已通过参数化测试直接比对 `MAPPED_FIELDS` / `UNMAPPED_FIELDS` / `MAPPED_FIELD_NOTES` / `UNMAPPED_FIELD_REASONS`。
+* [x] `Position`、`TypeInfo`、`Symbol`、`Expression`、`FeatureFlags`、`Branchpoint`、`Location`、`Edge`、`Query`、`Option`、`ParsedQueryExpectation`、`ParsedQuery`、`Process`、`Template`、`Diagnostic` 的 dataclass 字段顺序已通过字段矩阵参数化测试直接比对。
+* [x] `minimal_ok.xml` 与 `minimal_ok.xta` 的 `ModelDocument` public 字段投影已做直接比对。
+* [x] `simple_system.xml` 已对代表性的 `Process`、`Location`、`Edge`、`TypeInfo` 做直接比对。
+* [x] `samplesmc.xml` 已对代表性的 `Branchpoint` 与 branchpoint-source `Edge` 做直接比对。
+* [x] `lmac6.xml` 已对 `select_symbols` / `select_values` 路径做直接比对。
+* [x] `hddi_input_02.ta` 已对 legacy `.ta` + `newxta=False` 路径下的 `restricted_symbols` 做直接比对。
+
+本阶段实现与原计划的偏差：
+
+* [x] `position.start/end` 当前没有进入 Phase 5 的 golden value，而是统一归一化为 `line` / `column` / `end_line` / `end_column` / `path` 后做精确比较。
+原因：`UTAP` 当前实现中的绝对偏移会随同进程内重复 parse 持续累加，不是稳定的 public 语义字段；当前阶段仍保留原值对外暴露，但测试只把稳定坐标字段纳入 golden value。
+* [x] `lmac6.xml` 中带 `select_symbols` 的代表性 edge，没有对完整 `guard/assign` 表达式树做第二次重复 golden 化，而是把该样本专门用于精确覆盖 `select_*` 路径。
+原因：`guard/assign` 的深层表达式结构已由 `simple_system.xml` 的结构化直断言覆盖；本阶段在 `lmac6.xml` 上重点补的是 `select_symbols` / `select_values` 这一条新增只读路径。
+
+已实际跑过的验证命令与结果摘要：
+
+* [x] `make build`
+* [x] `python -m pytest test/binding/test_utap_field_matrix.py -m unittest -q`
+* [x] `python -m pytest test/binding/test_utap_native.py test/binding/test_utap_phase0.py test/binding/test_utap.py test/binding/test_utap_query.py test/binding/test_utap_field_matrix.py -m unittest -q`
+* [x] `python -m pytest test/binding -m unittest -q`
+
+对应结果摘要：
+
+* [x] Phase 5 字段矩阵专项测试：`27 passed`
+* [x] UTAP 阶段专项测试（0-5）：`246 passed`
+* [x] `test/binding` 全量 unittest：`363 passed`
+
+当前状态：
+Phase 5 已完成；第一阶段字段矩阵、字段说明矩阵、代表性对象字段直断言与 legacy `.ta` / `select_*` 路径都已收口。
 
 ### Phase 6：`dump` / `dumps`、pretty 与语义 round-trip
 

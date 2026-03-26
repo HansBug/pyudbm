@@ -21,6 +21,7 @@ Example::
 from .udbm import DBM, Clock, Constraint, Context, Federation, FloatValuation, IntValuation, Valuation, VariableDifference
 from .ucdd import BDDTraceSet, CDD, CDDContext, CDDExtraction, CDDBool, CDDClock, CDDLevelInfo
 from .utap import (
+    Branchpoint,
     Diagnostic,
     Edge,
     Expectation,
@@ -28,6 +29,7 @@ from .utap import (
     FeatureFlags,
     Location,
     MAPPED_FIELDS,
+    MAPPED_FIELD_NOTES,
     ModelDocument,
     Option,
     ParsedQuery,
@@ -40,6 +42,7 @@ from .utap import (
     Template,
     TypeInfo,
     UNMAPPED_FIELDS,
+    UNMAPPED_FIELD_REASONS,
     builtin_declarations,
     load_query,
     load_xml,
@@ -63,6 +66,7 @@ __all__ = [
     "CDDExtraction",
     "CDDLevelInfo",
     "Context",
+    "Branchpoint",
     "Edge",
     "Expectation",
     "Expression",
@@ -72,6 +76,7 @@ __all__ = [
     "IntValuation",
     "Location",
     "MAPPED_FIELDS",
+    "MAPPED_FIELD_NOTES",
     "ModelDocument",
     "Option",
     "ParsedQuery",
@@ -86,6 +91,7 @@ __all__ = [
     "Template",
     "TypeInfo",
     "UNMAPPED_FIELDS",
+    "UNMAPPED_FIELD_REASONS",
     "Valuation",
     "VariableDifference",
     "builtin_declarations",

@@ -19,6 +19,7 @@ from typing import Any, Iterable, Mapping, Optional, Tuple
 from . import _utap
 
 __all__ = [
+    "Branchpoint",
     "Diagnostic",
     "Edge",
     "Expectation",
@@ -26,6 +27,7 @@ __all__ = [
     "FeatureFlags",
     "Location",
     "MAPPED_FIELDS",
+    "MAPPED_FIELD_NOTES",
     "ModelDocument",
     "Option",
     "ParsedQuery",
@@ -38,6 +40,7 @@ __all__ = [
     "Template",
     "TypeInfo",
     "UNMAPPED_FIELDS",
+    "UNMAPPED_FIELD_REASONS",
     "builtin_declarations",
     "load_query",
     "load_xml",
@@ -50,8 +53,24 @@ __all__ = [
 
 
 MAPPED_FIELDS = {
-    "Document": ("templates", "processes", "queries", "options", "features", "errors", "warnings"),
-    "Template": ("name", "index", "position", "parameter", "declaration", "init_name", "locations", "edges"),
+    "Document": ("templates", "processes", "queries", "options", "features", "errors", "warnings", "modified"),
+    "Template": (
+        "name",
+        "index",
+        "position",
+        "parameter",
+        "declaration",
+        "init_name",
+        "type",
+        "mode",
+        "is_ta",
+        "is_instantiated",
+        "dynamic",
+        "is_defined",
+        "locations",
+        "branchpoints",
+        "edges",
+    ),
     "Process": (
         "name",
         "index",
@@ -62,8 +81,21 @@ MAPPED_FIELDS = {
         "mapping",
         "argument_count",
         "unbound_count",
+        "restricted_symbols",
     ),
-    "Location": ("name", "index", "position", "symbol", "invariant", "exp_rate", "cost_rate", "is_urgent", "is_committed"),
+    "Branchpoint": ("name", "index", "position", "symbol"),
+    "Location": (
+        "name",
+        "index",
+        "position",
+        "symbol",
+        "name_expression",
+        "invariant",
+        "exp_rate",
+        "cost_rate",
+        "is_urgent",
+        "is_committed",
+    ),
     "Edge": (
         "index",
         "control",
@@ -78,8 +110,25 @@ MAPPED_FIELDS = {
         "prob",
         "select_text",
         "select_symbols",
+        "select_values",
     ),
     "Query": ("formula", "comment", "options", "expectation", "location"),
+    "Option": ("name", "value"),
+    "FeatureFlags": (
+        "has_priority_declaration",
+        "has_strict_invariants",
+        "has_stop_watch",
+        "has_strict_lower_bound_on_controllable_edges",
+        "has_clock_guard_recv_broadcast",
+        "has_urgent_transition",
+        "has_dynamic_templates",
+        "all_broadcast",
+        "sync_used",
+        "supports_symbolic",
+        "supports_stochastic",
+        "supports_concrete",
+    ),
+    "expectation_t": ("result_kind", "status", "value", "time_ms", "mem_kib"),
     "ParsedQuery": (
         "line",
         "no",
@@ -101,13 +150,28 @@ MAPPED_FIELDS = {
         "text",
         "declaration",
         "is_unknown",
+        "is_range",
         "is_integer",
         "is_boolean",
+        "is_function",
+        "is_function_external",
         "is_clock",
         "is_process",
+        "is_process_set",
+        "is_location",
+        "is_location_expr",
+        "is_instance_line",
+        "is_branchpoint",
+        "is_channel",
         "is_record",
         "is_array",
+        "is_scalar",
+        "is_diff",
+        "is_void",
+        "is_cost",
         "is_integral",
+        "is_invariant",
+        "is_probability",
         "is_guard",
         "is_constraint",
         "is_formula",
@@ -119,17 +183,79 @@ MAPPED_FIELDS = {
     "diagnostic_t": ("message", "context", "position", "line", "column", "end_line", "end_column", "path"),
 }
 
+MAPPED_FIELD_NOTES = {
+    "Template": {
+        "declaration": "Conservative first-phase field. The current binding keeps this empty instead of calling unstable upstream pretty-printers on every template.",
+    },
+    "type_t": {
+        "text": "Safe pretty-printer wrapper. Returns a stable fallback when upstream stringification throws.",
+        "declaration": "Safe declaration wrapper. Returns a stable fallback when upstream pretty-printers throw.",
+    },
+    "expression_t": {
+        "text": "Safe pretty-printer wrapper. Some upstream expressions still fall back to synthesized text when direct stringification is unstable.",
+    },
+}
+
 UNMAPPED_FIELDS = {
     "Document": ("globals", "before_update", "after_update", "chan_priorities", "strings"),
-    "Template": ("branchpoints", "messages", "updates", "conditions", "dynamic_evals"),
+    "Template": ("messages", "updates", "conditions", "dynamic_evals"),
     "Process": ("restricted",),
-    "Location": ("name_expression",),
-    "Edge": ("select_values",),
+    "Branchpoint": (),
+    "Location": (),
+    "Edge": (),
     "Query": ("results",),
+    "Option": (),
+    "FeatureFlags": (),
+    "expectation_t": (),
     "ParsedQuery": ("subjections", "imitation"),
     "expression_t": ("value", "double_value", "sync", "record_label_index", "string_value", "symbol"),
     "type_t": ("children", "range", "labels"),
     "symbol_t": ("frame", "user_data"),
+    "position_t": (),
+    "diagnostic_t": (),
+}
+
+UNMAPPED_FIELD_REASONS = {
+    "Document": {
+        "globals": "Would require a dedicated declarations facade rather than a stable first-phase value object.",
+        "before_update": "Deferred to the dump/pretty/introspection phase together with document-level update helpers.",
+        "after_update": "Deferred to the dump/pretty/introspection phase together with document-level update helpers.",
+        "chan_priorities": "Needs a dedicated channel-priority value object instead of collapsing to strings.",
+        "strings": "Internal interned-string table is not a stable user-facing semantic object.",
+    },
+    "Template": {
+        "messages": "LSC-specific structures need dedicated wrappers instead of string summaries.",
+        "updates": "LSC-specific structures need dedicated wrappers instead of string summaries.",
+        "conditions": "LSC-specific structures need dedicated wrappers instead of string summaries.",
+        "dynamic_evals": "Deferred until dynamic-template introspection gets a stable public shape.",
+    },
+    "Process": {
+        "restricted": "The raw restricted-variable set is exposed indirectly via restricted_symbols; the original native container itself is not re-exported.",
+    },
+    "Query": {
+        "results": "Upstream query_t does not currently preserve structured result entries in the live document object.",
+    },
+    "ParsedQuery": {
+        "subjections": "Not yet promoted to a stable first-phase Python value object.",
+        "imitation": "Not yet promoted to a stable first-phase Python value object.",
+    },
+    "expression_t": {
+        "value": "Literal-value extraction needs a typed Python value layer instead of ad hoc unions.",
+        "double_value": "Literal-value extraction needs a typed Python value layer instead of ad hoc unions.",
+        "sync": "Sync-kind internals are better exposed together with higher-level synchronization helpers.",
+        "record_label_index": "Record-label internals need a dedicated typed accessor instead of leaking parser internals.",
+        "string_value": "Literal-value extraction needs a typed Python value layer instead of ad hoc unions.",
+        "symbol": "Expression-bound symbol references need a dedicated stable wrapper contract.",
+    },
+    "type_t": {
+        "children": "Deferred until recursive type-shape wrappers are stabilized for records, arrays, and process fields.",
+        "range": "Deferred until recursive type-shape wrappers are stabilized for ranged and dependent types.",
+        "labels": "Deferred until recursive type-shape wrappers are stabilized for record/process field labels.",
+    },
+    "symbol_t": {
+        "frame": "Raw frame_t is an implementation-level scope object without a stable first-phase Python API.",
+        "user_data": "Raw user_data pointers are native implementation details and not a safe Python-facing field.",
+    },
 }
 
 
@@ -173,13 +299,28 @@ class TypeInfo:
     text: str
     declaration: str
     is_unknown: bool
+    is_range: bool
     is_integer: bool
     is_boolean: bool
+    is_function: bool
+    is_function_external: bool
     is_clock: bool
     is_process: bool
+    is_process_set: bool
+    is_location: bool
+    is_location_expr: bool
+    is_instance_line: bool
+    is_branchpoint: bool
+    is_channel: bool
     is_record: bool
     is_array: bool
+    is_scalar: bool
+    is_diff: bool
+    is_void: bool
+    is_cost: bool
     is_integral: bool
+    is_invariant: bool
+    is_probability: bool
     is_guard: bool
     is_constraint: bool
     is_formula: bool
@@ -234,11 +375,20 @@ class FeatureFlags:
 
 
 @dataclass(frozen=True)
+class Branchpoint:
+    name: str
+    index: int
+    position: Position
+    symbol: Symbol
+
+
+@dataclass(frozen=True)
 class Location:
     name: str
     index: int
     position: Position
     symbol: Symbol
+    name_expression: Expression
     invariant: Expression
     exp_rate: Expression
     cost_rate: Expression
@@ -261,6 +411,7 @@ class Edge:
     prob: Expression
     select_text: str
     select_symbols: Tuple[Symbol, ...]
+    select_values: Tuple[int, ...]
 
 
 @dataclass(frozen=True)
@@ -307,6 +458,7 @@ class Process:
     mapping: str
     argument_count: int
     unbound_count: int
+    restricted_symbols: Tuple[Symbol, ...]
 
 
 @dataclass(frozen=True)
@@ -324,6 +476,7 @@ class Template:
     dynamic: bool
     is_defined: bool
     locations: Tuple[Location, ...]
+    branchpoints: Tuple[Branchpoint, ...]
     edges: Tuple[Edge, ...]
 
 
@@ -364,13 +517,28 @@ def _to_type(payload: Mapping[str, Any]) -> TypeInfo:
         text=payload["text"],
         declaration=payload["declaration"],
         is_unknown=payload["is_unknown"],
+        is_range=payload["is_range"],
         is_integer=payload["is_integer"],
         is_boolean=payload["is_boolean"],
+        is_function=payload["is_function"],
+        is_function_external=payload["is_function_external"],
         is_clock=payload["is_clock"],
         is_process=payload["is_process"],
+        is_process_set=payload["is_process_set"],
+        is_location=payload["is_location"],
+        is_location_expr=payload["is_location_expr"],
+        is_instance_line=payload["is_instance_line"],
+        is_branchpoint=payload["is_branchpoint"],
+        is_channel=payload["is_channel"],
         is_record=payload["is_record"],
         is_array=payload["is_array"],
+        is_scalar=payload["is_scalar"],
+        is_diff=payload["is_diff"],
+        is_void=payload["is_void"],
+        is_cost=payload["is_cost"],
         is_integral=payload["is_integral"],
+        is_invariant=payload["is_invariant"],
+        is_probability=payload["is_probability"],
         is_guard=payload["is_guard"],
         is_constraint=payload["is_constraint"],
         is_formula=payload["is_formula"],
@@ -429,12 +597,22 @@ def _to_features(payload: Mapping[str, Any]) -> FeatureFlags:
     )
 
 
+def _to_branchpoint(payload: Mapping[str, Any]) -> Branchpoint:
+    return Branchpoint(
+        name=payload["name"],
+        index=payload["index"],
+        position=_to_position(payload["position"]),
+        symbol=_to_symbol(payload["symbol"]),
+    )
+
+
 def _to_location(payload: Mapping[str, Any]) -> Location:
     return Location(
         name=payload["name"],
         index=payload["index"],
         position=_to_position(payload["position"]),
         symbol=_to_symbol(payload["symbol"]),
+        name_expression=_to_expression(payload["name_expression"]),
         invariant=_to_expression(payload["invariant"]),
         exp_rate=_to_expression(payload["exp_rate"]),
         cost_rate=_to_expression(payload["cost_rate"]),
@@ -458,6 +636,7 @@ def _to_edge(payload: Mapping[str, Any]) -> Edge:
         prob=_to_expression(payload["prob"]),
         select_text=payload["select_text"],
         select_symbols=tuple(_to_symbol(item) for item in payload["select_symbols"]),
+        select_values=tuple(payload["select_values"]),
     )
 
 
@@ -510,6 +689,7 @@ def _to_process(payload: Mapping[str, Any]) -> Process:
         mapping=payload["mapping"],
         argument_count=payload["argument_count"],
         unbound_count=payload["unbound_count"],
+        restricted_symbols=tuple(_to_symbol(item) for item in payload["restricted_symbols"]),
     )
 
 
@@ -528,6 +708,7 @@ def _to_template(payload: Mapping[str, Any]) -> Template:
         dynamic=payload["dynamic"],
         is_defined=payload["is_defined"],
         locations=tuple(_to_location(item) for item in payload["locations"]),
+        branchpoints=tuple(_to_branchpoint(item) for item in payload["branchpoints"]),
         edges=tuple(_to_edge(item) for item in payload["edges"]),
     )
 
@@ -552,6 +733,7 @@ class ModelDocument:
         self.features = _to_features(payload["features"])
         self.errors = tuple(_to_diagnostic(item) for item in payload["errors"])
         self.warnings = tuple(_to_diagnostic(item) for item in payload["warnings"])
+        self.modified = payload["modified"]
 
     def __repr__(self) -> str:
         return "<ModelDocument templates={0} processes={1} queries={2} errors={3} warnings={4}>".format(
