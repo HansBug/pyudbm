@@ -101,7 +101,7 @@ PHASE0_FIELD_COVERAGE = {
 
 PHASE0_SAMPLE_LAYERS = {
     "official_catalog": (OFFICIAL_CATALOG_RELATIVE_PATH,),
-    "utap_models_dir": ("UTAP/test/models",),
+    "utap_model_fixtures": ("test/testfile/utap/simple_system.xml",),
     "manual_xta_fixtures": ("test/testfile/utap/minimal_ok.xta",),
     "synthetic_fixtures": (
         "test/testfile/utap/minimal_ok.xml",
@@ -143,10 +143,11 @@ const double M_SQRT1_2  = 0.7071067811865475727373109293694142252206802368164062
 
 MINIMAL_XML_RELATIVE_PATH = "test/testfile/utap/minimal_ok.xml"
 MINIMAL_XTA_RELATIVE_PATH = "test/testfile/utap/minimal_ok.xta"
+SIMPLE_SYSTEM_XML_RELATIVE_PATH = "test/testfile/utap/simple_system.xml"
 
 MINIMAL_XML_PATH = REPO_ROOT / MINIMAL_XML_RELATIVE_PATH
 MINIMAL_XTA_PATH = REPO_ROOT / MINIMAL_XTA_RELATIVE_PATH
-UTAP_SIMPLE_SYSTEM_PATH = REPO_ROOT / "UTAP/test/models/simpleSystem.xml"
+UTAP_SIMPLE_SYSTEM_PATH = REPO_ROOT / SIMPLE_SYSTEM_XML_RELATIVE_PATH
 
 
 def _load_catalog():
