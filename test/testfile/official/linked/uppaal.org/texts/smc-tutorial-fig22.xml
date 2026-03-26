@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>/**
+* This file demonstrates how to generate custom delay distributions
+* as described in Uppaal SMC Tutorial, Section 7.2.
+*/
+const double PI = 3.14159265358979323846;
+
+double stdNormal() { // N(0, 1)
+    return sqrt ( -2*ln(1-random(1))) * cos(2*PI*random(1));
+}
+
+double Normal(double mean, double stdDev ) {
+    return mean + stdDev * stdNormal();
+}
+
+double f() { // generates N(10.0, 1.0)
+    double res = -1.0;
+    // negative values violate the invariant "x&lt;=delay", where x==0,
+    // thus avoid them:
+    while (res &lt; 0)
+        res = Normal(10.0, 1.0);
+    return res;
+}
+</declaration>
+	<template>
+		<name x="5" y="5">P1</name>
+		<declaration>clock x, delay;</declaration>
+		<location id="id0" x="42" y="-59">
+			<name x="32" y="-93">done</name>
+			<label kind="invariant" x="25" y="-42">x'==0</label>
+			<label kind="comments" x="17" y="-8">We stop the clock x here,
+so that we could inspect it later.</label>
+		</location>
+		<location id="id1" x="-119" y="-59">
+			<label kind="invariant" x="-153" y="-42">x&lt;=delay &amp;&amp;
+delay'==0</label>
+			<label kind="comments" x="-340" y="0">Here the variable delay is of type clock, 
+we need to stop it to create a static bound on x.</label>
+		</location>
+		<location id="id2" x="-348" y="-59">
+			<urgent/>
+		</location>
+		<init ref="id2"/>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="guard" x="-85" y="-76">x==delay</label>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id1"/>
+			<label kind="assignment" x="-331" y="-59">delay=f(),
+x=0</label>
+			<label kind="comments" x="-331" y="-102">Generates a delay bound
+based on f() distribution.</label>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">P2</name>
+		<declaration>clock x;
+double delay; // instead of clock</declaration>
+		<location id="id3" x="17" y="-59">
+			<name x="7" y="-93">done</name>
+			<label kind="invariant" x="0" y="-42">x'==0</label>
+		</location>
+		<location id="id4" x="-119" y="-59">
+			<label kind="invariant" x="-153" y="-42">x&lt;=delay</label>
+			<label kind="comments" x="-357" y="-17">Here the delay variable is of double type and 
+do not progress with time,
+thus no need to stop it.
+
+The model is simpler but slower:
+Uppaal treats it as ODE model (due to double variable),
+and uses small step integration, 
+which slows down the simulation significantly.</label>
+		</location>
+		<location id="id5" x="-348" y="-59">
+			<urgent/>
+		</location>
+		<init ref="id5"/>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id3"/>
+			<label kind="guard" x="-85" y="-76">x==delay</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id4"/>
+			<label kind="assignment" x="-314" y="-59">delay=f(),
+x=0</label>
+			<label kind="comments" x="-323" y="-102">Generates a delay bound
+based on f() distribution.</label>
+		</transition>
+	</template>
+	<system>
+//system P1, P2; // slow due to small step integration in P2
+
+system P1; // fast due to large step integration.
+
+//system P2; // slow due to small step integration in P2
+</system>
+	<queries>
+		<query>
+			<formula>Pr[&lt;=10] (&lt;&gt; P1.done)
+			</formula>
+			<comment>Let's wait for the mean delay and estimate what is the probability of reaching done.
+Expect ~0.5 and the probability density distribution to be half of the bell curve.
+Set the statistical parameter ε to 0.005 or smaller for more data and better resolution.
+			</comment>
+		</query>
+		<query>
+			<formula>Pr[&lt;=10] (&lt;&gt; P2.done)
+			</formula>
+			<comment>The same as above, except using double instead of stopwatch.
+Uncomment "system P1, P2" in the system declaration to include process P2.
+			</comment>
+		</query>
+		<query>
+			<formula>E[&lt;=100; 1000](max: P1.x)
+			</formula>
+			<comment>Generate runs of up to 100 time units (far beond the f() distribution) and estimate the final/largest value of x.
+Expect ~10.0, and full bell curve around 10 in the probability density distribution plot.
+			</comment>
+		</query>
+		<query>
+			<formula>E[&lt;=100; 1000](max: P2.x)
+			</formula>
+			<comment>The same as above.
+			</comment>
+		</query>
+		<query>
+			<formula>E[&lt;=1; 1000](max: P2.delay)
+			</formula>
+			<comment>we can also inspect the distribution of the delay variable without waiting for the actual delay.
+			</comment>
+		</query>
+	</queries>
+</nta>

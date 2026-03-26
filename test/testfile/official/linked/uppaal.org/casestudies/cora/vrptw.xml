@@ -1,0 +1,85 @@
+<?xml version='1.0' encoding='utf-8'?><!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.0//EN' 'http://www.docs.uu.se/docs/rtmv/uppaal/xml/flat-1_0.dtd'><nta><declaration>//Customer info
+const int customers = 8;//note that customer 0 is the depot;
+
+//Global deadline
+const int deadline = 11000;//12360
+
+//Global clock
+clock gc;
+
+//Various Costs
+//a. Driving Cost
+const int dc = 1;
+//b. Vehicle Usage Cost
+const int vuc = 1;
+//c. Capacity Penalty
+const int cp = 50;
+
+
+//Driving distances between customers dd[from][to]
+//Based on Eclidean distance (times 10)
+//Customer coordinates
+//  C0 (40,50), C1 (45,68), C2 (45,70), C3 (42,66), C4 (42,68), C5 (42,65),  C6 (40,69), C7 (40,66)
+const int dd[customers][customers] = 
+  {{0, 186, 206, 161, 181, 151, 190, 160},//From depot
+   {186, 0, 20, 36, 30, 42, 50, 53},//From customer 1
+   {206, 20, 0, 50, 36, 58, 50, 64},//From customer 2
+   {161, 36, 50, 0, 20, 10, 36, 20},//From customer 3
+   {181, 30, 36, 20, 0, 30, 22, 28},//From customer 4
+   {151, 42, 58, 10, 30, 0, 44, 22},//From customer 5
+   {190, 50, 50, 36, 22, 44, 0, 30},//From customer 6
+   {160, 53, 64, 20, 28, 22, 30, 0}};//From customer 7
+
+//Vehicle info
+const int vehicles = 3;
+const int capacity = 60;
+
+//Occupation time when driving and unloading
+int[0,900] busy[vehicles];
+
+int [0,capacity] carcap[vehicles] = {capacity, capacity, capacity};
+
+chan drive[vehicles], unload[vehicles], done[vehicles];//channels for communication between vehicles and customers
+
+//Using this value we can derive the current location of the car to compute the distance it has to drive
+int[0,customers] vehicleAt[vehicles] = {0, 0, 0};
+
+
+meta int[-100000000000,100000000000] remaining;</declaration><template><name>Vehicle</name><parameter>const int id</parameter><declaration>clock c;</declaration><location id="id0" x="400" y="-208"><name x="384" y="-240">Idle</name><label kind="invariant" x="424" y="-224">gc &lt;= (deadline-dd[vehicleAt[id]][0]) &amp;&amp;
+cost' == vuc</label></location><location id="id1" x="176" y="-144"><name x="112" y="-152">Driving</name><label kind="invariant" x="120" y="-128">c &lt;= busy[id] &amp;&amp;
+cost' == dc+vuc</label></location><location id="id2" x="176" y="-272"><name x="88" y="-280">Unloading</name><label kind="invariant" x="128" y="-320">c &lt;= busy[id] &amp;&amp;
+cost' == vuc</label></location><location id="id3" x="400" y="-80"><name x="296" y="-88">DrivingHome</name><label kind="invariant" x="416" y="-96">c &lt;= busy[id] &amp;&amp;
+cost' == (dc+vuc)</label></location><location id="id4" x="400" y="48"><name x="344" y="40">Home</name><label kind="invariant" x="416" y="40">cost' == 0</label></location><init ref="id0"/><transition><source ref="id0"/><target ref="id1"/><label kind="synchronisation" x="312" y="-184">drive[id]?</label><label kind="assignment" x="272" y="-176">c = 0</label></transition><transition><source ref="id1"/><target ref="id2"/><label kind="guard" x="80" y="-184">c == busy[id]</label><label kind="synchronisation" x="96" y="-208">unload[id]?</label><label kind="assignment" x="136" y="-232">c = 0</label></transition><transition><source ref="id2"/><target ref="id0"/><label kind="guard" x="216" y="-280">c == busy[id]</label><label kind="synchronisation" x="272" y="-264">done[id]!</label></transition><transition><source ref="id0"/><target ref="id3"/><label kind="assignment" x="408" y="-176">busy[id] = dd[vehicleAt[id]][0],
+c = 0,
+remaining += cp*((carcap[id] &lt; 150)? (150-carcap[id]) : 0)</label></transition><transition><source ref="id3"/><target ref="id4"/><label kind="guard" x="408" y="-56">c == busy[id]</label><label kind="assignment" x="408" y="-24">busy[id] = ((carcap[id] &lt; 150)? (150-carcap[id]) : 0),
+c = 0,
+remaining -= (dc + vuc)*dd[vehicleAt[id]][0]+(cp*((carcap[id] &lt; 150)? (150-carcap[id]) : 0))</label></transition></template><template><name>Customer</name><parameter>const int id, const int demand, const int early, const int late, const int ptime</parameter><declaration>int[0,vehicles] car;</declaration><location id="id5" x="304" y="-368"><name x="264" y="-384">Init</name><label kind="invariant" x="272" y="-408">gc &lt;= late</label></location><location id="id6" x="304" y="-176"><name x="208" y="-168">ComingHere</name><label kind="invariant" x="320" y="-168">gc &lt;= late</label></location><location id="id7" x="304" y="-48"><name x="216" y="-56">Unloading</name></location><location id="id8" x="304" y="80"><name x="248" y="72">Done</name></location><init ref="id5"/><transition><source ref="id5"/><target ref="id6"/><label kind="guard" x="520" y="-368">carcap[0] &gt;= demand</label><label kind="synchronisation" x="520" y="-200">drive[0]!</label><label kind="assignment" x="520" y="-312">busy[0] = dd[vehicleAt[0]][id],
+car = 0,
+carcap[0] -= demand,
+remaining += vuc*ptime
+  +(-(dc + vuc)*dd[vehicleAt[0]][0])
+  +(dc + vuc)*(dd[vehicleAt[0]][id]+dd[id][0])</label><nail x="512" y="-368"/><nail x="512" y="-176"/></transition><transition><source ref="id5"/><target ref="id6"/><label kind="guard" x="232" y="-336">carcap[1] &gt;= demand</label><label kind="synchronisation" x="312" y="-216">drive[1]!</label><label kind="assignment" x="200" y="-312">busy[1] = dd[vehicleAt[1]][id],
+car = 1,
+carcap[1] -= demand,
+remaining += vuc*ptime
+  +(-(dc + vuc)*dd[vehicleAt[1]][0])
+  +(dc + vuc)*(dd[vehicleAt[1]][id]+dd[id][0])</label><nail x="304" y="-336"/><nail x="192" y="-336"/><nail x="192" y="-208"/><nail x="304" y="-208"/></transition><transition><source ref="id5"/><target ref="id6"/><label kind="guard" x="24" y="-368">carcap[2] &gt;= demand</label><label kind="synchronisation" x="120" y="-344">drive[2]!</label><label kind="assignment" x="-128" y="-312">busy[2] =  dd[vehicleAt[2]][id],
+car = 2,
+carcap[2] -= demand,
+remaining += vuc*ptime
+  +(-(dc + vuc)*dd[vehicleAt[2]][0])
+  +(dc + vuc)*(dd[vehicleAt[2]][id]+dd[id][0])</label><nail x="184" y="-368"/><nail x="184" y="-176"/></transition><transition><source ref="id6"/><target ref="id7"/><label kind="guard" x="312" y="-152">gc &gt;= early</label><label kind="synchronisation" x="312" y="-136">unload[car]!</label><label kind="assignment" x="312" y="-112">busy[car] = ptime,
+remaining -= (dc + vuc)*dd[vehicleAt[car]][id]</label></transition><transition><source ref="id7"/><target ref="id8"/><label kind="synchronisation" x="312" y="0">done[car]?</label><label kind="assignment" x="312" y="16">vehicleAt[car] = id,
+remaining -= vuc*ptime</label></transition></template><instantiation>// Vehicles (id)
+V0 = Vehicle(0);
+V1 = Vehicle(1);
+V2 = Vehicle(2);
+
+//Customers (id, demand, early, late, processing time)
+C1 = Customer(1, 10, 9120, 9670, 900);
+C2 = Customer(2, 30, 8250, 8700, 900);
+C3 = Customer(3, 10, 650, 1460, 900);
+C4 = Customer(4, 10, 7270, 7820, 900);
+C5 = Customer(5, 10, 150, 670, 900);
+C6 = Customer(6, 20, 6210, 7020, 900);
+C7 = Customer(7, 20, 1700, 2250, 900);</instantiation><system>system  V0, V1, V2, C1, C2, C3, C4, C5, C6, C7;</system></nta>

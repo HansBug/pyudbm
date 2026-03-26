@@ -1,0 +1,16 @@
+[
+  {
+    "error": "404 Client Error: Not Found for url: https://docs.uppaal.org/extensions/cora/airland1R2.q",
+    "linked_from_pages": [
+      "https://docs.uppaal.org/extensions/cora/"
+    ],
+    "source_url": "https://docs.uppaal.org/extensions/cora/airland1R2.q"
+  },
+  {
+    "error": "404 Client Error: Not Found for url: https://docs.uppaal.org/extensions/cora/airland1R2.xta",
+    "linked_from_pages": [
+      "https://docs.uppaal.org/extensions/cora/"
+    ],
+    "source_url": "https://docs.uppaal.org/extensions/cora/airland1R2.xta"
+  }
+]
