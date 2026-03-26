@@ -16,8 +16,19 @@
 
 ## PR 信息
 
-- Pull Request：待创建，创建后回填
-- 当前文件路径：`mds/UTAP_PYBINDING_INTEGRATION_PLAN.md`
+- Pull Request：<https://github.com/HansBug/pyudbm/pull/14>
+- 当前文件路径：`mds/PR14_UTAP_PYBINDING_INTEGRATION_PLAN.md`
+
+## 关联文档
+
+与本文档直接相关的前置调研记录：
+
+- `mds/PR14_UTAP_SOURCE_RESEARCH.md`
+
+建议阅读顺序：
+
+1. 先读 `PR14_UTAP_SOURCE_RESEARCH.md`，理解 `UTAP` 当前源码、构建边界和前端架构。
+2. 再读本文档，理解 `pyudbm` 侧的集成边界、API 设计和实施阶段。
 
 ## 相关背景
 
