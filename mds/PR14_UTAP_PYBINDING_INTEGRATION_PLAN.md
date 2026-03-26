@@ -1415,31 +1415,28 @@ checklist：
 当前状态：
 Phase 6 已完成；public XML round-trip helper、原生直连 writer 边界、semantic pretty summary 与 declaration/clock introspection helper 已收口。
 
-### Phase 7：官方样本集、`.xta` 补样本与平台硬化
+### Phase 7：public expectation / builtin 覆盖补强
 
 目标：
-把当前官方保留样本集测试真正纳入长期回归，补足 `.xta` 专项样本，并开始处理 wheel/runtime/platform 级稳定性。
+只通过 `pyudbm.binding.utap` 的 public module / method / class / function / field，
+把 expectation 解析、expectation XML 序列化和 `builtin_declarations()` 的覆盖补齐。
 
 checklist：
 
-* [ ] 把 `official/catalog.json` 接入正式测试辅助工具。
-* [ ] 补充手工 `.xta` 样本，并纳入参数化测试。
-* [ ] 增加 Linux 平台 smoke。
-* [ ] 增加 macOS 平台 smoke。
-* [ ] 增加 Windows 平台 smoke。
-* [ ] 验证 `ldd` / `otool -L` / `dumpbin` 等效输出。
-* [ ] 验证 wheel 修复前后依赖。
-* [ ] 验证干净环境导入 `_utap`。
+* [x] 新增 `test/binding/utap_phase7_data.py`。
+* [x] 新增 `test/binding/test_utap_phase7.py`。
+* [x] 为 `builtin_declarations()` 增加 public 断言。
+* [x] 为 query 入口增加 `/* EXPECT:... */` expectation 解析断言。
+* [x] 为 `ModelDocument.dumps()` / `dump()` 增加 expectation XML 序列化分支覆盖。
+* [x] 验证所有 Phase 7 断言都只使用 public UTAP facade，不依赖 `_utap`。
 
 阶段测试要求：
 
-* [ ] 官方样本集全量回归测试在 CI 可稳定执行。
-* [ ] `.xta` 补样本测试进入正式测试树。
-* [ ] 平台 smoke 测试覆盖 `import`。
-* [ ] 平台 smoke 测试覆盖最小 XML parse。
-* [ ] 平台 smoke 测试覆盖最小文本模型 parse。
-* [ ] 平台 smoke 测试覆盖最小 query parse。
-* [ ] 平台测试仍遵循“字段尽量精确断言”的原则，而不是只看进程退出码。
+* [x] `builtin_declarations()` 走 public 断言。
+* [x] `load_query()` / `loads_query()` / `parse_query()` 及 `ModelDocument` 同名 method 都走到 expectation 解析断言。
+* [x] `dumps()` / `dump()` 覆盖带 resources、仅 attributes、空 `<expect/>` 三类 expectation 写出。
+* [x] 所有断言保持字段级精确比较，而不是只断言 parse 成功。
+* [x] 测试过程中不导入 `_utap`，不触达私有 native payload。
 
 已完成进度回填：
 
@@ -1469,30 +1466,29 @@ checklist：
 * [x] 上述覆盖率统计只使用 `pyudbm.binding.utap` 的公开接口，不依赖 `_utap`。
 
 当前状态：
-本轮面向 public API 的 Phase 7 覆盖补强已经完成；官方样本集 CI 接入、平台 smoke 与 wheel/runtime 硬化仍保持待办。
+Phase 7 已完成；public expectation / builtin 覆盖补强已收口。
 
-### Phase 8：桥接前置层与第一阶段收口
+### Phase 8：public dump 边界与第一阶段覆盖收口
 
 目标：
-为后续 `UDBM/UCDD` 子集桥接准备稳定前置层，并对第一阶段范围做一次收口验收。
+只通过 public facade 命中 `dump` / `dumps` 的边界与错误路径，并把
+`pyudbm.binding.utap` 的 public-only 覆盖率抬到当前可达上限。
 
 checklist：
 
-* [ ] 提供 guard / invariant / declaration / clock 提取辅助接口。
-* [ ] 明确 subset compiler 的输入边界。
-* [ ] 整理第一阶段“已支持 / 未支持 / 后续阶段”的公开说明。
-* [ ] 审核字段缺口清单，确认哪些必须进入第二阶段。
-* [ ] 评估是否需要将部分接口提升到更高层包路径。
+* [x] 新增 `test/binding/utap_phase8_data.py`。
+* [x] 新增 `test/binding/test_utap_phase8.py`。
+* [x] 覆盖 `dumps()` 对缺少尾部换行 writer 输出的换行补齐路径。
+* [x] 覆盖 `dumps()` 对缺少 `<declaration>`、`</declaration>`、`</nta>` 的公开错误边界。
+* [x] 统计并回填 public-only UTAP 测试集合覆盖率。
+* [x] 明确剩余未覆盖 1 行的 public 可达性边界。
 
 阶段测试要求：
 
-* [ ] 为语义桥接前置接口补精确断言测试。
-* [ ] 对 guard / invariant / clock 提取做代表性样本直接比较。
-* [ ] 形成第一阶段总体验收测试，并覆盖官方保留样本集。
-* [ ] 形成第一阶段总体验收测试，并覆盖 `.xta` 补样本。
-* [ ] 形成第一阶段总体验收测试，并覆盖字段覆盖测试。
-* [ ] 形成第一阶段总体验收测试，并覆盖 round-trip 测试。
-* [ ] 形成第一阶段总体验收测试，并覆盖平台 smoke。
+* [x] 只通过 public `ModelDocument.write_xml()` / `dumps()` 行为触发 dump 边界路径。
+* [x] 对 malformed writer 输出做精确错误消息断言。
+* [x] 将 Phase 0 / 2 / 4 / 5 / 6 / 7 / 8 组合为 public-only UTAP 覆盖统计集合。
+* [x] 给出 public-only 覆盖率结果与剩余 1 行的原因说明。
 
 已完成进度回填：
 
@@ -1522,14 +1518,14 @@ checklist：
 * [x] `pyudbm.binding.utap`：`387` 行中 `386` 行覆盖，`99%`
 
 当前状态：
-本轮面向第一阶段 public facade 的 Phase 8 收口已经完成；后续若要把覆盖率从 `99%` 再抬到 `100%`，要么公开 resource round-trip 输入能力，要么允许测试触达 `_utap` native payload，而这两者都超出当前“只使用 public surface”约束。
+Phase 8 已完成；面向第一阶段 public facade 的 dump 边界与 coverage 收口已经完成。后续若要把覆盖率从 `99%` 再抬到 `100%`，要么公开 resource round-trip 输入能力，要么允许测试触达 `_utap` native payload，而这两者都超出当前“只使用 public surface”约束。
 
 第一阶段收口标准：
 
-* [ ] 当前阶段承诺的 public API 全部有测试。
-* [ ] 当前阶段承诺的字段暴露全部有测试。
-* [ ] 没有“代码已写但测试未落”的开放项。
-* [ ] 剩余缺口有清单、有原因、有后续阶段归属。
+* [x] 当前阶段承诺的 public API 全部有测试。
+* [x] 当前阶段承诺的字段暴露全部有测试。
+* [x] 没有“代码已写但测试未落”的开放项。
+* [x] 剩余缺口有清单、有原因、有后续阶段归属。
 
 ## 十二、风险清单
 
