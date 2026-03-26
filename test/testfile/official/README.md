@@ -37,6 +37,9 @@ Notes:
 
 - Official pages currently expose some textual model examples as `.ta` rather than `.xta`. They are included here to avoid missing official textual examples.
 - The `status` / `message` / `message_zh` / `context_path` fields in `catalog.json` are filled from real UTAP API probing, using the compiled local `UTAP` library rather than filename-only inference.
+- As of `2026-03-26`, the `30` HTML-wrapper failures under `linked/www.it.uu.se/.../benchmarks/` do not appear to be fixable by simply re-downloading from the same official URLs:
+  - the current direct URLs resolve to official HTML/404 pages rather than model/query payloads
+  - the official benchmark page itself says that some referenced source files are unfortunately missing and are still being relocated: `https://uppaal.org/benchmarks/`
 - Two official docs links were still referenced but were not downloadable from the public site at fetch time:
   - `https://docs.uppaal.org/extensions/cora/airland1R2.q`
   - `https://docs.uppaal.org/extensions/cora/airland1R2.xta`
