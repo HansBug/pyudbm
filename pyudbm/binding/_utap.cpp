@@ -46,6 +46,36 @@ std::string read_text_file(const std::filesystem::path& path)
     return buffer.str();
 }
 
+std::string normalize_newlines(const std::string& input)
+{
+    std::string normalized;
+    normalized.reserve(input.size());
+
+    for (std::size_t index = 0; index < input.size(); ++index) {
+        if (input[index] != '\r') {
+            normalized.push_back(input[index]);
+            continue;
+        }
+
+        if ((index + 1) < input.size() && input[index + 1] == '\n') {
+            ++index;
+        }
+        normalized.push_back('\n');
+    }
+
+    return normalized;
+}
+
+const std::string& normalized_text_view(const std::string& input, std::string& storage)
+{
+    if (input.find('\r') == std::string::npos) {
+        return input;
+    }
+
+    storage = normalize_newlines(input);
+    return storage;
+}
+
 std::string py_fspath(const py::object& path_object)
 {
     return py::module::import("os").attr("fspath")(path_object).cast<std::string>();
@@ -1157,10 +1187,12 @@ std::shared_ptr<NativeDocument> parse_xml_buffer(
 std::shared_ptr<NativeDocument> parse_xta_buffer(const std::string& buffer, bool newxta, bool strict)
 {
     auto document = std::make_shared<UTAP::Document>();
+    std::string normalized_buffer;
+    const auto& parse_buffer = normalized_text_view(buffer, normalized_buffer);
     bool ok = false;
     try {
         py::gil_scoped_release release;
-        ok = parse_XTA(buffer.c_str(), document.get(), newxta);
+        ok = parse_XTA(parse_buffer.c_str(), document.get(), newxta);
     } catch (const std::exception& ex) {
         if (!strict && (document->has_errors() || document->has_warnings())) {
             return wrap_document(std::move(document));
@@ -1290,59 +1322,20 @@ QueryParseAttempt<Builder> parse_query_with_builder(
     return attempt;
 }
 
-template <typename Builder>
-QueryParseAttempt<Builder> parse_query_file_with_builder(
-    UTAP::Document& document,
-    const std::filesystem::path& path,
-    const std::string& builder_name
-)
-{
-    QueryParseAttempt<Builder> attempt;
-    const auto original_errors = document.get_errors();
-    const auto original_warnings = document.get_warnings();
-    document.clear_errors();
-    document.clear_warnings();
-
-    try {
-        std::unique_ptr<FILE, decltype(&std::fclose)> file(std::fopen(path.string().c_str(), "rb"), &std::fclose);
-        if (!file) {
-            throw_file_not_found(path);
-        }
-
-        Builder builder(document);
-        builder.parse(file.get());
-        if (document.has_errors()) {
-            attempt.message = first_error_message(document);
-        } else {
-            for (const auto& property : builder.getProperties()) {
-                attempt.properties.append(prop_info_to_dict(document, property, builder_name));
-            }
-            attempt.ok = true;
-        }
-    } catch (const std::exception& ex) {
-        attempt.message = ex.what();
-    }
-
-    if (attempt.message.empty() && !attempt.ok) {
-        attempt.message = "query parse failed";
-    }
-
-    restore_diagnostics(document, original_errors, original_warnings);
-    return attempt;
-}
-
 py::list parse_query_buffer(const std::shared_ptr<NativeDocument>& native_document, const std::string& buffer, const std::string& builder)
 {
     auto& document = native_document->document();
+    std::string normalized_buffer;
+    const auto& parse_buffer = normalized_text_view(buffer, normalized_buffer);
     if (builder == "property") {
-        const auto attempt = parse_query_with_builder<UTAP::PropertyBuilder>(document, buffer, "property");
+        const auto attempt = parse_query_with_builder<UTAP::PropertyBuilder>(document, parse_buffer, "property");
         if (!attempt.ok) {
             throw ParseError("query parse failed with property builder: " + attempt.message);
         }
         return attempt.properties;
     }
     if (builder == "tiga") {
-        const auto attempt = parse_query_with_builder<UTAP::TigaPropertyBuilder>(document, buffer, "tiga");
+        const auto attempt = parse_query_with_builder<UTAP::TigaPropertyBuilder>(document, parse_buffer, "tiga");
         if (!attempt.ok) {
             throw ParseError("query parse failed with tiga builder: " + attempt.message);
         }
@@ -1352,12 +1345,12 @@ py::list parse_query_buffer(const std::shared_ptr<NativeDocument>& native_docume
         throw py::value_error("Unknown query builder: " + builder);
     }
 
-    const auto property_attempt = parse_query_with_builder<UTAP::PropertyBuilder>(document, buffer, "property");
+    const auto property_attempt = parse_query_with_builder<UTAP::PropertyBuilder>(document, parse_buffer, "property");
     if (property_attempt.ok) {
         return property_attempt.properties;
     }
 
-    const auto tiga_attempt = parse_query_with_builder<UTAP::TigaPropertyBuilder>(document, buffer, "tiga");
+    const auto tiga_attempt = parse_query_with_builder<UTAP::TigaPropertyBuilder>(document, parse_buffer, "tiga");
     if (tiga_attempt.ok) {
         return tiga_attempt.properties;
     }
@@ -1373,38 +1366,7 @@ py::list parse_query_file(
     const std::string& builder
 )
 {
-    auto& document = native_document->document();
-    if (builder == "property") {
-        const auto attempt = parse_query_file_with_builder<UTAP::PropertyBuilder>(document, path, "property");
-        if (!attempt.ok) {
-            throw ParseError("query parse failed with property builder: " + attempt.message);
-        }
-        return attempt.properties;
-    }
-    if (builder == "tiga") {
-        const auto attempt = parse_query_file_with_builder<UTAP::TigaPropertyBuilder>(document, path, "tiga");
-        if (!attempt.ok) {
-            throw ParseError("query parse failed with tiga builder: " + attempt.message);
-        }
-        return attempt.properties;
-    }
-    if (builder != "auto") {
-        throw py::value_error("Unknown query builder: " + builder);
-    }
-
-    const auto property_attempt = parse_query_file_with_builder<UTAP::PropertyBuilder>(document, path, "property");
-    if (property_attempt.ok) {
-        return property_attempt.properties;
-    }
-
-    const auto tiga_attempt = parse_query_file_with_builder<UTAP::TigaPropertyBuilder>(document, path, "tiga");
-    if (tiga_attempt.ok) {
-        return tiga_attempt.properties;
-    }
-
-    throw ParseError(
-        "query parse failed with auto builder: property=" + property_attempt.message + "; tiga=" + tiga_attempt.message
-    );
+    return parse_query_buffer(native_document, read_text_file(path), builder);
 }
 
 }  // namespace

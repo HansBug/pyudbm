@@ -45,6 +45,13 @@ REPRESENTATIVE_TIGA_CONTEXT = "linked/uppaal.org/casestudies/smc/consmc/manual-m
 REPRESENTATIVE_MIXED_QUERY = "linked/uppaal.org/casestudies/smc/consmc/consmc-models/concur/concur05-consmc.q"
 REPRESENTATIVE_MIXED_CONTEXT = "linked/uppaal.org/casestudies/smc/consmc/consmc-models/concur/concur05-consmc.xml"
 
+LINE_ENDING_SENSITIVE_PROPERTY_QUERY = (
+    "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_02.q"
+)
+LINE_ENDING_SENSITIVE_PROPERTY_CONTEXT = (
+    "linked/www.it.uu.se/research/group/darts/uppaal/benchmarks/hddi/hddi_input_02.ta"
+)
+
 
 def resolve_official_path(relative_path: str) -> Path:
     return OFFICIAL_BASE_PATH / relative_path

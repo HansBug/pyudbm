@@ -13,6 +13,8 @@ from pyudbm.binding import (
 )
 
 from .utap_phase4_data import (
+    LINE_ENDING_SENSITIVE_PROPERTY_CONTEXT,
+    LINE_ENDING_SENSITIVE_PROPERTY_QUERY,
     OFFICIAL_QUERY_CASES,
     OFFICIAL_QUERY_EXPECTATIONS_PATH,
     REPRESENTATIVE_MIXED_CONTEXT,
@@ -24,6 +26,15 @@ from .utap_phase4_data import (
     query_expectation,
     resolve_official_path,
 )
+
+
+def _rewrite_newlines(text, newline):
+    return text.replace("\n", newline)
+
+
+def _write_text_file(path, text):
+    with path.open("w", encoding="utf-8", newline="") as file:
+        file.write(text)
 
 
 def _load_context_document(context_relative_path, newxta):
@@ -179,6 +190,26 @@ class TestUtapQueryApi:
         ]
         assert [_simplify_query(item) for item in tiga_from_parse] == [_simplify_query(item) for item in tiga_from_loads]
         assert [_simplify_query(item) for item in tiga_from_method] == [_simplify_query(item) for item in tiga_from_loads]
+
+    @pytest.mark.parametrize(
+        ("newline_name", "newline"),
+        (("crlf", "\r\n"), ("cr", "\r")),
+    )
+    def test_query_entrypoints_normalize_non_lf_newlines_for_buffer_and_file_inputs(self, tmp_path, newline_name, newline):
+        expected = query_expectation(LINE_ENDING_SENSITIVE_PROPERTY_QUERY)["queries"]
+        context_document = _load_context_document(LINE_ENDING_SENSITIVE_PROPERTY_CONTEXT, False)
+        query_text = resolve_official_path(LINE_ENDING_SENSITIVE_PROPERTY_QUERY).read_text(encoding="utf-8")
+        variant_text = _rewrite_newlines(query_text, newline)
+        variant_path = tmp_path / f"line_endings_{newline_name}.q"
+
+        _write_text_file(variant_path, variant_text)
+
+        assert [_simplify_query(item) for item in loads_query(variant_text, context_document, builder="property")] == expected
+        assert [_simplify_query(item) for item in parse_query(variant_text, context_document, builder="property")] == expected
+        assert [_simplify_query(item) for item in context_document.loads_query(variant_text, builder="property")] == expected
+        assert [_simplify_query(item) for item in context_document.parse_query(variant_text, builder="property")] == expected
+        assert [_simplify_query(item) for item in load_query(variant_path, context_document, builder="property")] == expected
+        assert [_simplify_query(item) for item in context_document.load_query(variant_path, builder="property")] == expected
 
     def test_query_entrypoints_reject_invalid_builder_and_invalid_document_type(self):
         context_document = _load_context_document(REPRESENTATIVE_PROPERTY_CONTEXT, True)

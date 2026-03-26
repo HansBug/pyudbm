@@ -14,6 +14,8 @@ from .utap_phase0_data import (
     UTAP_SIMPLE_SYSTEM_PATH,
 )
 from .utap_phase4_data import (
+    LINE_ENDING_SENSITIVE_PROPERTY_CONTEXT,
+    LINE_ENDING_SENSITIVE_PROPERTY_QUERY,
     REPRESENTATIVE_MIXED_CONTEXT,
     REPRESENTATIVE_MIXED_QUERY,
     REPRESENTATIVE_PROPERTY_CONTEXT,
@@ -23,6 +25,23 @@ from .utap_phase4_data import (
     query_expectation,
     resolve_official_path,
 )
+
+
+def _rewrite_newlines(text, newline):
+    return text.replace("\n", newline)
+
+
+def _write_text_file(path, text):
+    with path.open("w", encoding="utf-8", newline="") as file:
+        file.write(text)
+
+
+def _normalize_native_value(value):
+    if isinstance(value, dict):
+        return {key: _normalize_native_value(item) for key, item in value.items() if key not in {"start", "end"}}
+    if isinstance(value, list):
+        return [_normalize_native_value(item) for item in value]
+    return value
 
 
 @pytest.mark.unittest
@@ -84,6 +103,26 @@ class TestUtapNative:
         assert from_buffer.warning_count == 0
         assert from_buffer.modified is False
         assert repr(from_buffer) == "<_utap._NativeDocument errors=0 warnings=0>"
+
+    @pytest.mark.parametrize(
+        ("newline_name", "newline"),
+        (("crlf", "\r\n"), ("cr", "\r")),
+    )
+    def test_native_textual_entrypoints_normalize_non_lf_newlines_for_buffer_and_file_inputs(
+        self,
+        tmp_path,
+        newline_name,
+        newline,
+    ):
+        baseline = _normalize_native_value(utap_module.load_xta(MINIMAL_XTA_PATH).snapshot())
+        xta_text = MINIMAL_XTA_PATH.read_text(encoding="utf-8")
+        variant_text = _rewrite_newlines(xta_text, newline)
+        variant_path = tmp_path / f"line_endings_{newline_name}.xta"
+
+        _write_text_file(variant_path, variant_text)
+
+        assert _normalize_native_value(utap_module.loads_xta(variant_text).snapshot()) == baseline
+        assert _normalize_native_value(utap_module.load_xta(variant_path).snapshot()) == baseline
 
     def test_native_document_exposes_write_and_introspection_helpers(self, tmp_path):
         document = utap_module.load_xml(MINIMAL_XML_PATH)
@@ -198,6 +237,34 @@ class TestUtapNative:
         ]
         assert [item["text"] for item in explicit_tiga] == [item["text"] for item in from_buffer]
         assert [item["text"] for item in explicit_tiga] == [item["text"] for item in from_alias]
+
+    @pytest.mark.parametrize(
+        ("newline_name", "newline"),
+        (("crlf", "\r\n"), ("cr", "\r")),
+    )
+    def test_native_query_entrypoints_normalize_non_lf_newlines_for_buffer_and_file_inputs(
+        self,
+        tmp_path,
+        newline_name,
+        newline,
+    ):
+        context_document = utap_module.load_xta(resolve_official_path(LINE_ENDING_SENSITIVE_PROPERTY_CONTEXT), newxta=False)
+        expected = _normalize_native_value(
+            utap_module.load_query(
+                resolve_official_path(LINE_ENDING_SENSITIVE_PROPERTY_QUERY),
+                context_document,
+                builder="property",
+            )
+        )
+        query_text = resolve_official_path(LINE_ENDING_SENSITIVE_PROPERTY_QUERY).read_text(encoding="utf-8")
+        variant_text = _rewrite_newlines(query_text, newline)
+        variant_path = tmp_path / f"line_endings_{newline_name}.q"
+
+        _write_text_file(variant_path, variant_text)
+
+        assert _normalize_native_value(utap_module.loads_query(variant_text, context_document, builder="property")) == expected
+        assert _normalize_native_value(utap_module.parse_query(variant_text, context_document, builder="property")) == expected
+        assert _normalize_native_value(utap_module.load_query(variant_path, context_document, builder="property")) == expected
 
     def test_native_query_entrypoints_report_invalid_builder_and_builder_mismatch(self):
         tiga_document = utap_module.load_xml(resolve_official_path(REPRESENTATIVE_TIGA_CONTEXT))

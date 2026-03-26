@@ -34,6 +34,46 @@ from .utap_phase0_data import (
 )
 
 
+def _rewrite_newlines(text, newline):
+    return text.replace("\n", newline)
+
+
+def _write_text_file(path, text):
+    with path.open("w", encoding="utf-8", newline="") as file:
+        file.write(text)
+
+
+def _minimal_textual_snapshot(document):
+    template = document.templates[0]
+    process = document.processes[0]
+    location = template.locations[0]
+    return {
+        "errors": tuple(item.message for item in document.errors),
+        "warnings": tuple(item.message for item in document.warnings),
+        "templates": tuple(item.name for item in document.templates),
+        "processes": tuple(item.name for item in document.processes),
+        "template_name": template.name,
+        "template_parameter": template.parameter,
+        "template_declaration": template.declaration,
+        "template_init_name": template.init_name,
+        "template_is_ta": template.is_ta,
+        "template_is_instantiated": template.is_instantiated,
+        "template_dynamic": template.dynamic,
+        "template_is_defined": template.is_defined,
+        "process_template_name": process.template_name,
+        "process_parameters": process.parameters,
+        "process_arguments": process.arguments,
+        "process_mapping": process.mapping,
+        "process_argument_count": process.argument_count,
+        "process_unbound_count": process.unbound_count,
+        "location_names": tuple(item.name for item in template.locations),
+        "edge_count": len(template.edges),
+        "location_path": location.position.path,
+        "location_line": location.position.line,
+        "location_column": location.position.column,
+    }
+
+
 @pytest.mark.unittest
 class TestUtapApi:
     def test_binding_exports_public_utap_surface(self):
@@ -143,6 +183,21 @@ class TestUtapApi:
         assert location.position.path == ""
         assert location.position.line == 3
         assert location.position.column == 7
+
+    @pytest.mark.parametrize(
+        ("newline_name", "newline"),
+        (("crlf", "\r\n"), ("cr", "\r")),
+    )
+    def test_textual_entrypoints_normalize_non_lf_newlines_for_buffer_and_file_inputs(self, tmp_path, newline_name, newline):
+        baseline = _minimal_textual_snapshot(load_xta(MINIMAL_XTA_PATH))
+        xta_text = MINIMAL_XTA_PATH.read_text(encoding="utf-8")
+        variant_text = _rewrite_newlines(xta_text, newline)
+        variant_path = tmp_path / f"line_endings_{newline_name}.xta"
+
+        _write_text_file(variant_path, variant_text)
+
+        assert _minimal_textual_snapshot(loads_xta(variant_text)) == baseline
+        assert _minimal_textual_snapshot(load_xta(variant_path)) == baseline
 
     def test_simple_system_exposes_model_structure_expression_type_and_symbol_fields(self):
         document = load_xml(UTAP_SIMPLE_SYSTEM_PATH)
