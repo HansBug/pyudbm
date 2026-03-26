@@ -140,6 +140,58 @@ def _copy_utap_runtime_libraries(extdir: str):
                 shutil.copy2(src, dst)
                 copied.add(dst)
 
+    if platform.system() == 'Darwin' and copied:
+        _fixup_macos_copied_libraries(extdir, copied)
+
+
+def _read_macos_dependencies(binary_path: str):
+    try:
+        output = subprocess.check_output(['otool', '-L', binary_path], text=True)
+    except (OSError, subprocess.CalledProcessError):
+        return []
+
+    dependencies = []
+    for line in output.splitlines()[1:]:
+        stripped = line.strip()
+        if not stripped:
+            continue
+        dependency = stripped.split(' (compatibility version', 1)[0].strip()
+        if dependency:
+            dependencies.append(dependency)
+
+    return dependencies
+
+
+def _fixup_macos_copied_libraries(extdir: str, copied_paths):
+    install_name_tool = shutil.which('install_name_tool')
+    if not install_name_tool:
+        return
+
+    copied_by_name = {os.path.basename(path): path for path in copied_paths}
+    candidate_binaries = set(copied_paths)
+    for name in os.listdir(extdir):
+        if name.endswith('.dylib') or name.endswith('.so'):
+            candidate_binaries.add(os.path.join(extdir, name))
+
+    for path in sorted(copied_paths):
+        if not path.endswith('.dylib'):
+            continue
+        basename = os.path.basename(path)
+        subprocess.check_call([install_name_tool, '-id', f'@loader_path/{basename}', path])
+
+    for path in sorted(candidate_binaries):
+        dependencies = _read_macos_dependencies(path)
+        for dependency in dependencies:
+            basename = os.path.basename(dependency)
+            if basename not in copied_by_name:
+                continue
+
+            desired = f'@loader_path/{basename}'
+            if dependency == desired:
+                continue
+
+            subprocess.check_call([install_name_tool, '-change', dependency, desired, path])
+
 
 class CMakeExtension(Extension):
     def __init__(self, name, sourcedir=''):
