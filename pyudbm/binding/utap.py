@@ -36,6 +36,8 @@ from ._utap import (
     loads_query as _loads_query,
     loads_xml as _loads_xml,
     loads_xta as _loads_xta,
+    textual_builtin_preamble as _textual_builtin_preamble,
+    _xml_to_text as _xml_to_text,
     parse_query as _parse_query,
 )
 
@@ -70,6 +72,7 @@ __all__ = [
     "loads_xml",
     "loads_xta",
     "parse_query",
+    "textual_builtin_preamble",
 ]
 
 
@@ -1691,6 +1694,105 @@ class ModelDocument:
         with open(os.fspath(path), "w", encoding="utf-8", newline="\n") as file:
             file.write(self.dumps())
 
+    def to_xta(self, *, include_builtin_preamble: bool = False) -> str:
+        """
+        Render the document as textual XTA using the upstream UTAP pretty printer.
+
+        This path goes through :meth:`dumps` first and then reparses the
+        resulting XML through the official UTAP :class:`PrettyPrinter`.
+        It therefore follows the current high-level XML semantics of this
+        wrapper rather than the raw native writer.
+
+        By default the built-in declaration preamble injected by the official
+        UTAP XML parser in new-syntax mode is removed again before returning
+        the result. Set ``include_builtin_preamble=True`` to keep that official
+        preamble in the returned text.
+
+        Important limitation:
+        upstream pretty-printing focuses on the model text itself. Query
+        formulas and comments may be emitted as comments, while XML-only query
+        metadata such as query options and expectations are not preserved as a
+        machine-readable textual round-trip format.
+
+        :param include_builtin_preamble: Whether to keep the official UTAP
+            built-in declaration preamble in the returned XTA text.
+        :type include_builtin_preamble: bool
+        :return: Textual XTA rendering of the current document.
+        :rtype: str
+
+        Example::
+
+            >>> from pyudbm.binding.utap import loads_xta
+            >>> xta = '''clock x;
+            ... process P() {
+            ... state S;
+            ... init S;
+            ... }
+            ... P1 = P();
+            ... system P1;
+            ... '''
+            >>> "process P()" in loads_xta(xta).to_xta()
+            True
+        """
+
+        return _xml_to_text(self.dumps(), True, include_builtin_preamble)
+
+    def dump_xta(self, path: Any, *, include_builtin_preamble: bool = False) -> None:
+        """
+        Write the upstream-pretty-printed XTA rendering to ``path``.
+
+        :param path: Output path.
+        :type path: Any
+        :param include_builtin_preamble: Whether to keep the official UTAP
+            built-in declaration preamble in the written XTA text.
+        :type include_builtin_preamble: bool
+        :return: ``None``.
+        :rtype: None
+        """
+
+        with open(os.fspath(path), "w", encoding="utf-8", newline="\n") as file:
+            file.write(self.to_xta(include_builtin_preamble=include_builtin_preamble))
+
+    def to_ta(self) -> str:
+        """
+        Render the document using the upstream pretty printer in old-syntax mode.
+
+        This is the same official pretty-printing path as :meth:`to_xta`, but
+        with ``newxta=False`` when feeding XML back into UTAP.
+
+        :return: Textual TA rendering of the current document.
+        :rtype: str
+
+        Example::
+
+            >>> from pyudbm.binding.utap import loads_xta
+            >>> xta = '''clock x;
+            ... process P() {
+            ... state S;
+            ... init S;
+            ... }
+            ... P1 = P();
+            ... system P1;
+            ... '''
+            >>> "process P()" in loads_xta(xta).to_ta()
+            True
+        """
+
+        return _xml_to_text(self.dumps(), False, False)
+
+    def dump_ta(self, path: Any) -> None:
+        """
+        Write the old-syntax upstream-pretty-printed rendering to ``path``.
+
+        :param path: Output path.
+        :type path: Any
+        :return: ``None``.
+        :rtype: None
+        """
+
+        with open(os.fspath(path), "w", encoding="utf-8", newline="\n") as file:
+            file.write(self.to_ta())
+
     @property
     def global_declarations(self) -> str:
         """
@@ -2090,6 +2192,33 @@ def builtin_declarations() -> str:
     """
 
     return _builtin_declarations()
+
+
+def textual_builtin_preamble(*, newxta: bool = True) -> str:
+    """
+    Return the official textual built-in preamble emitted by UTAP.
+
+    This uses the upstream UTAP declaration parser together with the official
+    :class:`PrettyPrinter`, so the returned string matches the exact preamble
+    that ``parse_XML_*`` injects in new-syntax mode before user declarations.
+
+    :param newxta: Whether to request the new-syntax textual preamble. Old
+        syntax does not prepend built-in declarations and therefore returns an
+        empty string.
+    :type newxta: bool
+    :return: Official textual built-in preamble.
+    :rtype: str
+
+    Example::
+
+        >>> from pyudbm.binding.utap import textual_builtin_preamble
+        >>> textual_builtin_preamble().startswith("const int INT8_MIN")
+        True
+        >>> textual_builtin_preamble(newxta=False)
+        ''
+    """
+
+    return _textual_builtin_preamble(newxta)
 
 
 def _expectation_is_implicit_default(expectation: Expectation) -> bool:

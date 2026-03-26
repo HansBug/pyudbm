@@ -1,8 +1,10 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include <utap/builder.h>
 #include <utap/common.h>
 #include <utap/document.h>
+#include <utap/prettyprinter.h>
 #include <utap/property.h>
 #include <utap/utap.h>
 
@@ -113,6 +115,50 @@ std::string first_error_message(const UTAP::Document& document)
     }
 
     throw ParseError(std::string(format_name) + " parse failed without UTAP diagnostics");
+}
+
+[[noreturn]] void raise_text_render_error(const char* format_name, int32_t return_code)
+{
+    std::ostringstream oss;
+    oss << format_name << " text rendering failed with code " << return_code;
+    throw ParseError(oss.str());
+}
+
+std::string pretty_print_xta_part(const std::string& buffer, bool newxta, UTAP::xta_part_t part, const char* format_name)
+{
+    std::ostringstream stream;
+    UTAP::PrettyPrinter pretty_printer(stream);
+    std::string normalized_buffer;
+    const auto& parse_buffer = normalized_text_view(buffer, normalized_buffer);
+    int32_t return_code = 0;
+    try {
+        py::gil_scoped_release release;
+        return_code = parse_XTA(parse_buffer.c_str(), &pretty_printer, newxta, part, "");
+    } catch (const std::exception& ex) {
+        throw ParseError(std::string(format_name) + " text rendering failed: " + ex.what());
+    }
+
+    if (return_code < 0) {
+        raise_text_render_error(format_name, return_code);
+    }
+
+    return stream.str();
+}
+
+std::string textual_builtin_preamble(bool newxta)
+{
+    if (!newxta) {
+        return {};
+    }
+    return pretty_print_xta_part(utap_builtin_declarations(), true, UTAP::S_DECLARATION, "builtin preamble");
+}
+
+std::string strip_exact_prefix(const std::string& text, const std::string& prefix)
+{
+    if (!prefix.empty() && text.size() >= prefix.size() && text.compare(0, prefix.size(), prefix) == 0) {
+        return text.substr(prefix.size());
+    }
+    return text;
 }
 
 bool is_known_position(const UTAP::position_t& position)
@@ -1220,6 +1266,31 @@ std::shared_ptr<NativeDocument> parse_xta_file(const std::filesystem::path& path
     return parse_xta_buffer(read_text_file(path), newxta, strict);
 }
 
+std::string xml_to_text(const std::string& buffer, bool newxta, bool include_builtin_preamble)
+{
+    std::ostringstream stream;
+    UTAP::PrettyPrinter pretty_printer(stream);
+    std::string normalized_buffer;
+    const auto& parse_buffer = normalized_text_view(buffer, normalized_buffer);
+    int32_t return_code = 0;
+    try {
+        py::gil_scoped_release release;
+        return_code = parse_XML_buffer(parse_buffer.c_str(), &pretty_printer, newxta);
+    } catch (const std::exception& ex) {
+        throw ParseError(std::string(newxta ? "XTA" : "TA") + " pretty print failed: " + ex.what());
+    }
+
+    if (return_code < 0) {
+        raise_text_render_error(newxta ? "XTA" : "TA", return_code);
+    }
+
+    const auto text = stream.str();
+    if (include_builtin_preamble || !newxta) {
+        return text;
+    }
+    return strip_exact_prefix(text, textual_builtin_preamble(true));
+}
+
 py::object property_expectation_to_object(const UTAP::expectation* expectation)
 {
     if (expectation == nullptr) {
@@ -1415,6 +1486,14 @@ PYBIND11_MODULE(_utap, m)
         py::arg("strict") = true,
         py::arg("libpaths") = py::tuple()
     );
+    m.def(
+        "_xml_to_text",
+        &xml_to_text,
+        py::arg("buffer"),
+        py::arg("newxta") = true,
+        py::arg("include_builtin_preamble") = false
+    );
+    m.def("textual_builtin_preamble", &textual_builtin_preamble, py::arg("newxta") = true);
     m.def(
         "load_xta",
         [](const py::object& path, bool newxta, bool strict) {

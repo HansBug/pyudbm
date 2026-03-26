@@ -159,13 +159,19 @@ ModelDocument
 -----------------------------------------------------
 
 .. autoclass:: ModelDocument
-    :members: __init__,__repr__,write_xml,dumps,to_xml,dump,global_declarations,before_update_text,after_update_text,channel_priority_texts,global_clock_names,template_clock_names,feature_summary,capability_summary,pretty,load_query,loads_query,parse_query
+    :members: __init__,__repr__,write_xml,dumps,to_xml,dump,to_xta,dump_xta,to_ta,dump_ta,global_declarations,before_update_text,after_update_text,channel_priority_texts,global_clock_names,template_clock_names,feature_summary,capability_summary,pretty,load_query,loads_query,parse_query
 
 
 builtin\_declarations
 -----------------------------------------------------
 
 .. autofunction:: builtin_declarations
+
+
+textual\_builtin\_preamble
+-----------------------------------------------------
+
+.. autofunction:: textual_builtin_preamble
 
 
 load\_query

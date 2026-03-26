@@ -51,6 +51,7 @@ from .utap import (
     loads_xml,
     loads_xta,
     parse_query,
+    textual_builtin_preamble,
 )
 from .visual import PlotResult, plot_dbm, plot_federation
 
@@ -104,4 +105,5 @@ __all__ = [
     "parse_query",
     "plot_dbm",
     "plot_federation",
+    "textual_builtin_preamble",
 ]
