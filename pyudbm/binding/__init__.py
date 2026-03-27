@@ -53,7 +53,16 @@ from .utap import (
     parse_query,
     textual_builtin_preamble,
 )
-from .utap_builder import ModelBuilder, TemplateBuilder
+from .utap_builder import (
+    EdgeSpec,
+    LocationSpec,
+    ModelBuilder,
+    ModelSpec,
+    QuerySpec,
+    TemplateBuilder,
+    TemplateSpec,
+    build_model,
+)
 from .visual import PlotResult, plot_dbm, plot_federation
 
 __all__ = [
@@ -77,10 +86,12 @@ __all__ = [
     "FloatValuation",
     "IntValuation",
     "Location",
+    "LocationSpec",
     "MAPPED_FIELDS",
     "MAPPED_FIELD_NOTES",
     "ModelBuilder",
     "ModelDocument",
+    "ModelSpec",
     "Option",
     "ParsedQuery",
     "ParsedQueryExpectation",
@@ -88,17 +99,21 @@ __all__ = [
     "Position",
     "Process",
     "Query",
+    "QuerySpec",
     "BDDTraceSet",
     "Resource",
     "Symbol",
     "Template",
     "TemplateBuilder",
+    "TemplateSpec",
     "TypeInfo",
     "UNMAPPED_FIELDS",
     "UNMAPPED_FIELD_REASONS",
     "Valuation",
     "VariableDifference",
+    "EdgeSpec",
     "builtin_declarations",
+    "build_model",
     "load_query",
     "load_xml",
     "load_xta",
