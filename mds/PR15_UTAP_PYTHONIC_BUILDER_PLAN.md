@@ -10,7 +10,10 @@
 
 本文不是立即改代码的施工记录，而是下一阶段 builder 设计与实施提案。
 
-当前文档先以临时文件名进入仓库；Pull Request 创建后，会按仓库工作流重命名为带 PR 编号的正式文件，并把 PR 链接回填到文档中。
+## PR 信息
+
+- Pull Request: <https://github.com/HansBug/pyudbm/pull/15>
+- 当前文件路径：`mds/PR15_UTAP_PYTHONIC_BUILDER_PLAN.md`
 
 ## 问题背景
 
