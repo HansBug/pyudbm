@@ -1,14 +1,73 @@
 """
-Lightweight Python-first UTAP model builder and spec layer.
+Python-first UTAP builder surface for authoring, patching, and exporting
+``ModelDocument`` instances without writing XML directly.
 
-This module provides two related public entry points:
+This module provides two public styles:
 
-* chainable builders for interactive authoring;
-* frozen spec dataclasses for programmatic generation and snapshots.
+* mutable chain builders for interactive authoring and patching
+  (``ModelBuilder``, ``TemplateBuilder``);
+* immutable spec dataclasses for deterministic generation and snapshots
+  (``ModelSpec``, ``TemplateSpec``, ``LocationSpec``, ``EdgeSpec``,
+  ``QuerySpec``).
 
-Both flows normalize into one shared payload and then delegate the final
-native document construction to the official UTAP-backed helper exposed by
-``pyudbm.binding._utap``.
+Both styles normalize into one payload and delegate final native model
+construction to the official UTAP-backed helper in ``pyudbm.binding._utap``.
+
+.. note::
+
+    This API is intentionally LLM-friendly: prefer semantic selectors
+    (``where=...``), use ``inspect()`` and ``list_*()`` to retrieve stable
+    snapshots and explicit indexes, and keep ``index`` operations as fallback
+    only.
+
+.. note::
+
+    Patch operations fail loudly by design: selector miss and selector
+    ambiguity both raise clear errors, and ambiguity errors include candidate
+    indexes for deterministic recovery in automation pipelines.
+
+Example::
+
+    >>> from pyudbm.binding import ModelBuilder
+    >>> document = (
+    ...     ModelBuilder()
+    ...     .clock("x")
+    ...     .template("P")
+    ...         .location("Init", initial=True)
+    ...         .location("Done")
+    ...         .edge("Init", "Done", when="x >= 1")
+    ...         .end()
+    ...     .process("P1", "P")
+    ...     .system("P1")
+    ...     .query("A[] not deadlock")
+    ...     .build()
+    ... )
+    >>> document.templates[0].name
+    'P'
+
+Example::
+
+    >>> builder = ModelBuilder.from_document(document)
+    >>> snapshot = builder.inspect()
+    >>> builder.update_query(where={"formula": "A[] not deadlock"}, comment="patched by pipeline")
+    >>> with builder.edit_template("P") as template:
+    ...     template.update_edge(where={"source": "Init", "target": "Done"}, when="x >= 2")
+    >>> patched = builder.build()
+    >>> len(snapshot["templates"]) >= 1
+    True
+
+Example::
+
+    >>> from pyudbm.binding.utap_builder import LocationSpec, ModelSpec, TemplateSpec, build_model
+    >>> spec_document = build_model(
+    ...     ModelSpec(
+    ...         templates=(TemplateSpec("P", locations=(LocationSpec("Init", initial=True),)),),
+    ...         processes=(("P1", "P", ()),),
+    ...         system_process_names=("P1",),
+    ...     )
+    ... )
+    >>> spec_document.processes[0].name
+    'P1'
 """
 
 from __future__ import annotations
@@ -1811,6 +1870,12 @@ class ModelBuilder:
         :return: The current builder.
         :rtype: ModelBuilder
 
+        .. note::
+
+            When you choose the ``index`` path, get stable query indexes first
+            via :meth:`list_queries` or from the ``queries`` section returned by
+            :meth:`inspect`.
+
         Example::
 
             >>> from pyudbm.binding.utap_builder import ModelBuilder
@@ -1869,6 +1934,12 @@ class ModelBuilder:
         :type where: object
         :return: The current builder.
         :rtype: ModelBuilder
+
+        .. note::
+
+            For index-based deletion, retrieve current indexes from
+            :meth:`list_queries` or from the ``queries`` section returned by
+            :meth:`inspect`.
 
         Example::
 
@@ -2406,6 +2477,12 @@ class TemplateBuilder:
         :return: The current template builder.
         :rtype: TemplateBuilder
 
+        .. note::
+
+            For index-based updates, obtain edge indexes from
+            :meth:`ModelBuilder.list_edges` (for the owning template) or from
+            the template snapshot inside :meth:`ModelBuilder.inspect`.
+
         Example::
 
             >>> from pyudbm.binding.utap_builder import ModelBuilder
@@ -2496,6 +2573,12 @@ class TemplateBuilder:
         :type where: object
         :return: The current template builder.
         :rtype: TemplateBuilder
+
+        .. note::
+
+            For index-based deletion, use :meth:`ModelBuilder.list_edges` or
+            :meth:`ModelBuilder.inspect` to fetch current edge indexes before
+            patching.
 
         Example::
 
