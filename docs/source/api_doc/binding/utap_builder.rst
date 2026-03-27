@@ -12,6 +12,41 @@ pyudbm.binding.utap\_builder
 .. autodata:: __all__
 
 
+LocationSpec
+-----------------------------------------------------
+
+.. autoclass:: LocationSpec
+    :members: name,initial,invariant,urgent,committed
+
+
+EdgeSpec
+-----------------------------------------------------
+
+.. autoclass:: EdgeSpec
+    :members: source,target,guard,sync,update
+
+
+QuerySpec
+-----------------------------------------------------
+
+.. autoclass:: QuerySpec
+    :members: formula,comment,options,expectation,location
+
+
+TemplateSpec
+-----------------------------------------------------
+
+.. autoclass:: TemplateSpec
+    :members: name,parameters,declarations,locations,edges
+
+
+ModelSpec
+-----------------------------------------------------
+
+.. autoclass:: ModelSpec
+    :members: declarations,templates,processes,system_process_names,queries
+
+
 ModelBuilder
 -----------------------------------------------------
 
@@ -32,31 +67,3 @@ build\_model
 .. autofunction:: build_model
 
 
-ModelSpec
------------------------------------------------------
-
-.. autoclass:: ModelSpec
-
-
-TemplateSpec
------------------------------------------------------
-
-.. autoclass:: TemplateSpec
-
-
-LocationSpec
------------------------------------------------------
-
-.. autoclass:: LocationSpec
-
-
-EdgeSpec
------------------------------------------------------
-
-.. autoclass:: EdgeSpec
-
-
-QuerySpec
------------------------------------------------------
-
-.. autoclass:: QuerySpec

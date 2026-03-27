@@ -814,17 +814,16 @@ def _model_spec_from_document(document: ModelDocument) -> ModelSpec:
         if not query.formula.strip():
             if query.comment.strip() or query.options or query.expectation != default_expectation:
                 raise ValueError("from_document() does not support empty imported query formulas with metadata")
-            continue
-
-        queries.append(
-            QuerySpec(
-                formula=query.formula,
-                comment=query.comment,
-                options=query.options,
-                expectation=query.expectation,
-                location=query.location,
+        else:
+            queries.append(
+                QuerySpec(
+                    formula=query.formula,
+                    comment=query.comment,
+                    options=query.options,
+                    expectation=query.expectation,
+                    location=query.location,
+                )
             )
-        )
 
     return ModelSpec(
         declarations=declarations,
