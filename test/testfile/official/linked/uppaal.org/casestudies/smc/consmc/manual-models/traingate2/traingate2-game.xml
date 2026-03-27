@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd'>
+<nta>
+	<declaration>/*
+ * For more details about this example, see 
+ * "Automatic Verification of Real-Time Communicating Systems by Constraint Solving", 
+ * by Wang Yi, Paul Pettersson and Mats Daniels. In Proceedings of the 7th International
+ * Conference on Formal Description Techniques, pages 223-238, North-Holland. 1994.
+ */
+
+const int N = 2;         // # trains
+typedef int[0,N-1] id_t;
+
+</declaration>
+	<template>
+		<name x="40" y="16">Train</name>
+		<parameter>const id_t id</parameter>
+		<declaration>clock x;</declaration>
+		<location id="id0" x="96" y="96">
+			<name x="48" y="80">Safe</name>
+		</location>
+		<location id="id1" x="176" y="320">
+			<name x="160" y="336">Stop</name>
+		</location>
+		<location id="id2" x="256" y="96">
+			<name x="272" y="80">Cross</name>
+			<label kind="invariant" x="272" y="96">x&lt;=5</label>
+		</location>
+		<location id="id3" x="96" y="232">
+			<name x="32" y="216">Appr</name>
+			<label kind="invariant" x="32" y="232">x&lt;=20</label>
+		</location>
+		<location id="id4" x="256" y="232">
+			<name x="272" y="216">Start</name>
+			<label kind="invariant" x="272" y="232">x&lt;= 15</label>
+		</location>
+		<init ref="id0"/>
+		<transition controllable="false">
+			<source ref="id3"/>
+			<target ref="id2"/>
+			<label kind="guard" x="184" y="160">x&gt;10</label>
+			<label kind="assignment" x="184" y="176">x=0</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id1"/>
+			<label kind="guard" x="88" y="280">x&lt;=10</label>
+			<label kind="assignment" x="88" y="296">x=0</label>
+		</transition>
+		<transition controllable="false">
+			<source ref="id2"/>
+			<target ref="id0"/>
+			<label kind="guard" x="184" y="64">x&gt;=3</label>
+		</transition>
+		<transition controllable="false">
+			<source ref="id0"/>
+			<target ref="id3"/>
+			<label kind="assignment" x="56" y="144">x=0</label>
+		</transition>
+		<transition controllable="false">
+			<source ref="id4"/>
+			<target ref="id2"/>
+			<label kind="guard" x="264" y="160">x&gt;7</label>
+			<label kind="assignment" x="264" y="176">x=0</label>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id4"/>
+			<label kind="assignment" x="224" y="296">x=0</label>
+		</transition>
+	</template>
+	<system>system Train;
+</system>
+</nta>

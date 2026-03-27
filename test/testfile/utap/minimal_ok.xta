@@ -1,0 +1,7 @@
+clock x;
+process P() {
+state S;
+init S;
+}
+P1 = P();
+system P1;

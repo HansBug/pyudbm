@@ -1,0 +1,832 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd'>
+<nta>
+	<declaration>const int RATE=200; 
+// the temperature of environment
+//int u=6;
+clock u;
+//5room and 3heater
+const int RN=5; // number of rooms
+const int HN=3; // number of heaters
+const int scale = 100;
+typedef int[1,RN] rid_t;
+typedef int[1,HN] hid_t;
+broadcast chan on[rid_t],off[rid_t];
+broadcast chan move[rid_t]; // leads to zeno runs if marked urgent
+//urgent broadcast chan ASAP; // leads to zeno runs if marked urgent
+
+typedef struct {
+  int Toff, Ton, Tget, Tlow;
+} tempconf_t;
+
+//temperature of room
+clock T[rid_t], discomfort;
+
+bool need[rid_t];
+bool cold[rid_t];
+
+// the initial placement of heaters
+int h[rid_t]={0,0,0,0,0};
+const int h0[rid_t]={1,0,1,0,1};
+const rid_t r0[hid_t] = {1, 3, 5}; // heater location in terms of room id
+int H[rid_t] = {1,0,2,0,3}; // heater id by room
+
+rid_t target;
+
+//the vector of the heating capability of a heater in a particular room
+//const int cvec[rid_t]={80,60,100};
+//const int cvec[rid_t]={80,80,80};
+//const int cvec[rid_t]={1000,1200,1300,1100,800}; // heater contribution
+const int cvec[rid_t]={900,1100,900,1200,600};
+//int bvec[rid_t]={25,10,15,20,40};    // environment contribution
+int bvec[rid_t]={35,10,15,30,25};  
+int Ton[rid_t] ={19, 19, 19, 19, 19};   // temp to turn on the heater
+int Toff[rid_t]={21, 21, 21, 21, 21};    // temp to turn off the heater
+int Tget[rid_t] ={16, 17, 18, 17, 16};    // temp at which to get a heater
+int Tlow[rid_t]={15, 16, 16, 16, 15};// critical temp lower bound
+
+/*
+//with user
+int Ton[rid_t] ={5,5,5,5, 5};
+int Toff[rid_t]={7,7,7,7,7};
+int Tlow[rid_t]={4, 4, 4,4,4};
+*/
+
+//difference in temperature at which to get the heater
+const int dif[rid_t]={1,1,1,1,1};
+// matrix of exchange coefficients??
+//const int Amat[3][3]={{0,8,6},{8,0,7},{6,7,0}};
+//const int Amat[rid_t][rid_t]={{0,30,0,50,0},{30,0,20,0,20},{0,20,0,30,50},{0,0,30,0,40},{50,20,50,40,0}};
+const int Amat[rid_t][rid_t]={{0,30,0,50,60},{30,0,20,0,20},{0,20,0,30,50},{50,0,30,0,0},{60,20,50,0,0}};
+const int T0[rid_t] = { 18, 18, 18, 18, 18 }; //initial room temp
+
+// when turnoff , the change of the temperature decreasing
+// time units in hours:
+const int day = 24;
+const int year = 365*day;
+const int month = year/12;
+//const int LATENCY=1/60; // 1/60=0 !!
+clock PI;
+
+/**
+* Danish last decade weather averages:
+* http://www.dmi.dk/dmi/index/danmark/klimanormaler/vejrnormaler.htm
+*/
+// monthly average curve:
+const int year_avg = 88;      //  +8.8C
+const int month_avg_min = 12; //  +1.2C
+const int month_avg_max = 174;// +17.4C
+const int month_offset = 86*month/10;  //  +8.6 months in hours
+
+// monthly day average deviation from average:
+const int day_dev_avg = 31; // 3.1C
+const int day_dev_min = 18; // 1.8C
+const int day_dev_max = 42; // 4.2C
+const int day_offset = 97*month/10;  // +9.7 months in hours
+
+// monthly night average deviation from average:
+const int night_dev_avg = -33; // -3.3C
+const int night_dev_min = -40; // -4.0C
+const int night_dev_max = -23; // -2.3C
+const int night_offset = 35*month/10;   // +3.5 months in hours
+
+const int hour_offset = -9; // at 9:00 is the middle day temp
+
+/*const tempconf_t tday[rid_t] = {
+{ 20, 17, 18, 15 },
+{ 20, 17, 17, 16 },
+{ 20, 17, 16, 15 },
+{ 20, 17, 17, 16 },
+{ 20, 17, 18, 16 }
+};*/
+tempconf_t tday[rid_t] = {
+{ 23, 18, 18, 17 },
+{ 23, 18, 17, 16 },
+{ 23, 18, 18, 17 },
+{ 23, 18, 17, 16 },
+{ 23, 18, 18, 17 }
+};
+const tempconf_t tnight[rid_t] = {
+{ 10, 8, 6, 5 },
+{ 10, 8, 6, 5 },
+{ 10, 8, 6, 5 },
+{ 10, 8, 6, 5 },
+{ 10, 8, 6, 5 }
+};
+
+typedef int[16,22] onRange_t;
+typedef int[16,22] getRange_t;
+</declaration>
+	<template>
+		<name>Room</name>
+		<parameter>const rid_t id</parameter>
+		<declaration>clock dt,r; // temporary clock
+
+void cool()
+{
+   r = bvec[id]*(u+-T[id]) * 1.0/scale;
+   for(j:rid_t)
+      r = r + Amat[id][j]*(T[j]+ -T[id]) * 1.0/scale;
+   T[id] = T[id] + r * dt;
+   dt = 0;
+}
+
+//when turnon, the change of temperature increaing
+void heat()
+{
+   r = (cvec[id]*h[id] + bvec[id]*(u+-T[id])) *1.0/scale;
+   for(j:rid_t)
+     r = r + Amat[id][j]*(T[j]+ -T[id]) * 1.0/scale;
+   T[id] = T[id] + r * dt;
+   dt = 0;
+}
+</declaration>
+		<location id="id0" x="1232" y="336">
+			<urgent/>
+		</location>
+		<location id="id1" x="1232" y="456">
+			<label kind="invariant" x="1112" y="472">T[id]'==(cvec[id]*h[id] + 
+  bvec[id]*(u+-T[id]) + 
+  sum(j:rid_t)(Amat[id][j]*(T[j]+ -T[id])))/scale</label>
+			<label kind="exponentialrate" x="1192" y="456">30</label>
+		</location>
+		<init ref="id0"/>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id1"/>
+			<label kind="guard" x="1304" y="416">cold[id] &amp;&amp;
+T[id] &gt;= Tlow[id]</label>
+			<label kind="assignment" x="1304" y="448">cold[id]=false</label>
+			<nail x="1296" y="416"/>
+			<nail x="1296" y="456"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id1"/>
+			<label kind="guard" x="1304" y="328">need[id] &amp;&amp;
+T[id] &gt; Tget[id]</label>
+			<label kind="assignment" x="1304" y="360">need[id]=false</label>
+			<nail x="1296" y="376"/>
+			<nail x="1296" y="328"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id1"/>
+			<label kind="guard" x="1056" y="328">!need[id] &amp;&amp;
+H[id]==0 &amp;&amp; 
+T[id]&lt;=Tget[id]</label>
+			<label kind="assignment" x="1056" y="368">need[id]=true</label>
+			<nail x="1160" y="376"/>
+			<nail x="1160" y="328"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id1"/>
+			<label kind="guard" x="1056" y="416">!cold[id] &amp;&amp;
+T[id] &lt; Tlow[id]</label>
+			<label kind="assignment" x="1072" y="448">cold[id]=true</label>
+			<nail x="1168" y="416"/>
+			<nail x="1168" y="456"/>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id1"/>
+			<label kind="assignment" x="1192" y="352">T[id]=T0[id]</label>
+		</transition>
+	</template>
+	<template>
+		<name>Heater</name>
+		<parameter>const hid_t id</parameter>
+		<declaration>rid_t r = r0[id];
+clock c; // for each heater, the energy consumption
+</declaration>
+		<location id="id2" x="48" y="104">
+			<committed/>
+		</location>
+		<location id="id3" x="128" y="0">
+			<name x="128" y="-32">On</name>
+			<label kind="invariant" x="136" y="24">c'==5</label>
+			<label kind="exponentialrate" x="136" y="8">60</label>
+		</location>
+		<location id="id4" x="-48" y="0">
+			<name x="-72" y="-32">Off</name>
+			<label kind="invariant" x="-88" y="24">c'==0</label>
+			<label kind="exponentialrate" x="-72" y="8">60</label>
+		</location>
+		<init ref="id4"/>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id4"/>
+			<label kind="synchronisation" x="-32" y="72">off[r]!</label>
+			<label kind="assignment" x="-32" y="88">h[r]=0,
+r=target</label>
+			<nail x="-48" y="104"/>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="96" y="80">move[r]?</label>
+			<nail x="128" y="104"/>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id4"/>
+			<label kind="synchronisation" x="-176" y="-16">move[r]?</label>
+			<label kind="assignment" x="-176" y="0">r=target</label>
+			<nail x="-120" y="-24"/>
+			<nail x="-120" y="24"/>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id4"/>
+			<label kind="guard" x="0" y="16">T[r]&gt;=Toff[r]</label>
+			<label kind="synchronisation" x="0" y="32">off[r]!</label>
+			<label kind="assignment" x="0" y="48">h[r]=0</label>
+			<nail x="96" y="32"/>
+			<nail x="-8" y="32"/>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id3"/>
+			<label kind="guard" x="0" y="-56">T[r]&lt;=Ton[r]</label>
+			<label kind="synchronisation" x="0" y="-32">on[r]!</label>
+			<label kind="assignment" x="0" y="-16">h[r]=1</label>
+			<nail x="-8" y="-32"/>
+			<nail x="96" y="-32"/>
+		</transition>
+	</template>
+	<template>
+		<name>ControlOriginal</name>
+		<declaration>int importance[rid_t]={ 1, 30, 2, 3, 4};</declaration>
+		<location id="id5" x="-344" y="8">
+			<name x="-392" y="0">idle</name>
+			<label kind="exponentialrate" x="-392" y="16">100</label>
+		</location>
+		<location id="id6" x="64" y="8">
+			<name x="80" y="-8">choosing</name>
+			<label kind="exponentialrate" x="80" y="8">100</label>
+		</location>
+		<branchpoint id="id7" x="-112" y="8">
+		</branchpoint>
+		<init ref="id5"/>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id5"/>
+			<label kind="guard" x="-168" y="-64">!need[target] || H[target]&gt;0</label>
+			<nail x="64" y="-48"/>
+			<nail x="-344" y="-48"/>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id6"/>
+			<label kind="select" x="-96" y="-24">i:rid_t</label>
+			<label kind="assignment" x="-96" y="-8">target=i</label>
+			<label kind="probability" x="-96" y="8">importance[i]*
+(H[i]==0)*need[i]</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id7"/>
+			<label kind="select" x="-304" y="-32">i:rid_t, j:rid_t</label>
+			<label kind="guard" x="-320" y="-8">need[i] &amp;&amp; H[i]==0 &amp;&amp;
+H[j]&gt;0 &amp;&amp; T[j]-T[i]&gt;=dif[i]</label>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id5"/>
+			<label kind="select" x="-208" y="56">j:rid_t</label>
+			<label kind="guard" x="-208" y="72">need[target] &amp;&amp; H[target]==0 &amp;&amp;
+H[j]&gt;0 &amp;&amp; T[j]-T[target]&gt;=dif[target]</label>
+			<label kind="synchronisation" x="-208" y="104">move[j]!</label>
+			<label kind="assignment" x="-208" y="120">H[target]=H[j], H[j]=0</label>
+			<nail x="64" y="104"/>
+			<nail x="-344" y="104"/>
+		</transition>
+	</template>
+	<template>
+		<name>ControlGet</name>
+		<declaration>int importance[rid_t]={ 1, 30, 2, 3, 4};</declaration>
+		<location id="id8" x="-344" y="8">
+			<name x="-392" y="0">idle</name>
+			<label kind="exponentialrate" x="-392" y="16">100</label>
+		</location>
+		<location id="id9" x="0" y="8">
+			<name x="16" y="-8">choosing</name>
+			<label kind="exponentialrate" x="16" y="8">100</label>
+		</location>
+		<branchpoint id="id10" x="-144" y="8">
+		</branchpoint>
+		<init ref="id8"/>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id8"/>
+			<label kind="guard" x="-320" y="-72">!need[target] || H[target]&gt;0</label>
+			<nail x="0" y="-48"/>
+			<nail x="-344" y="-48"/>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id9"/>
+			<label kind="select" x="-128" y="-24">i:rid_t</label>
+			<label kind="assignment" x="-128" y="-8">target=i</label>
+			<label kind="probability" x="-128" y="8">importance[i]*
+(H[i]==0)*need[i]</label>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id10"/>
+			<label kind="select" x="-320" y="-32">i:rid_t, j:rid_t</label>
+			<label kind="guard" x="-320" y="-8">need[i] &amp;&amp; H[i]==0 &amp;&amp;
+H[j]&gt;0 &amp;&amp; T[j]&gt;=Tget[j]</label>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id8"/>
+			<label kind="select" x="-320" y="48">j:rid_t</label>
+			<label kind="guard" x="-320" y="64">need[target] &amp;&amp; H[target]==0 &amp;&amp;
+H[j]&gt;0 &amp;&amp; T[j]&gt;=Tget[j]</label>
+			<label kind="synchronisation" x="-320" y="104">move[j]!</label>
+			<label kind="assignment" x="-320" y="120">H[target]=H[j], H[j]=0</label>
+			<nail x="0" y="104"/>
+			<nail x="-344" y="104"/>
+		</transition>
+	</template>
+	<template>
+		<name>ControlTon</name>
+		<declaration>int importance[rid_t]={ 1, 30, 2, 3, 4};</declaration>
+		<location id="id11" x="-344" y="8">
+			<name x="-392" y="0">idle</name>
+			<label kind="exponentialrate" x="-392" y="16">100</label>
+		</location>
+		<location id="id12" x="64" y="8">
+			<name x="80" y="-8">choosing</name>
+			<label kind="exponentialrate" x="80" y="8">100</label>
+		</location>
+		<branchpoint id="id13" x="-112" y="8">
+		</branchpoint>
+		<init ref="id11"/>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id11"/>
+			<label kind="guard" x="-168" y="-64">!need[target] || H[target]&gt;0</label>
+			<nail x="64" y="-48"/>
+			<nail x="-344" y="-48"/>
+		</transition>
+		<transition>
+			<source ref="id13"/>
+			<target ref="id12"/>
+			<label kind="select" x="-96" y="-24">i:rid_t</label>
+			<label kind="assignment" x="-96" y="-8">target=i</label>
+			<label kind="probability" x="-96" y="8">importance[i]*
+(H[i]==0)*need[i]</label>
+		</transition>
+		<transition>
+			<source ref="id11"/>
+			<target ref="id13"/>
+			<label kind="select" x="-304" y="-32">i:rid_t, j:rid_t</label>
+			<label kind="guard" x="-320" y="-8">need[i] &amp;&amp; H[i]==0 &amp;&amp;
+H[j]&gt;0 &amp;&amp; T[j]&gt;=Ton[j]</label>
+		</transition>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id11"/>
+			<label kind="select" x="-208" y="56">j:rid_t</label>
+			<label kind="guard" x="-208" y="72">need[target] &amp;&amp; H[target]==0 &amp;&amp;
+H[j]&gt;0 &amp;&amp; T[j]&gt;=Ton[j]</label>
+			<label kind="synchronisation" x="-208" y="104">move[j]!</label>
+			<label kind="assignment" x="-208" y="120">H[target]=H[j], H[j]=0</label>
+			<nail x="64" y="104"/>
+			<nail x="-344" y="104"/>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">Weather</name>
+		<parameter>clock &amp;T</parameter>
+		<declaration>clock PI, t;
+
+void update() {
+    PI=3.14159265;
+    T = 2.0 + 2.0*sin((t+hour_offset)*2*PI/day);
+}
+
+</declaration>
+		<location id="id14" x="-568" y="-72">
+			<label kind="invariant" x="-584" y="-40">T'==0 &amp;&amp;
+PI'==0</label>
+			<label kind="exponentialrate" x="-584" y="-56">60 // roughly once every minute</label>
+		</location>
+		<init ref="id14"/>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id14"/>
+			<label kind="assignment" x="-552" y="-128">update()</label>
+			<nail x="-568" y="-112"/>
+			<nail x="-480" y="-112"/>
+			<nail x="-480" y="-72"/>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">WeatherFlat</name>
+		<parameter>clock &amp;T</parameter>
+		<location id="id15" x="-568" y="-144">
+			<urgent/>
+		</location>
+		<location id="id16" x="-568" y="-56">
+			<label kind="invariant" x="-584" y="-40">T'==0</label>
+		</location>
+		<init ref="id15"/>
+		<transition>
+			<source ref="id15"/>
+			<target ref="id16"/>
+			<label kind="assignment" x="-632" y="-120">T=-2.0*1</label>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">WeatherRapid</name>
+		<parameter>clock &amp;T</parameter>
+		<declaration>clock PI, t;</declaration>
+		<location id="id17" x="-568" y="-72">
+			<label kind="invariant" x="-576" y="-40">T'==0 &amp;&amp;
+PI'==0</label>
+			<label kind="exponentialrate" x="-576" y="-56">60 // ~1/minute</label>
+		</location>
+		<init ref="id17"/>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id17"/>
+			<label kind="assignment" x="-552" y="-128">PI=3.14159265,
+T=-1+1.0*sin(t*2*PI)</label>
+			<nail x="-568" y="-112"/>
+			<nail x="-480" y="-112"/>
+			<nail x="-480" y="-72"/>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">WeatherDaily</name>
+		<parameter>clock &amp;T</parameter>
+		<declaration>clock PI, t, A, B;
+
+void update() {
+    PI=3.14159265;
+    T = -1.0 + 1.0*sin((t+hour_offset)*2*PI/day);
+}
+
+</declaration>
+		<location id="id18" x="-664" y="-72">
+			<committed/>
+		</location>
+		<location id="id19" x="-536" y="-72">
+			<label kind="invariant" x="-536" y="-48">T'==0 &amp;&amp;
+PI'==0 &amp;&amp;
+A'==0 &amp;&amp;
+B'==0</label>
+			<label kind="exponentialrate" x="-536" y="-64">60 // ~1/minute</label>
+		</location>
+		<init ref="id18"/>
+		<transition>
+			<source ref="id18"/>
+			<target ref="id19"/>
+			<label kind="assignment" x="-664" y="-64">A=random(2),
+B=random(1)</label>
+		</transition>
+		<transition>
+			<source ref="id19"/>
+			<target ref="id19"/>
+			<label kind="assignment" x="-536" y="-128">PI=3.14159265,
+T=A*sin((t+hour_offset)*2*PI/day)-B</label>
+			<nail x="-536" y="-112"/>
+			<nail x="-448" y="-112"/>
+			<nail x="-448" y="-72"/>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">WeatherComplex</name>
+		<parameter>clock &amp;T, clock &amp;cyclon</parameter>
+		<declaration>const int scale_deg = 10; // scale for degree constants
+clock t, avg, day_dev, night_dev;
+
+void update() {
+    avg = year_avg + (month_avg_max-month_avg_min)*sin((t+month_offset)*2*PI/year)/2;
+    day_dev = day_dev_avg + (day_dev_max-day_dev_min)*sin((t+day_offset)*2*PI/year)/2;
+    night_dev = night_dev_avg + (night_dev_max-night_dev_min)*sin((t+night_offset)*2*PI/year)/2;
+    T = (avg + (day_dev+ -night_dev)/2*sin((t+hour_offset)*2*PI/day)) / scale_deg + cyclon*1;
+}
+
+</declaration>
+		<location id="id20" x="-568" y="-72">
+			<label kind="invariant" x="-584" y="-40">T'==0</label>
+			<label kind="exponentialrate" x="-584" y="-56">60 // roughly once every minute</label>
+		</location>
+		<init ref="id20"/>
+		<transition>
+			<source ref="id20"/>
+			<target ref="id20"/>
+			<label kind="assignment" x="-552" y="-128">update()</label>
+			<nail x="-568" y="-112"/>
+			<nail x="-480" y="-112"/>
+			<nail x="-480" y="-72"/>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">Cyclon</name>
+		<parameter>clock &amp;cyclon_a</parameter>
+		<declaration>int shift;
+clock period, cyclon_b;</declaration>
+		<location id="id21" x="-736" y="-72">
+			<committed/>
+		</location>
+		<location id="id22" x="-544" y="-72">
+			<name x="-560" y="-56">L</name>
+			<label kind="invariant" x="-560" y="-40">PI'==0 &amp;&amp; 
+period'==shift &amp;&amp;
+cyclon_a'==2*PI*cyclon_b/period &amp;&amp;
+cyclon_b'==-2*PI*cyclon_a/period</label>
+			<label kind="exponentialrate" x="-528" y="-64">1</label>
+		</location>
+		<branchpoint id="id23" x="-544" y="-184">
+		</branchpoint>
+		<init ref="id21"/>
+		<transition>
+			<source ref="id23"/>
+			<target ref="id22"/>
+			<label kind="assignment" x="-528" y="-200">shift=-1</label>
+			<label kind="probability" x="-528" y="-184">1</label>
+			<nail x="-472" y="-184"/>
+			<nail x="-472" y="-144"/>
+		</transition>
+		<transition>
+			<source ref="id23"/>
+			<target ref="id22"/>
+			<label kind="assignment" x="-608" y="-200">shift=1</label>
+			<label kind="probability" x="-608" y="-184">1</label>
+			<nail x="-616" y="-184"/>
+			<nail x="-616" y="-144"/>
+		</transition>
+		<transition>
+			<source ref="id22"/>
+			<target ref="id23"/>
+			<label kind="guard" x="-592" y="-152">period&gt;=2*day &amp;&amp;
+period&lt;=6*day</label>
+		</transition>
+		<transition>
+			<source ref="id22"/>
+			<target ref="id22"/>
+			<label kind="guard" x="-440" y="-128">period&gt;6*day</label>
+			<label kind="assignment" x="-440" y="-112">shift=-2</label>
+			<nail x="-456" y="-120"/>
+			<nail x="-440" y="-96"/>
+		</transition>
+		<transition>
+			<source ref="id22"/>
+			<target ref="id22"/>
+			<label kind="guard" x="-728" y="-128">period&lt;2*day</label>
+			<label kind="assignment" x="-728" y="-112">shift=2</label>
+			<nail x="-656" y="-96"/>
+			<nail x="-640" y="-128"/>
+		</transition>
+		<transition>
+			<source ref="id21"/>
+			<target ref="id22"/>
+			<label kind="assignment" x="-720" y="-72">PI=3.14159265,
+shift=1,
+period=1.0*year/100,
+cyclon_a=0,
+cyclon_b=1</label>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">WeatherNotWorking</name>
+		<parameter>clock &amp;T</parameter>
+		<declaration>// this weather model is not working due to absence of algebraic function support
+int scale_deg = 10; // scale for degree constants
+clock t, cyclonp, period;
+int shift;
+
+
+/*
+clock t, avg, day_dev, night_dev;
+
+void update() {
+    avg = year_avg + (month_avg_max-month_avg_min)*sin((t+month_offset)*2*PI/year)/2;
+    day_dev = day_dev_avg + (day_dev_max-day_dev_min)*sin((t+day_offset)*2*PI/year)/2;
+    night_dev = night_dev_avg + (night_dev_max-night_dev_min)*sin((t+night_offset)*2*PI/year)/2;
+    T = (avg + (day_dev+ -night_dev)/2*sin((t+hour_offset)*2*PI/day)) / scale_deg + cyclon*1;
+}
+
+*/</declaration>
+		<location id="id24" x="-568" y="192">
+			<urgent/>
+		</location>
+		<location id="id25" x="-568" y="-72">
+			<name x="-584" y="-64">L</name>
+			<label kind="invariant" x="-624" y="-24">PI'==0 &amp;&amp;
+cyclonp'==shift &amp;&amp;
+T'== (year_avg + (month_avg_max-month_avg_min)*cos((t)*2*PI/year)/2
+          + (day_dev_avg + (day_dev_max-day_dev_min)*cos((t)*2*PI/year)/2+ 
+               -night_dev_avg + (night_dev_max-night_dev_min)*cos((t)*2*PI/year)/2)/2*cos((t)*2*PI/day)) / scale_deg 
+         + 1*cos(t*2*PI/cyclonp)</label>
+			<label kind="exponentialrate" x="-616" y="-48">60 // roughly once every minute</label>
+		</location>
+		<branchpoint id="id26" x="-568" y="-224">
+		</branchpoint>
+		<init ref="id24"/>
+		<transition>
+			<source ref="id24"/>
+			<target ref="id25"/>
+			<label kind="assignment" x="-728" y="80">PI=3.1412659,
+cyclonp=365.0/100,
+T= (year_avg + (month_avg_max-month_avg_min)*sin((month_offset)*2*PI/year)/2
+          + (day_dev_avg +    (day_dev_max-day_dev_min)*sin((day_offset)*2*PI/year)/2+ 
+              -night_dev_avg + (night_dev_max-night_dev_min)*sin((night_offset)*2*PI/year)/2)/2*sin((hour_offset)*2*PI/day)) / scale_deg</label>
+		</transition>
+		<transition>
+			<source ref="id25"/>
+			<target ref="id25"/>
+			<label kind="guard" x="-728" y="-200">period&lt;=2*day</label>
+			<label kind="assignment" x="-728" y="-184">shift=1</label>
+			<nail x="-704" y="-112"/>
+			<nail x="-704" y="-200"/>
+			<nail x="-640" y="-200"/>
+		</transition>
+		<transition>
+			<source ref="id25"/>
+			<target ref="id25"/>
+			<label kind="guard" x="-488" y="-184">period&gt;=6*day</label>
+			<label kind="assignment" x="-488" y="-168">shift=-1</label>
+			<nail x="-440" y="-96"/>
+			<nail x="-440" y="-184"/>
+			<nail x="-512" y="-184"/>
+		</transition>
+		<transition>
+			<source ref="id26"/>
+			<target ref="id25"/>
+			<label kind="assignment" x="-472" y="-240">shift=-1</label>
+			<label kind="probability" x="-544" y="-248">1</label>
+			<nail x="-376" y="-224"/>
+			<nail x="-376" y="-80"/>
+		</transition>
+		<transition>
+			<source ref="id26"/>
+			<target ref="id25"/>
+			<label kind="assignment" x="-720" y="-240">shift=1</label>
+			<label kind="probability" x="-600" y="-248">1</label>
+			<nail x="-728" y="-224"/>
+			<nail x="-728" y="-96"/>
+		</transition>
+		<transition>
+			<source ref="id25"/>
+			<target ref="id26"/>
+			<label kind="guard" x="-600" y="-208">period&gt;2*day &amp;&amp;
+period&lt;6*day</label>
+		</transition>
+	</template>
+	<template>
+		<name>FlatProfile</name>
+		<parameter>const rid_t id</parameter>
+		<location id="id27" x="-424" y="-32">
+			<urgent/>
+		</location>
+		<location id="id28" x="-224" y="-32">
+		</location>
+		<init ref="id27"/>
+		<transition>
+			<source ref="id27"/>
+			<target ref="id28"/>
+			<label kind="assignment" x="-408" y="-32">Toff[id]=tday[id].Toff,
+Ton[id]=tday[id].Ton,
+Tget[id]=tday[id].Tget,
+Tlow[id]=tday[id].Tlow</label>
+		</transition>
+	</template>
+	<template>
+		<name>UserProfile</name>
+		<parameter>const rid_t id</parameter>
+		<declaration>clock t, x;</declaration>
+		<location id="id29" x="-288" y="-240">
+			<urgent/>
+		</location>
+		<location id="id30" x="-288" y="-24">
+			<name x="-336" y="-48">arrive</name>
+			<label kind="invariant" x="-304" y="-8">t&lt;=9</label>
+		</location>
+		<location id="id31" x="152" y="-144">
+			<name x="136" y="-192">leave</name>
+			<label kind="invariant" x="136" y="-176">t&lt;=24</label>
+		</location>
+		<location id="id32" x="152" y="-24">
+			<name x="112" y="-56">afternoon</name>
+			<label kind="invariant" x="128" y="-8">t&lt;=18</label>
+		</location>
+		<location id="id33" x="16" y="-24">
+			<name x="0" y="-56">lunch</name>
+			<label kind="invariant" x="0" y="-8">x&lt;=1</label>
+		</location>
+		<location id="id34" x="-112" y="-24">
+			<name x="-144" y="-56">morning</name>
+			<label kind="invariant" x="-136" y="-8">t&lt;=13</label>
+		</location>
+		<location id="id35" x="-288" y="-144">
+			<name x="-344" y="-160">absent</name>
+			<label kind="invariant" x="-344" y="-144">t&lt;=5</label>
+		</location>
+		<init ref="id29"/>
+		<transition>
+			<source ref="id29"/>
+			<target ref="id35"/>
+			<label kind="assignment" x="-288" y="-224">Toff[id]=tnight[id].Toff,
+Ton[id]=tnight[id].Ton,
+Tget[id]=tnight[id].Tget,
+Tlow[id]=tnight[id].Tlow</label>
+		</transition>
+		<transition>
+			<source ref="id35"/>
+			<target ref="id30"/>
+			<label kind="guard" x="-288" y="-112">t==5</label>
+			<label kind="assignment" x="-288" y="-96">Toff[id]=tday[id].Toff,
+Ton[id]=tday[id].Ton,
+Tget[id]=tday[id].Tget</label>
+		</transition>
+		<transition>
+			<source ref="id31"/>
+			<target ref="id35"/>
+			<label kind="guard" x="-32" y="-168">t==24</label>
+			<label kind="assignment" x="-24" y="-144">t=0</label>
+		</transition>
+		<transition>
+			<source ref="id32"/>
+			<target ref="id31"/>
+			<label kind="guard" x="56" y="-128">t&gt;=17</label>
+			<label kind="assignment" x="8" y="-112">Toff[id]=tnight[id].Toff,
+Ton[id]=tnight[id].Ton,
+Tget[id]=tnight[id].Tget,
+Tlow[id]=tnight[id].Tlow</label>
+		</transition>
+		<transition>
+			<source ref="id33"/>
+			<target ref="id32"/>
+			<label kind="guard" x="48" y="-40">x&gt;0</label>
+			<label kind="assignment" x="48" y="-24">x=0,
+bvec[id]--</label>
+		</transition>
+		<transition>
+			<source ref="id34"/>
+			<target ref="id33"/>
+			<label kind="guard" x="-80" y="-40">t&gt;=12</label>
+			<label kind="assignment" x="-80" y="-24">x=0, 
+bvec[id]++</label>
+		</transition>
+		<transition>
+			<source ref="id30"/>
+			<target ref="id34"/>
+			<label kind="guard" x="-272" y="-40">t&gt;=8</label>
+			<label kind="assignment" x="-272" y="-24">Tlow[id]=tday[id].Tlow</label>
+		</transition>
+	</template>
+	<template>
+		<name>Global</name>
+		<declaration>clock energy;
+
+void setOnGet(int i, int j){
+    for(r:rid_t) {
+        tday[r].Ton=i;
+        tday[r].Tget=j;
+    }
+}</declaration>
+		<location id="id36" x="0" y="-200">
+			<committed/>
+		</location>
+		<location id="id37" x="0" y="-96">
+			<label kind="invariant" x="-72" y="-80">energy'==(sum(i:hid_t) 5*h[i]) &amp;&amp;
+discomfort'==(sum(i:rid_t) cold[i])</label>
+		</location>
+		<branchpoint id="id38" x="0" y="-160">
+		</branchpoint>
+		<init ref="id36"/>
+		<transition>
+			<source ref="id38"/>
+			<target ref="id37"/>
+			<label kind="select" x="8" y="-160">i: onRange_t,
+j: getRange_t</label>
+			<label kind="assignment" x="8" y="-128">setOnGet(i,j)</label>
+			<label kind="probability" x="-16" y="-128">1</label>
+		</transition>
+		<transition>
+			<source ref="id36"/>
+			<target ref="id38"/>
+		</transition>
+	</template>
+	<system>clock time;
+clock c;
+//weather=WeatherRapid(u);
+weather=WeatherDaily(u);
+//cyclon=Cyclon(c);
+//weather=Weather(u);
+user(const rid_t i)=UserProfile(i);
+//user(const rid_t i)=FlatProfile(i);
+
+
+//system Room,Heater,ControlOriginal, weather, user, Global;
+system Room,Heater,ControlGet, weather, user, Global;
+//system Room,Heater, ControlTon, weather, user, Global;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </system>
+</nta>

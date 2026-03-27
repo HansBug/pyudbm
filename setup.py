@@ -5,6 +5,7 @@ import re
 import shutil
 import subprocess
 import sys
+from glob import glob
 from codecs import open
 
 from setuptools import Extension
@@ -110,6 +111,88 @@ def _copy_windows_runtime_dlls(extdir: str, compiler_path: str):
         shutil.copy2(src, dst)
 
 
+def _copy_utap_runtime_libraries(extdir: str):
+    binstall_dir = os.environ.get('BINSTALL_DIR') or os.path.join(here, 'bin_install')
+    search_specs = []
+    if platform.system() == 'Windows':
+        search_specs.extend([
+            (os.path.join(binstall_dir, 'bin'), ('UTAP*.dll', 'libxml2*.dll')),
+            (os.path.join(binstall_dir, 'lib'), ('UTAP*.dll', 'libxml2*.dll')),
+        ])
+    elif platform.system() == 'Darwin':
+        search_specs.append((os.path.join(binstall_dir, 'lib'), ('libUTAP*.dylib', 'libxml2*.dylib')))
+    else:
+        search_specs.append((os.path.join(binstall_dir, 'lib'), ('libUTAP.so', 'libUTAP.so.*', 'libxml2.so', 'libxml2.so.*')))
+
+    copied = set()
+    for base_dir, patterns in search_specs:
+        if not os.path.isdir(base_dir):
+            continue
+        for pattern in patterns:
+            for src in sorted(glob(os.path.join(base_dir, pattern))):
+                if not os.path.isfile(src):
+                    continue
+                dst = os.path.join(extdir, os.path.basename(src))
+                if os.path.abspath(src) == os.path.abspath(dst):
+                    continue
+                if dst in copied:
+                    continue
+                shutil.copy2(src, dst)
+                copied.add(dst)
+
+    if platform.system() == 'Darwin' and copied:
+        _fixup_macos_copied_libraries(extdir, copied)
+
+
+def _read_macos_dependencies(binary_path: str):
+    try:
+        output = subprocess.check_output(['otool', '-L', binary_path], text=True)
+    except (OSError, subprocess.CalledProcessError):
+        return []
+
+    dependencies = []
+    for line in output.splitlines()[1:]:
+        stripped = line.strip()
+        if not stripped:
+            continue
+        dependency = stripped.split(' (compatibility version', 1)[0].strip()
+        if dependency:
+            dependencies.append(dependency)
+
+    return dependencies
+
+
+def _fixup_macos_copied_libraries(extdir: str, copied_paths):
+    install_name_tool = shutil.which('install_name_tool')
+    if not install_name_tool:
+        return
+
+    copied_by_name = {os.path.basename(path): path for path in copied_paths}
+    candidate_binaries = set(copied_paths)
+    for name in os.listdir(extdir):
+        if name.endswith('.dylib') or name.endswith('.so'):
+            candidate_binaries.add(os.path.join(extdir, name))
+
+    for path in sorted(copied_paths):
+        if not path.endswith('.dylib'):
+            continue
+        basename = os.path.basename(path)
+        subprocess.check_call([install_name_tool, '-id', f'@loader_path/{basename}', path])
+
+    for path in sorted(candidate_binaries):
+        dependencies = _read_macos_dependencies(path)
+        for dependency in dependencies:
+            basename = os.path.basename(dependency)
+            if basename not in copied_by_name:
+                continue
+
+            desired = f'@loader_path/{basename}'
+            if dependency == desired:
+                continue
+
+            subprocess.check_call([install_name_tool, '-change', dependency, desired, path])
+
+
 class CMakeExtension(Extension):
     def __init__(self, name, sourcedir=''):
         Extension.__init__(self, name, sources=[])
@@ -181,6 +264,8 @@ class CMakeBuild(build_ext):
         logging.info(f'Build with {b2_cmds!r} ...')
         subprocess.check_call(b2_cmds, cwd=self.build_temp, env=env)
         _copy_windows_runtime_dlls(extdir, cc)
+        if ext.name == 'pyudbm.binding._utap':
+            _copy_utap_runtime_libraries(extdir)
 
 
 setup(
@@ -213,11 +298,12 @@ setup(
     ext_modules=[
         CMakeExtension('pyudbm.binding._udbm'),
         CMakeExtension('pyudbm.binding._ucdd'),
+        CMakeExtension('pyudbm.binding._utap'),
     ],
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
     package_data={
-        'pyudbm.binding': ['*.dll'],
+        'pyudbm.binding': ['*.dll', '*.so', '*.so.*', '*.dylib'],
     },
     install_requires=requirements,
     extras_require=group_requirements,

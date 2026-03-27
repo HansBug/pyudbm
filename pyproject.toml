@@ -22,7 +22,7 @@ before-test = [# Unittest for windows
     "python -m pip install -r {project}/requirements-test.txt",
 ]
 test-command = [
-    "rm -rf {project}/UUtils_build {project}/UDBM_build {project}/UCDD_build {project}/bin_install",
+    "rm -rf {project}/UUtils_build {project}/UDBM_build {project}/UCDD_build {project}/UTAP_build {project}/bin_install",
     "cp -rf {project}/test test",
     "cp {project}/pytest.ini pytest.ini",
     "pytest test -sv -m unittest --log-level=DEBUG",
@@ -32,7 +32,7 @@ test-command = [
 ## macOS build configuration
 [tool.cibuildwheel.macos]
 archs = ["x86_64", "arm64"] # Build for x86_64 and arm64
-environment = { CC = "clang", CXX = "clang++" }
+environment = { CC = "clang", CXX = "clang++", MACOSX_DEPLOYMENT_TARGET = "11.0" }
 before-build = [
     "bash -c 'exec bash \"{package}/cibw/macos_before_build.sh\" \"{package}\"'",
 ]
@@ -40,7 +40,7 @@ before-test = [# Unittest for macos
     "python -m pip install -r {project}/requirements-test.txt",
 ]
 test-command = [
-    "rm -rf {project}/UUtils_build {project}/UDBM_build {project}/UCDD_build {project}/bin_install",
+    "rm -rf {project}/UUtils_build {project}/UDBM_build {project}/UCDD_build {project}/UTAP_build {project}/bin_install",
     "cp -rf {project}/test test",
     "cp {project}/pytest.ini pytest.ini",
     "pytest test -sv -m unittest --log-level=DEBUG",
@@ -59,7 +59,7 @@ before-test = [# Unittest for linux
     "python -m pip install -r {project}/requirements-test.txt",
 ]
 test-command = [
-    "rm -rf {project}/UUtils_build {project}/UDBM_build {project}/UCDD_build {project}/bin_install",
+    "rm -rf {project}/UUtils_build {project}/UDBM_build {project}/UCDD_build {project}/UTAP_build {project}/bin_install",
     "cp -rf {project}/test test",
     "cp {project}/pytest.ini pytest.ini",
     "pytest test -sv -m unittest --log-level=DEBUG",

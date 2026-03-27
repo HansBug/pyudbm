@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd'><nta><declaration>// Place global declarations here.
+const int stations = 900;
+
+typedef int [0,stations-1]  id_t;
+
+bool queue[stations];
+
+const int pollRate = 200; // Gamma 
+const int servRate = 1; //mu
+
+
+
+const int lambda = 1;
+const int mu = 1;
+const int gamma = 200;
+
+
+void main () {
+    int i;
+    for (i=0;i&lt;stations;i++) {
+        queue[i] = true;
+    }
+}</declaration><template><name>Station</name><parameter>id_t id</parameter><location id="id0" x="0" y="0"><label kind="exponentialrate" x="-48" y="32">lambda : stations</label></location><init ref="id0"/><transition><source ref="id0"/><target ref="id0"/><label kind="assignment" x="-104" y="-144">queue[id] = true</label><nail x="-120" y="0"/><nail x="-120" y="-112"/><nail x="0" y="-112"/></transition></template><template><name>Server</name><declaration>id_t cur= 1;</declaration><location id="id1" x="-400" y="168"><committed/></location><location id="id2" x="328" y="-256"><committed/></location><location id="id3" x="-32" y="168"><name x="-48" y="200">Serving</name><label kind="exponentialrate" x="-48" y="184">servRate</label></location><location id="id4" x="-32" y="-256"><name x="-96" y="-288">Polling</name><label kind="exponentialrate" x="-88" y="-272">200</label></location><init ref="id1"/><transition><source ref="id1"/><target ref="id3"/><label kind="assignment" x="-264" y="136">main(), cur=0</label></transition><transition><source ref="id3"/><target ref="id2"/><label kind="assignment" x="152" y="168">queue[cur] = false</label><nail x="504" y="168"/><nail x="496" y="-256"/></transition><transition><source ref="id2"/><target ref="id4"/><label kind="guard" x="128" y="-176">cur == stations-1</label><label kind="assignment" x="168" y="-208">cur = 0</label><nail x="328" y="-184"/><nail x="0" y="-184"/></transition><transition><source ref="id2"/><target ref="id4"/><label kind="guard" x="104" y="-464">cur &lt; stations-1</label><label kind="assignment" x="268" y="-324">cur++</label><nail x="328" y="-392"/><nail x="-32" y="-392"/></transition><transition><source ref="id4"/><target ref="id2"/><label kind="guard" x="112" y="-286">queue[cur] == false</label></transition><transition><source ref="id4"/><target ref="id3"/><label kind="guard" x="-24" y="-72">queue[cur] == true</label></transition></template><system>// Place template instantiations here.
+
+
+// List one or more processes to be composed into a system.
+system Server,Station;
+</system></nta>

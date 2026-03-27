@@ -63,13 +63,14 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y tree cloc wget curl make
-          sudo apt-get install -y git ninja-build gcc g++
+          sudo apt-get install -y git ninja-build gcc g++ flex bison libxml2-dev doctest-dev
       - name: Set up system dependencies on Windows
         if: ${{ env.OS_NAME == 'Windows' }}
         shell: bash
         run: |
           choco install tree cloc wget curl make
-          choco install ninja make mingw
+          choco install ninja make mingw winflexbison3
+          echo "$(cygpath -m /c/ProgramData/chocolatey/bin)" >> "$GITHUB_PATH"
       - name: Kill Primitive CMake on MacOS
         if: ${{ env.OS_NAME == 'MacOS' }}
         shell: bash
@@ -80,7 +81,12 @@ jobs:
         shell: bash
         run: |
           brew install tree cloc wget curl make
-          brew install git ninja make
+          brew install git ninja make flex bison doctest
+          echo "$(brew --prefix flex)/bin" >> "$GITHUB_PATH"
+          echo "$(brew --prefix bison)/bin" >> "$GITHUB_PATH"
+          echo "FLEX_EXECUTABLE=$(brew --prefix flex)/bin/flex" >> "$GITHUB_ENV"
+          echo "BISON_EXECUTABLE=$(brew --prefix bison)/bin/bison" >> "$GITHUB_ENV"
+          echo "CMAKE_PREFIX_PATH=$(brew --prefix doctest):${CMAKE_PREFIX_PATH}" >> "$GITHUB_ENV"
           echo "CC=$(xcrun --find clang)" >> "$GITHUB_ENV"
           echo "CXX=$(xcrun --find clang++)" >> "$GITHUB_ENV"
       - name: Set up python ${{ matrix.python-version }}
@@ -98,6 +104,15 @@ jobs:
           echo "MINGW_BIN=$MINGW_BIN_POSIX" >> "$GITHUB_ENV"
           echo "CC=$MINGW_BIN_POSIX/gcc.exe" >> "$GITHUB_ENV"
           echo "CXX=$MINGW_BIN_POSIX/g++.exe" >> "$GITHUB_ENV"
+          WIN_FLEX_WIN="$(where.exe win_flex | head -n1 | tr -d '\r')"
+          WIN_BISON_WIN="$(where.exe win_bison | head -n1 | tr -d '\r')"
+          echo "FLEX_EXECUTABLE=$(cygpath -u "$WIN_FLEX_WIN")" >> "$GITHUB_ENV"
+          echo "BISON_EXECUTABLE=$(cygpath -u "$WIN_BISON_WIN")" >> "$GITHUB_ENV"
+      - name: Rewrite GitHub SSH URLs for build-time fetches
+        shell: bash
+        run: |
+          git config --global --add url."https://github.com/".insteadOf git@github.com:
+          git config --global --add url."https://github.com/".insteadOf ssh://git@github.com/
       - name: Set up build tools
         shell: bash
         run: |
@@ -148,9 +163,6 @@ jobs:
             python: '3.7'
             architecture: 'x86_64'
           - os: 'ubuntu-22.04'
-            python: '3.8'
-            architecture: 'x86_64'
-          - os: 'ubuntu-22.04'
             python: '3.11'
             architecture: 'x86_64'
           - os: 'ubuntu-22.04'
@@ -158,9 +170,6 @@ jobs:
             architecture: 'x86_64'
           - os: 'windows-2022'
             python: '3.7'
-            architecture: 'AMD64'
-          - os: 'windows-2022'
-            python: '3.8'
             architecture: 'AMD64'
           - os: 'windows-2022'
             python: '3.11'
@@ -173,14 +182,20 @@ jobs:
             python: '3.8'
             architecture: 'arm64'
           - os: 'macos-14'
-            python: '3.9'
-            architecture: 'arm64'
-          - os: 'macos-14'
             python: '3.11'
             architecture: 'arm64'
           - os: 'macos-14'
             python: '3.14'
             architecture: 'arm64'
+          - os: 'macos-15-intel'
+            python: '3.8'
+            architecture: 'x86_64'
+          - os: 'macos-15-intel'
+            python: '3.11'
+            architecture: 'x86_64'
+          - os: 'macos-15-intel'
+            python: '3.14'
+            architecture: 'x86_64'
 
     steps:
       - name: Checkout code
