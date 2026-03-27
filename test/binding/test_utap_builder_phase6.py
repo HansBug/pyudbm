@@ -1,6 +1,6 @@
 import pytest
 
-from pyudbm.binding import Expectation, ModelBuilder, Query
+from pyudbm.binding import Expectation, ModelBuilder, Option, Query
 
 
 PHASE6_IMPORT_INSPECT_PATCH_XTA = """clock x;
@@ -104,6 +104,12 @@ class TestUtapBuilderPhase6:
         with pytest.raises(TypeError, match=r"query selector must be a mapping"):
             builder.remove_query(where="A[] not deadlock")
 
+        with pytest.raises(ValueError, match=r"query selector must not be empty"):
+            builder.remove_query(where={})
+
+        with pytest.raises(TypeError, match=r"query selector field name must be a string"):
+            builder.remove_query(where={1: "A[] not deadlock"})
+
         with pytest.raises(ValueError, match=r"query selector field 'options' is not supported"):
             builder.update_query(where={"options": "x"}, comment="bad")
 
@@ -119,6 +125,9 @@ class TestUtapBuilderPhase6:
 
             with pytest.raises(TypeError, match=r"edge selector must be a mapping"):
                 template.remove_edge(where="Init -> Busy")
+
+            with pytest.raises(ValueError, match=r"edge selector must not be empty"):
+                template.remove_edge(where={})
 
             with pytest.raises(ValueError, match=r"edge selector field 'action' is not supported"):
                 template.update_edge(where={"action": "SKIP"}, sync="x?")
@@ -204,6 +213,44 @@ class TestUtapBuilderPhase6:
         assert snapshot["templates"][0]["locations"][0]["index"] == 0
         assert snapshot["templates"][0]["edges"][0]["index"] == 0
         assert snapshot["queries"][1]["formula"] == "E<> Busy"
+
+    def test_list_helpers_unknown_template_and_query_option_snapshots(self):
+        builder = (
+            ModelBuilder()
+            .template("P")
+                .location("Init", initial=True)
+                .end()
+            .process("P1", "P")
+            .system("P1")
+            .query("A[] not deadlock", options=(Option("trace", "short"),))
+        )
+
+        with pytest.raises(ValueError, match=r"unknown template 'Missing'"):
+            builder.list_locations("Missing")
+
+        with pytest.raises(ValueError, match=r"unknown template 'Missing'"):
+            builder.list_edges("Missing")
+
+        assert builder.list_queries() == (
+            {
+                "index": 0,
+                "formula": "A[] not deadlock",
+                "comment": "",
+                "options": (
+                    {
+                        "name": "trace",
+                        "value": "short",
+                    },
+                ),
+                "expectation": {
+                    "value_type": "Symbolic",
+                    "status": "True",
+                    "value": "",
+                    "resources": (),
+                },
+                "location": "",
+            },
+        )
 
     def test_import_inspect_patch_roundtrip_has_exact_text(self, text_aligner):
         source = (
