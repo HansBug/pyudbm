@@ -51,6 +51,11 @@
 - 一般性的 parser / query binding 扩展事项
 - 与 builder 无直接关系的 `UTAP` 零散增强项
 
+补充说明：
+
+- `PR16` 已经独立处理 `UTAP` 文本导出的缩进控制，因此本文不再把文本导出补丁类事项混入 builder 方案
+- 本文后续所有 phase 都只围绕 builder 本身展开
+
 ## 为什么 builder 必须做轻
 
 builder 一旦做重，用户会立刻退回：
@@ -548,52 +553,317 @@ builder 不能把所有错误都交给底层 parser。
 - 好的错误：`template 'P' has duplicate location 'Idle'`
 - 不好的错误：`XML parse failed near ...`
 
-## 我建议分几期做
+## 实施硬约束
 
-### Phase A：最小可用 builder
+这一节不是建议，而是后续 builder 实施时应直接遵守的约束。
 
-范围：
+### 1. 代码风格必须遵守 `AGENTS.md`
+
+后续 builder 相关实现，应明确遵守仓库当前 `AGENTS.md` / `CLAUDE.md` 中已经给出的代码规范，尤其是：
+
+- 与现有 `pyudbm.binding.utap` 风格保持一致
+- 默认使用 ASCII
+- 不引入和现有 public API 风格冲突的命名
+- 动作语义一律使用 method，不要误做成 property
+- 注释保持克制，不写低信息量注释
+
+### 2. 所有新增 public API 都必须补完整 pydoc
+
+后续 builder 相关 public class / function / method 必须补齐和当前仓库一致的文档字符串风格。
+
+最低要求：
+
+- 一行清楚说明用途
+- 对关键参数给出 `:param ...:` / `:type ...:` 风格说明
+- 对返回值给出 `:return:` / `:rtype:` 说明
+- 当方法语义不显然时，补充行为说明
+- 必须带 `Example::` 或 `Examples::` 风格示例
+
+这里的目标不是“有 docstring 就行”，而是和当前 `pyudbm.binding.utap` 里已有 public API 的 pydoc 风格一致。
+
+### 3. 单元测试只能通过 public surface 访问能力
+
+后续 builder 相关测试必须遵守下面这条硬规则：
+
+- 只允许 import 和使用 public module / public class / public function / public method / public field
+
+明确禁止：
+
+- import 私有模块，例如 `pyudbm.binding._utap`
+- import 任何下划线前缀对象
+- 直接访问 protected/private field
+- 用 monkeypatch 或反射方式绕过 public API 做覆盖率
+
+换句话说：
+
+- 测试必须站在真实 Python 用户的视角写
+
+### 4. 每个 phase 都必须补单元测试，并在 phase 范围内把 public coverage 拉到最高
+
+这里“覆盖率拉到最高”的含义是：
+
+- 以当前 phase 新增的 public thing 为核心
+- 在不使用 private/protected 接口的前提下
+- 把正常路径、边界路径、错误路径、round-trip 路径尽可能都覆盖到
+
+这不是要求盲目追求数字，而是要求：
+
+- 不留明显未测的 public branch
+- 不把“以后再测”当常态
+
+### 5. 文本相关测试继续使用全量断言
+
+builder 一旦产出 `ModelDocument` 并进入 `to_xta()` / `to_ta()` 路径，测试应该继续坚持：
+
+- 文本全量断言，而不是 substring 弱断言
+- 使用 `TextAligner` 做跨平台换行归一
+
+也就是说，后续 builder 测试中应优先出现：
+
+- `text_aligner.assert_equal(expected, doc.to_xta())`
+
+而不是：
+
+- `assert "process P()" in doc.to_xta()`
+
+## 建议的文件落点
+
+为了让实施路径更明确，我建议 builder 相关代码先按下面方式落位：
+
+- `pyudbm/binding/utap.py`
+  - 继续保留现有 parser / snapshot / document 相关公开面
+- `pyudbm/binding/utap_builder.py`
+  - 放 builder / spec / build helper 的主要公开实现
+- `pyudbm/binding/__init__.py`
+  - re-export builder 相关 public API
+- `docs/source/api_doc/binding/utap.rst`
+  - 补 builder 相关 public API 文档入口
+- `test/binding/test_utap_builder_phase1.py`
+- `test/binding/test_utap_builder_phase2.py`
+- `test/binding/test_utap_builder_phase3.py`
+- `test/binding/test_utap_builder_phase4.py`
+
+这里的重点是：
+
+- builder 不要继续把 `utap.py` 撑成一个越来越大的单文件
+- 但最终 public import 面仍然尽量统一在 `pyudbm.binding`
+
+## 明确可执行的 phase 计划
+
+### Phase 1：最小可用作者层
+
+目标：
+
+- 先把“Python 用户能不写 XML 地写一个最小模型”这件事做成
+
+本 phase 范围：
 
 - `ModelBuilder`
 - `TemplateBuilder`
-- `clock()` / `chan()`
-- `location()` / `edge()`
-- `process()` / `system()`
+- `clock()`
+- `chan()`
+- `template()`
+- `location()`
+- `edge()`
+- `process()`
+- `system()`
 - `query()`
 - `build() -> ModelDocument`
 
-这是最应该先落地的一期。
+本 phase 不做：
 
-### Phase B：Python 语义糖补齐
+- `ModelSpec` 系列正式公开
+- `from_document()`
+- 复杂 declaration DSL
+- 图形布局控制
 
-范围：
+建议交付文件：
 
-- `send=` / `recv=`
+- `pyudbm/binding/utap_builder.py`
+- `pyudbm/binding/__init__.py`
+- `docs/source/api_doc/binding/utap.rst`
+- `test/binding/test_utap_builder_phase1.py`
+
+本 phase checklist：
+
+* [ ] 新增 public `ModelBuilder`
+* [ ] 新增 public `TemplateBuilder`
+* [ ] `ModelBuilder.clock()` 支持一个或多个 clock 名称
+* [ ] `ModelBuilder.chan()` 支持一个或多个 channel 名称
+* [ ] `ModelBuilder.template()` 能返回模板 builder
+* [ ] `TemplateBuilder.location()` 支持 `initial` / `invariant` / `urgent` / `committed`
+* [ ] `TemplateBuilder.edge()` 至少支持 `guard` / `when` / `sync` / `update`
+* [ ] `ModelBuilder.process()` 和 `system()` 能生成最小系统
+* [ ] `ModelBuilder.query()` 能附加最小 query
+* [ ] `build()` 产出 public `ModelDocument`
+* [ ] 所有新增 public API 补齐 pydoc 和 `Example::`
+* [ ] 所有测试只通过 public API 编写
+* [ ] 当前 phase 范围内 public coverage 拉到最高
+
+本 phase 单元测试要求：
+
+* [ ] 最小单模板模型的 `to_xta()` 全量断言
+* [ ] 最小单模板模型的 `to_ta()` 全量断言
+* [ ] `dump()` / `dump_xta()` / `dump_ta()` round-trip 断言
+* [ ] `query()` 注入后的完整文本断言
+* [ ] builder 输出再通过 `load_xml()` / `loads_xta()` 重新加载的等价性断言
+* [ ] `TextAligner` 用于所有多行文本精确比较
+
+### Phase 2：Python 语义糖与结构校验
+
+目标：
+
+- 把 builder 从“能用”推进到“真顺手”
+
+本 phase 范围：
+
+- `send=`
+- `recv=`
 - `reset={...}`
-- 常见整数/常量 helper
-- builder 侧轻量校验完善
+- `integer()`
+- `const integer`
+- builder 侧结构校验
+- 上下文写法和 `.end()` 两种模板退出方式都稳定
 
-这期的目标是把“顺手程度”再提升一档。
+建议交付文件：
 
-### Phase C：spec 层正式化
+- `pyudbm/binding/utap_builder.py`
+- `docs/source/api_doc/binding/utap.rst`
+- `test/binding/test_utap_builder_phase2.py`
 
-范围：
+本 phase checklist：
 
-- `ModelSpec` / `TemplateSpec` / `LocationSpec` / `EdgeSpec` / `QuerySpec`
+* [ ] `TemplateBuilder.edge()` 支持 `send=` 语义糖
+* [ ] `TemplateBuilder.edge()` 支持 `recv=` 语义糖
+* [ ] `TemplateBuilder.edge()` 支持 `reset={name: value}` 语义糖
+* [ ] `ModelBuilder.integer()` 支持常见整数声明
+* [ ] `ModelBuilder.integer(..., const=True)` 支持常见常量整数声明
+* [ ] builder 对重复模板名给出清晰错误
+* [ ] builder 对重复 location 名给出清晰错误
+* [ ] builder 对多个 `initial=True` 给出清晰错误
+* [ ] builder 对未知 edge source/target 给出清晰错误
+* [ ] builder 对未知 process template 给出清晰错误
+* [ ] builder 对 `system()` 中未知 process 给出清晰错误
+* [ ] 所有新增 public API 补齐 pydoc 和 `Example::`
+* [ ] 所有测试只通过 public API 编写
+* [ ] 当前 phase 范围内 public coverage 拉到最高
+
+本 phase 单元测试要求：
+
+* [ ] `send=` / `recv=` 映射到同步文本的全量断言
+* [ ] `reset={...}` 映射到 update 文本的全量断言
+* [ ] `integer()` 和常量整数声明的文本快照断言
+* [ ] 所有结构错误路径都有 public API 层测试
+* [ ] 错误消息断言必须贴近用户输入语义
+
+### Phase 3：spec 层正式公开
+
+目标：
+
+- 让 builder 不仅适合人手写，也适合程序生成和快照驱动
+
+本 phase 范围：
+
+- `ModelSpec`
+- `TemplateSpec`
+- `LocationSpec`
+- `EdgeSpec`
+- `QuerySpec`
 - `build_model(spec)`
-- builder 与 spec 的互转
+- builder 到 spec 的公开转换
 
-这期完成后，builder 就不只是作者工具，也会成为生成工具。
+建议交付文件：
 
-### Phase D：导入后编辑路径
+- `pyudbm/binding/utap_builder.py`
+- `pyudbm/binding/__init__.py`
+- `docs/source/api_doc/binding/utap.rst`
+- `test/binding/test_utap_builder_phase3.py`
 
-范围：
+本 phase checklist：
 
-- `ModelBuilder.from_document(...)`
+* [ ] 新增 public `ModelSpec`
+* [ ] 新增 public `TemplateSpec`
+* [ ] 新增 public `LocationSpec`
+* [ ] 新增 public `EdgeSpec`
+* [ ] 新增 public `QuerySpec`
+* [ ] 新增 public `build_model(spec)`
+* [ ] builder 能导出 public spec
+* [ ] spec 构建结果与链式 builder 构建结果语义等价
+* [ ] 所有新增 public API 补齐 pydoc 和 `Example::`
+* [ ] 所有测试只通过 public API 编写
+* [ ] 当前 phase 范围内 public coverage 拉到最高
+
+本 phase 单元测试要求：
+
+* [ ] 用 spec 构建最小模型的 `to_xta()` 全量断言
+* [ ] 同一模型用 builder 构建和用 spec 构建的等价性断言
+* [ ] `build_model(spec)` 的错误路径测试
+* [ ] spec 默认值和边界值测试
+
+### Phase 4：导入后编辑与 patch 工作流
+
+目标：
+
+- 让 builder 从“纯作者层”继续扩展到“导入后可轻量编辑”
+
+本 phase 范围：
+
+- `ModelBuilder.from_document(document)`
 - 常见 patch helper
-- 更顺的 import-edit-export 工作流
+- import-edit-export 工作流
 
-这期很重要，但不应该压在第一阶段。
+建议交付文件：
+
+- `pyudbm/binding/utap_builder.py`
+- `docs/source/api_doc/binding/utap.rst`
+- `test/binding/test_utap_builder_phase4.py`
+
+本 phase checklist：
+
+* [ ] 新增 public `ModelBuilder.from_document(document)`
+* [ ] 能从现有 `ModelDocument` 重建 builder
+* [ ] 能在导入模型后继续追加 query
+* [ ] 能在导入模型后追加 process 或 patch system
+* [ ] 能在导入模型后补充 template 内结构
+* [ ] 所有新增 public API 补齐 pydoc 和 `Example::`
+* [ ] 所有测试只通过 public API 编写
+* [ ] 当前 phase 范围内 public coverage 拉到最高
+
+本 phase 单元测试要求：
+
+* [ ] `load_xml()` -> `ModelBuilder.from_document()` -> `build()` round-trip 测试
+* [ ] 导入后追加 query 的完整文本快照测试
+* [ ] 导入后 patch system/process 的语义等价测试
+* [ ] 导入后 patch 模板结构的错误路径测试
+
+### Phase 5：文档收口与 API 一致性整理
+
+目标：
+
+- 在 builder 基本定型后，把 public API、文档和测试口径完全收齐
+
+本 phase 范围：
+
+- 文档整理
+- 公开 API 命名复核
+- 示例一致性整理
+- 交叉测试补齐
+
+建议交付文件：
+
+- `docs/source/api_doc/binding/utap.rst`
+- 相关 public 模块的 pydoc
+- `test/binding/test_utap_builder_phase5.py`
+
+本 phase checklist：
+
+* [ ] 统一 builder / spec 的命名和参数风格
+* [ ] 所有 public API 文档示例都能反映主推荐用法
+* [ ] 所有 `Example::` 与真实 public API 保持一致
+* [ ] API 文档入口补齐 builder / spec 公开对象
+* [ ] 补齐跨 phase 的组合测试
+* [ ] 所有测试只通过 public API 编写
+* [ ] 当前 phase 范围内 public coverage 拉到最高
 
 ## 测试建议
 
