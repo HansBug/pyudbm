@@ -1,6 +1,8 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include "pyudbm/binding/_utap_bindings.hpp"
+
 #include <utap/builder.h>
 #include <utap/common.h>
 #include <utap/document.h>
@@ -23,12 +25,7 @@
 namespace py = pybind11;
 
 namespace {
-
-class ParseError : public std::runtime_error
-{
-public:
-    explicit ParseError(const std::string& message): std::runtime_error(message) {}
-};
+using pyudbm::binding::utap_native::ParseError;
 
 [[noreturn]] void throw_file_not_found(const std::filesystem::path& path)
 {
@@ -1475,6 +1472,15 @@ py::list parse_query_file(
 
 }  // namespace
 
+namespace pyudbm { namespace binding { namespace utap_native {
+
+py::object wrap_document_object(std::shared_ptr<UTAP::Document> document)
+{
+    return py::cast(wrap_document(std::move(document)));
+}
+
+}}}  // namespace pyudbm::binding::utap_native
+
 PYBIND11_MODULE(_utap, m)
 {
     m.doc() = "Native UTAP binding surface.";
@@ -1566,4 +1572,5 @@ PYBIND11_MODULE(_utap, m)
         py::arg("builder") = "auto"
     );
     m.def("builtin_declarations", []() { return std::string(utap_builtin_declarations()); });
+    pyudbm::binding::utap_native::bind_utap_builder(m);
 }
