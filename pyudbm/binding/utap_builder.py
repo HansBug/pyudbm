@@ -381,6 +381,131 @@ def _resolve_index(kind: str, size: int, index: int) -> int:
     return resolved
 
 
+def _normalize_selector(
+    kind: str,
+    where: object,
+    normalizers: MappingABC,
+) -> dict:
+    if not isinstance(where, MappingABC):
+        raise TypeError("{0} selector must be a mapping".format(kind))
+    if not where:
+        raise ValueError("{0} selector must not be empty".format(kind))
+
+    normalized = {}
+    for key, value in where.items():
+        if not isinstance(key, str):
+            raise TypeError("{0} selector field name must be a string".format(kind))
+        if key not in normalizers:
+            raise ValueError(
+                "{0} selector field {1!r} is not supported".format(kind, key)
+            )
+        normalized[key] = normalizers[key]("{0} selector {1}".format(kind, key), value)
+    return normalized
+
+
+def _resolve_selector_index(
+    kind: str,
+    *,
+    index: object,
+    where: object,
+    size: int,
+    matcher,
+    formatter,
+) -> int:
+    has_index = index is not _UNSET
+    has_where = where is not _UNSET
+
+    if has_index and has_where:
+        raise ValueError("{0} selection is ambiguous: use either 'index' or 'where'".format(kind))
+    if not has_index and not has_where:
+        raise ValueError("{0} selection requires either 'index' or 'where'".format(kind))
+    if has_index:
+        return _resolve_index(kind, size, index)
+
+    matched = [current_index for current_index in range(size) if matcher(current_index)]
+    if not matched:
+        raise ValueError("{0} selector {1!r} matched no {0}".format(kind, where))
+    if len(matched) > 1:
+        plural_kind = "queries" if kind == "query" else "{0}s".format(kind)
+        details = "; ".join(formatter(current_index) for current_index in matched)
+        raise ValueError(
+            "{0} selector {1!r} is ambiguous: matched {2} {3}: {4}".format(
+                kind, where, len(matched), plural_kind, details
+            )
+        )
+    return matched[0]
+
+
+def _option_snapshot(option: Option) -> dict:
+    return {
+        "name": option.name,
+        "value": option.value,
+    }
+
+
+def _expectation_snapshot(expectation: Expectation) -> dict:
+    return {
+        "value_type": expectation.value_type,
+        "status": expectation.status,
+        "value": expectation.value,
+        "resources": tuple(
+            {
+                "name": resource.name,
+                "value": resource.value,
+                "unit": resource.unit,
+            }
+            for resource in expectation.resources
+        ),
+    }
+
+
+def _query_snapshot(index: int, query: Query) -> dict:
+    return {
+        "index": index,
+        "formula": query.formula,
+        "comment": query.comment,
+        "options": tuple(_option_snapshot(option) for option in query.options),
+        "expectation": _expectation_snapshot(query.expectation),
+        "location": query.location,
+    }
+
+
+def _location_snapshot(index: int, location: _LocationState) -> dict:
+    return {
+        "index": index,
+        "name": location.name,
+        "initial": location.initial,
+        "invariant": location.invariant,
+        "urgent": location.urgent,
+        "committed": location.committed,
+    }
+
+
+def _edge_snapshot(index: int, edge: _EdgeState) -> dict:
+    return {
+        "index": index,
+        "source": edge.source,
+        "target": edge.target,
+        "guard": edge.guard,
+        "sync": edge.sync,
+        "update": edge.update,
+    }
+
+
+def _query_match(query: Query, selector: MappingABC) -> bool:
+    for key, value in selector.items():
+        if getattr(query, key) != value:
+            return False
+    return True
+
+
+def _edge_match(edge: _EdgeState, selector: MappingABC) -> bool:
+    for key, value in selector.items():
+        if getattr(edge, key) != value:
+            return False
+    return True
+
+
 def _normalize_process_entry(process: Tuple[str, ...]) -> Tuple[str, str, Tuple[str, ...]]:
     if not isinstance(process, tuple):
         raise TypeError("process specs must be tuples")
@@ -1448,6 +1573,165 @@ class ModelBuilder:
         self._system_process_names = _normalize_names("system process", process_names)
         return self
 
+    def list_templates(self) -> Tuple[dict, ...]:
+        """
+        List current template entries with explicit indexes.
+
+        :return: Template snapshots.
+        :rtype: Tuple[dict, ...]
+
+        Example::
+
+            >>> from pyudbm.binding.utap_builder import ModelBuilder
+            >>> builder = ModelBuilder().template("P").location("Init", initial=True).end()
+            >>> builder.list_templates()[0]["name"]
+            'P'
+        """
+
+        return tuple(
+            {
+                "index": index,
+                "name": template.name,
+                "parameters": template.parameters,
+                "declarations": tuple(template.declaration_lines),
+                "initial_location": template.initial_location,
+                "location_count": len(template.locations),
+                "edge_count": len(template.edges),
+            }
+            for index, template in enumerate(self._templates)
+        )
+
+    def list_processes(self) -> Tuple[dict, ...]:
+        """
+        List current process entries with explicit indexes.
+
+        :return: Process snapshots.
+        :rtype: Tuple[dict, ...]
+
+        Example::
+
+            >>> from pyudbm.binding.utap_builder import ModelBuilder
+            >>> builder = ModelBuilder().template("P").location("Init", initial=True).end().process("P1", "P")
+            >>> builder.list_processes()[0]["name"]
+            'P1'
+        """
+
+        system_indexes = {name: index for index, name in enumerate(self._system_process_names or ())}
+        return tuple(
+            {
+                "index": index,
+                "name": process.name,
+                "template_name": process.template_name,
+                "arguments": tuple(process.arguments),
+                "in_system": process.name in system_indexes,
+                "system_index": system_indexes.get(process.name),
+            }
+            for index, process in enumerate(self._processes)
+        )
+
+    def list_queries(self) -> Tuple[dict, ...]:
+        """
+        List current query entries with explicit indexes.
+
+        :return: Query snapshots.
+        :rtype: Tuple[dict, ...]
+
+        Example::
+
+            >>> from pyudbm.binding.utap_builder import ModelBuilder
+            >>> builder = ModelBuilder().query("A[] not deadlock")
+            >>> builder.list_queries()[0]["formula"]
+            'A[] not deadlock'
+        """
+
+        return tuple(_query_snapshot(index, query) for index, query in enumerate(self._queries))
+
+    def list_locations(self, template: str) -> Tuple[dict, ...]:
+        """
+        List locations of one template with explicit indexes.
+
+        :param template: Template name.
+        :type template: str
+        :return: Location snapshots.
+        :rtype: Tuple[dict, ...]
+
+        Example::
+
+            >>> from pyudbm.binding.utap_builder import ModelBuilder
+            >>> builder = ModelBuilder().template("P").location("Init", initial=True).end()
+            >>> builder.list_locations("P")[0]["name"]
+            'Init'
+        """
+
+        normalized_name = _require_text("template name", template)
+        for state in self._templates:
+            if state.name == normalized_name:
+                return tuple(_location_snapshot(index, location) for index, location in enumerate(state.locations))
+        raise ValueError("unknown template {0!r}".format(normalized_name))
+
+    def list_edges(self, template: str) -> Tuple[dict, ...]:
+        """
+        List edges of one template with explicit indexes.
+
+        :param template: Template name.
+        :type template: str
+        :return: Edge snapshots.
+        :rtype: Tuple[dict, ...]
+
+        Example::
+
+            >>> from pyudbm.binding.utap_builder import ModelBuilder
+            >>> builder = ModelBuilder().template("P").location("Init", initial=True).location("Done").edge("Init", "Done").end()
+            >>> builder.list_edges("P")[0]["source"]
+            'Init'
+        """
+
+        normalized_name = _require_text("template name", template)
+        for state in self._templates:
+            if state.name == normalized_name:
+                return tuple(_edge_snapshot(index, edge) for index, edge in enumerate(state.edges))
+        raise ValueError("unknown template {0!r}".format(normalized_name))
+
+    def inspect(self) -> dict:
+        """
+        Return one full JSON-friendly snapshot of current builder state.
+
+        :return: Full builder snapshot.
+        :rtype: dict
+
+        Example::
+
+            >>> from pyudbm.binding.utap_builder import ModelBuilder
+            >>> snapshot = ModelBuilder().template("P").location("Init", initial=True).end().inspect()
+            >>> snapshot["templates"][0]["name"]
+            'P'
+        """
+
+        return {
+            "declarations": tuple(self._declaration_lines),
+            "templates": tuple(
+                {
+                    "index": index,
+                    "name": template.name,
+                    "parameters": template.parameters,
+                    "declarations": tuple(template.declaration_lines),
+                    "initial_location": template.initial_location,
+                    "locations": tuple(
+                        _location_snapshot(location_index, location)
+                        for location_index, location in enumerate(template.locations)
+                    ),
+                    "edges": tuple(
+                        _edge_snapshot(edge_index, edge)
+                        for edge_index, edge in enumerate(template.edges)
+                    ),
+                }
+                for index, template in enumerate(self._templates)
+            ),
+            "processes": self.list_processes(),
+            "system_process_names": tuple(self._system_process_names or ()),
+            "queries": self.list_queries(),
+        }
+
     def query(
         self,
         formula: str,
@@ -1495,8 +1779,9 @@ class ModelBuilder:
 
     def update_query(
         self,
-        index: int,
+        index: object = _UNSET,
         *,
+        where: object = _UNSET,
         formula: object = _UNSET,
         comment: object = _UNSET,
         options: object = _UNSET,
@@ -1504,12 +1789,15 @@ class ModelBuilder:
         location: object = _UNSET,
     ) -> "ModelBuilder":
         """
-        Update one existing query by index.
+        Update one existing query by ``index`` or ``where`` selector.
 
-        Negative indexes follow normal Python indexing rules.
+        Negative indexes follow normal Python indexing rules when ``index`` is
+        used.
 
-        :param index: Query index.
-        :type index: int
+        :param index: Optional query index.
+        :type index: object
+        :param where: Optional query selector mapping.
+        :type where: object
         :param formula: Optional replacement formula text.
         :type formula: object
         :param comment: Optional replacement comment text.
@@ -1526,12 +1814,38 @@ class ModelBuilder:
         Example::
 
             >>> from pyudbm.binding.utap_builder import ModelBuilder
-            >>> builder = ModelBuilder().query("A[] not deadlock").update_query(0, comment="patched")
+            >>> builder = ModelBuilder().query("A[] not deadlock").update_query(where={"formula": "A[] not deadlock"}, comment="patched")
             >>> isinstance(builder, ModelBuilder)
             True
         """
 
-        resolved = _resolve_index("query", len(self._queries), index)
+        selector = _UNSET
+        if where is not _UNSET:
+            selector = _normalize_selector(
+                "query",
+                where,
+                {
+                    "formula": _require_text,
+                    "comment": _normalize_optional_text,
+                    "location": _normalize_optional_text,
+                },
+            )
+
+        resolved = _resolve_selector_index(
+            "query",
+            index=index,
+            where=selector,
+            size=len(self._queries),
+            matcher=lambda current_index: _query_match(self._queries[current_index], selector),
+            formatter=lambda current_index: (
+                "index={0} formula={1!r} comment={2!r} location={3!r}".format(
+                    current_index,
+                    self._queries[current_index].formula,
+                    self._queries[current_index].comment,
+                    self._queries[current_index].location,
+                )
+            ),
+        )
         current = self._queries[resolved]
         self._queries[resolved] = Query(
             formula=current.formula if formula is _UNSET else _require_text("formula", formula),
@@ -1542,26 +1856,55 @@ class ModelBuilder:
         )
         return self
 
-    def remove_query(self, index: int) -> "ModelBuilder":
+    def remove_query(self, index: object = _UNSET, *, where: object = _UNSET) -> "ModelBuilder":
         """
-        Remove one query by index.
+        Remove one query by ``index`` or ``where`` selector.
 
-        Negative indexes follow normal Python indexing rules.
+        Negative indexes follow normal Python indexing rules when ``index`` is
+        used.
 
-        :param index: Query index.
-        :type index: int
+        :param index: Optional query index.
+        :type index: object
+        :param where: Optional query selector mapping.
+        :type where: object
         :return: The current builder.
         :rtype: ModelBuilder
 
         Example::
 
             >>> from pyudbm.binding.utap_builder import ModelBuilder
-            >>> builder = ModelBuilder().query("A[] not deadlock").remove_query(0)
+            >>> builder = ModelBuilder().query("A[] not deadlock").remove_query(where={"formula": "A[] not deadlock"})
             >>> isinstance(builder, ModelBuilder)
             True
         """
 
-        resolved = _resolve_index("query", len(self._queries), index)
+        selector = _UNSET
+        if where is not _UNSET:
+            selector = _normalize_selector(
+                "query",
+                where,
+                {
+                    "formula": _require_text,
+                    "comment": _normalize_optional_text,
+                    "location": _normalize_optional_text,
+                },
+            )
+
+        resolved = _resolve_selector_index(
+            "query",
+            index=index,
+            where=selector,
+            size=len(self._queries),
+            matcher=lambda current_index: _query_match(self._queries[current_index], selector),
+            formatter=lambda current_index: (
+                "index={0} formula={1!r} comment={2!r} location={3!r}".format(
+                    current_index,
+                    self._queries[current_index].formula,
+                    self._queries[current_index].comment,
+                    self._queries[current_index].location,
+                )
+            ),
+        )
         del self._queries[resolved]
         return self
 
@@ -2019,8 +2362,9 @@ class TemplateBuilder:
 
     def update_edge(
         self,
-        index: int,
+        index: object = _UNSET,
         *,
+        where: object = _UNSET,
         source: object = _UNSET,
         target: object = _UNSET,
         when: object = _UNSET,
@@ -2032,12 +2376,15 @@ class TemplateBuilder:
         reset: object = _UNSET,
     ) -> "TemplateBuilder":
         """
-        Update one edge by index.
+        Update one edge by ``index`` or ``where`` selector.
 
-        Negative indexes follow normal Python indexing rules.
+        Negative indexes follow normal Python indexing rules when ``index`` is
+        used.
 
-        :param index: Edge index.
-        :type index: int
+        :param index: Optional edge index.
+        :type index: object
+        :param where: Optional edge selector mapping.
+        :type where: object
         :param source: Optional replacement source location name.
         :type source: object
         :param target: Optional replacement target location name.
@@ -2068,14 +2415,44 @@ class TemplateBuilder:
             ...     .location("Init", initial=True)
             ...     .location("Done")
             ...     .edge("Init", "Done")
-            ...     .update_edge(0, when="x >= 1")
+            ...     .update_edge(where={"source": "Init", "target": "Done"}, when="x >= 1")
             ... )
             >>> type(template).__name__
             'TemplateBuilder'
         """
 
         self._ensure_open()
-        resolved = _resolve_index("edge", len(self._state.edges), index)
+        selector = _UNSET
+        if where is not _UNSET:
+            selector = _normalize_selector(
+                "edge",
+                where,
+                {
+                    "source": _require_text,
+                    "target": _require_text,
+                    "guard": _normalize_optional_text,
+                    "sync": _normalize_optional_text,
+                    "update": _normalize_optional_text,
+                },
+            )
+
+        resolved = _resolve_selector_index(
+            "edge",
+            index=index,
+            where=selector,
+            size=len(self._state.edges),
+            matcher=lambda current_index: _edge_match(self._state.edges[current_index], selector),
+            formatter=lambda current_index: (
+                "index={0} source={1!r} target={2!r} guard={3!r} sync={4!r} update={5!r}".format(
+                    current_index,
+                    self._state.edges[current_index].source,
+                    self._state.edges[current_index].target,
+                    self._state.edges[current_index].guard,
+                    self._state.edges[current_index].sync,
+                    self._state.edges[current_index].update,
+                )
+            ),
+        )
         edge_state = self._state.edges[resolved]
 
         final_guard = edge_state.guard
@@ -2106,14 +2483,17 @@ class TemplateBuilder:
         edge_state.update = final_update
         return self
 
-    def remove_edge(self, index: int) -> "TemplateBuilder":
+    def remove_edge(self, index: object = _UNSET, *, where: object = _UNSET) -> "TemplateBuilder":
         """
-        Remove one edge by index.
+        Remove one edge by ``index`` or ``where`` selector.
 
-        Negative indexes follow normal Python indexing rules.
+        Negative indexes follow normal Python indexing rules when ``index`` is
+        used.
 
-        :param index: Edge index.
-        :type index: int
+        :param index: Optional edge index.
+        :type index: object
+        :param where: Optional edge selector mapping.
+        :type where: object
         :return: The current template builder.
         :rtype: TemplateBuilder
 
@@ -2126,14 +2506,44 @@ class TemplateBuilder:
             ...     .location("Init", initial=True)
             ...     .location("Done")
             ...     .edge("Init", "Done")
-            ...     .remove_edge(0)
+            ...     .remove_edge(where={"source": "Init", "target": "Done"})
             ... )
             >>> type(template).__name__
             'TemplateBuilder'
         """
 
         self._ensure_open()
-        resolved = _resolve_index("edge", len(self._state.edges), index)
+        selector = _UNSET
+        if where is not _UNSET:
+            selector = _normalize_selector(
+                "edge",
+                where,
+                {
+                    "source": _require_text,
+                    "target": _require_text,
+                    "guard": _normalize_optional_text,
+                    "sync": _normalize_optional_text,
+                    "update": _normalize_optional_text,
+                },
+            )
+
+        resolved = _resolve_selector_index(
+            "edge",
+            index=index,
+            where=selector,
+            size=len(self._state.edges),
+            matcher=lambda current_index: _edge_match(self._state.edges[current_index], selector),
+            formatter=lambda current_index: (
+                "index={0} source={1!r} target={2!r} guard={3!r} sync={4!r} update={5!r}".format(
+                    current_index,
+                    self._state.edges[current_index].source,
+                    self._state.edges[current_index].target,
+                    self._state.edges[current_index].guard,
+                    self._state.edges[current_index].sync,
+                    self._state.edges[current_index].update,
+                )
+            ),
+        )
         del self._state.edges[resolved]
         return self
 

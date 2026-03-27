@@ -51,7 +51,7 @@ ModelBuilder
 -----------------------------------------------------
 
 .. autoclass:: ModelBuilder
-    :members: __init__,from_document,declaration,set_declarations,clock,chan,integer,template,update_template,edit_template,remove_template,process,update_process,remove_process,system,query,update_query,remove_query,to_spec,build
+    :members: __init__,from_document,declaration,set_declarations,clock,chan,integer,template,update_template,edit_template,remove_template,process,update_process,remove_process,system,list_templates,list_processes,list_queries,list_locations,list_edges,inspect,query,update_query,remove_query,to_spec,build
 
 
 TemplateBuilder
