@@ -9,8 +9,12 @@ build:
     python: "3.12"
   apt_packages:
     - build-essential
+    - bison
     - cmake
+    - doctest-dev
+    - flex
     - graphviz
+    - libxml2-dev
     - librsvg2-bin
   jobs:
     post_checkout:
