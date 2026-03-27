@@ -53,6 +53,7 @@ from .utap import (
     parse_query,
     textual_builtin_preamble,
 )
+from .utap_builder import ModelBuilder, TemplateBuilder
 from .visual import PlotResult, plot_dbm, plot_federation
 
 __all__ = [
@@ -78,6 +79,7 @@ __all__ = [
     "Location",
     "MAPPED_FIELDS",
     "MAPPED_FIELD_NOTES",
+    "ModelBuilder",
     "ModelDocument",
     "Option",
     "ParsedQuery",
@@ -90,6 +92,7 @@ __all__ = [
     "Resource",
     "Symbol",
     "Template",
+    "TemplateBuilder",
     "TypeInfo",
     "UNMAPPED_FIELDS",
     "UNMAPPED_FIELD_REASONS",

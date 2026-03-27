@@ -50,7 +50,7 @@ pybind11_add_module(_ucdd pyudbm/binding/_ucdd.cpp)
 target_link_libraries(_ucdd PRIVATE UCDD)
 target_include_directories(_ucdd PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
 
-pybind11_add_module(_utap pyudbm/binding/_utap.cpp)
+pybind11_add_module(_utap pyudbm/binding/_utap.cpp pyudbm/binding/_utap_builder.cpp)
 target_link_libraries(_utap PRIVATE UTAP)
 target_include_directories(_utap PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
 pyudbm_enable_origin_rpath(_utap)

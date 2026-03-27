@@ -12,5 +12,6 @@ pyudbm.binding
     ucdd
     udbm
     utap
+    utap_builder
     visual
 
