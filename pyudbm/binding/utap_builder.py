@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping as MappingABC
 from dataclasses import dataclass, field
+import xml.etree.ElementTree as ET
 from typing import Iterable, List, Optional, Sequence, Tuple, Union
 
 from ._utap import _build_model as _native_build_model
@@ -30,6 +31,8 @@ __all__ = [
     "TemplateSpec",
     "build_model",
 ]
+
+_UNSET = object()
 
 
 @dataclass(frozen=True)
@@ -364,6 +367,20 @@ def _normalize_process_arguments(arguments: Iterable[object]) -> Tuple[str, ...]
     return tuple(_stringify_expression("process argument", item) for item in iterator)
 
 
+def _normalize_declaration_texts(texts: Sequence[str]) -> Tuple[str, ...]:
+    return tuple(_require_text("text", item) for item in texts)
+
+
+def _resolve_index(kind: str, size: int, index: int) -> int:
+    if not isinstance(index, int):
+        raise TypeError("{0} index must be an integer".format(kind))
+
+    resolved = index + size if index < 0 else index
+    if resolved < 0 or resolved >= size:
+        raise IndexError("{0} index {1} is out of range".format(kind, index))
+    return resolved
+
+
 def _normalize_process_entry(process: Tuple[str, ...]) -> Tuple[str, str, Tuple[str, ...]]:
     if not isinstance(process, tuple):
         raise TypeError("process specs must be tuples")
@@ -450,6 +467,61 @@ def _normalize_model_spec(spec: ModelSpec) -> ModelSpec:
         system_process_names=system_process_names,
         queries=tuple(_normalize_query_spec(item) for item in spec.queries),
     )
+
+
+def _builder_from_model_spec(spec: ModelSpec) -> "ModelBuilder":
+    normalized_spec = _normalize_model_spec(spec)
+    builder = ModelBuilder()
+    builder._declaration_lines = list(normalized_spec.declarations)
+    builder._templates = [
+        _TemplateState(
+            name=template.name,
+            parameters=template.parameters,
+            declaration_lines=list(template.declarations),
+            locations=[
+                _LocationState(
+                    name=location.name,
+                    invariant=location.invariant,
+                    urgent=location.urgent,
+                    committed=location.committed,
+                    initial=location.initial,
+                )
+                for location in template.locations
+            ],
+            edges=[
+                _EdgeState(
+                    source=edge.source,
+                    target=edge.target,
+                    guard=edge.guard,
+                    sync=edge.sync,
+                    update=edge.update,
+                )
+                for edge in template.edges
+            ],
+            initial_location=next(location.name for location in template.locations if location.initial),
+        )
+        for template in normalized_spec.templates
+    ]
+    builder._processes = [
+        _ProcessState(
+            name=process_name,
+            template_name=template_name,
+            arguments=arguments,
+        )
+        for process_name, template_name, arguments in normalized_spec.processes
+    ]
+    builder._system_process_names = tuple(normalized_spec.system_process_names)
+    builder._queries = [
+        Query(
+            formula=query.formula,
+            comment=query.comment,
+            options=query.options,
+            expectation=query.expectation,
+            location=query.location,
+        )
+        for query in normalized_spec.queries
+    ]
+    return builder
 
 
 def _validate_model_spec(spec: ModelSpec) -> None:
@@ -566,6 +638,206 @@ def _build_document_from_spec(spec: ModelSpec) -> ModelDocument:
     return ModelDocument(_native_build_model(_payload_from_model_spec(normalized_spec)))
 
 
+def _split_expression_list(text: str) -> Tuple[str, ...]:
+    stripped = text.strip()
+    if not stripped:
+        return ()
+
+    items = []
+    current = []
+    paren_depth = 0
+    bracket_depth = 0
+    brace_depth = 0
+    quote = None
+    escaped = False
+
+    for character in stripped:
+        if quote is not None:
+            current.append(character)
+            if escaped:
+                escaped = False
+            elif character == "\\":
+                escaped = True
+            elif character == quote:
+                quote = None
+            continue
+
+        if character in ("'", '"'):
+            quote = character
+            current.append(character)
+            continue
+
+        if character == "(":
+            paren_depth += 1
+        elif character == ")":
+            paren_depth -= 1
+        elif character == "[":
+            bracket_depth += 1
+        elif character == "]":
+            bracket_depth -= 1
+        elif character == "{":
+            brace_depth += 1
+        elif character == "}":
+            brace_depth -= 1
+        elif character == "," and paren_depth == 0 and bracket_depth == 0 and brace_depth == 0:
+            part = "".join(current).strip()
+            if not part:
+                raise ValueError("process argument text must not contain empty entries")
+            items.append(part)
+            current = []
+            continue
+
+        current.append(character)
+
+    if quote is not None or paren_depth != 0 or bracket_depth != 0 or brace_depth != 0:
+        raise ValueError("process argument text is not balanced")
+
+    tail = "".join(current).strip()
+    if not tail:
+        raise ValueError("process argument text must not contain empty entries")
+    items.append(tail)
+    return tuple(items)
+
+
+def _read_xml_text(element: Optional[ET.Element]) -> str:
+    return "" if element is None or element.text is None else element.text.strip()
+
+
+def _find_label_text(parent: ET.Element, kind: str) -> str:
+    for label in parent.findall("label"):
+        if label.attrib.get("kind") == kind:
+            return _read_xml_text(label)
+    return ""
+
+
+def _model_spec_from_document(document: ModelDocument) -> ModelSpec:
+    if not isinstance(document, ModelDocument):
+        raise TypeError("document must be a ModelDocument instance")
+
+    if document.options:
+        raise ValueError("from_document() does not support document-level options")
+    if document.before_update_text.strip():
+        raise ValueError("from_document() does not support before_update declarations")
+    if document.after_update_text.strip():
+        raise ValueError("from_document() does not support after_update declarations")
+    if document.channel_priority_texts:
+        raise ValueError("from_document() does not support channel priority declarations")
+
+    root = ET.fromstring(document.dumps())
+
+    declarations = ()
+    global_declaration_text = _read_xml_text(root.find("declaration"))
+    if global_declaration_text:
+        declarations = (global_declaration_text,)
+
+    templates = []
+    for template_element in root.findall("template"):
+        template_name = _require_text("template name", _read_xml_text(template_element.find("name")))
+        if template_element.findall("branchpoint"):
+            raise ValueError("from_document() does not support branchpoints in template {0!r}".format(template_name))
+
+        location_name_by_id = {}
+        initial_ref = _require_text("initial location ref", template_element.find("init").attrib.get("ref", ""))
+
+        for location_element in template_element.findall("location"):
+            location_id = _require_text("location id", location_element.attrib.get("id", ""))
+            location_name_by_id[location_id] = _require_text("location name", _read_xml_text(location_element.find("name")))
+
+        if initial_ref not in location_name_by_id:
+            raise ValueError("from_document() could not resolve initial location in template {0!r}".format(template_name))
+
+        locations = []
+        for location_element in template_element.findall("location"):
+            location_name = location_name_by_id[_require_text("location id", location_element.attrib.get("id", ""))]
+            locations.append(
+                LocationSpec(
+                    name=location_name,
+                    initial=(location_name == location_name_by_id[initial_ref]),
+                    invariant=_find_label_text(location_element, "invariant"),
+                    urgent=location_element.find("urgent") is not None,
+                    committed=location_element.find("committed") is not None,
+                )
+            )
+
+        edges = []
+        for transition_element in template_element.findall("transition"):
+            source_element = transition_element.find("source")
+            target_element = transition_element.find("target")
+            if source_element is None or target_element is None:
+                raise ValueError("from_document() requires transitions with both source and target references")
+
+            source_ref = _require_text("source ref", source_element.attrib.get("ref", ""))
+            target_ref = _require_text("target ref", target_element.attrib.get("ref", ""))
+            if source_ref not in location_name_by_id or target_ref not in location_name_by_id:
+                raise ValueError(
+                    "from_document() does not support branchpoint transitions in template {0!r}".format(template_name)
+                )
+
+            select_text = _find_label_text(transition_element, "select")
+            if select_text:
+                raise ValueError("from_document() does not support edge select clauses in template {0!r}".format(template_name))
+
+            probability_text = _find_label_text(transition_element, "probability")
+            if probability_text:
+                raise ValueError(
+                    "from_document() does not support edge probability labels in template {0!r}".format(template_name)
+                )
+
+            comment_text = _find_label_text(transition_element, "comments")
+            if comment_text:
+                raise ValueError("from_document() does not support edge comments in template {0!r}".format(template_name))
+
+            edges.append(
+                EdgeSpec(
+                    source=location_name_by_id[source_ref],
+                    target=location_name_by_id[target_ref],
+                    guard=_find_label_text(transition_element, "guard"),
+                    sync=_find_label_text(transition_element, "synchronisation"),
+                    update=_find_label_text(transition_element, "assignment"),
+                )
+            )
+
+        declaration_text = _read_xml_text(template_element.find("declaration"))
+        templates.append(
+            TemplateSpec(
+                name=template_name,
+                parameters=_read_xml_text(template_element.find("parameter")),
+                declarations=(declaration_text,) if declaration_text else (),
+                locations=tuple(locations),
+                edges=tuple(edges),
+            )
+        )
+
+    queries = []
+    default_expectation = Expectation("Symbolic", "True", "", ())
+    for query in document.queries:
+        if not query.formula.strip():
+            if query.comment.strip() or query.options or query.expectation != default_expectation:
+                raise ValueError("from_document() does not support empty imported query formulas with metadata")
+            continue
+
+        queries.append(
+            QuerySpec(
+                formula=query.formula,
+                comment=query.comment,
+                options=query.options,
+                expectation=query.expectation,
+                location=query.location,
+            )
+        )
+
+    return ModelSpec(
+        declarations=declarations,
+        templates=tuple(templates),
+        processes=tuple(
+            (process.name, process.template_name, _split_expression_list(process.arguments))
+            for process in document.processes
+        ),
+        system_process_names=tuple(process.name for process in document.processes),
+        queries=tuple(queries),
+    )
+
+
 def build_model(spec: ModelSpec) -> ModelDocument:
     """
     Build one public :class:`ModelDocument` from a :class:`ModelSpec`.
@@ -638,6 +910,40 @@ class ModelBuilder:
         self._system_process_names = None
         self._queries = []
 
+    @classmethod
+    def from_document(cls, document: ModelDocument) -> "ModelBuilder":
+        """
+        Rebuild one mutable builder from a public :class:`ModelDocument`.
+
+        This import path is limited to the current builder surface. Template
+        branchpoints, document-level options, and other unsupported features
+        are rejected with clear errors instead of being silently discarded.
+
+        :param document: Imported public document snapshot.
+        :type document: ModelDocument
+        :return: Builder initialized from the imported document.
+        :rtype: ModelBuilder
+
+        Example::
+
+            >>> from pyudbm.binding.utap_builder import ModelBuilder
+            >>> document = (
+            ...     ModelBuilder()
+            ...     .clock("x")
+            ...     .template("P")
+            ...         .location("Init", initial=True)
+            ...         .end()
+            ...     .process("P1", "P")
+            ...     .system("P1")
+            ...     .build()
+            ... )
+            >>> imported = ModelBuilder.from_document(document)
+            >>> isinstance(imported, ModelBuilder)
+            True
+        """
+
+        return _builder_from_model_spec(_model_spec_from_document(document))
+
     def declaration(self, text: str) -> "ModelBuilder":
         """
         Append one raw global declaration block.
@@ -657,6 +963,28 @@ class ModelBuilder:
         """
 
         self._declaration_lines.append(_require_text("text", text))
+        return self
+
+    def set_declarations(self, *texts: str) -> "ModelBuilder":
+        """
+        Replace all global declaration blocks.
+
+        Passing no texts clears the current global declaration list.
+
+        :param texts: Replacement declaration blocks.
+        :type texts: str
+        :return: The current builder.
+        :rtype: ModelBuilder
+
+        Example::
+
+            >>> from pyudbm.binding.utap_builder import ModelBuilder
+            >>> builder = ModelBuilder().clock("x").set_declarations("clock y;")
+            >>> isinstance(builder, ModelBuilder)
+            True
+        """
+
+        self._declaration_lines = list(_normalize_declaration_texts(texts))
         return self
 
     def clock(self, *names: str) -> "ModelBuilder":
@@ -802,6 +1130,149 @@ class ModelBuilder:
         self._templates.append(state)
         return TemplateBuilder(self, state)
 
+    def update_template(
+        self,
+        name: str,
+        *,
+        new_name: object = _UNSET,
+        parameters: object = _UNSET,
+    ) -> "ModelBuilder":
+        """
+        Update one existing template header.
+
+        :param name: Existing template name.
+        :type name: str
+        :param new_name: Optional replacement template name.
+        :type new_name: object
+        :param parameters: Optional replacement parameter text.
+        :type parameters: object
+        :return: The current builder.
+        :rtype: ModelBuilder
+        :raises ValueError: If the template does not exist or the new name is
+            duplicated.
+
+        Example::
+
+            >>> from pyudbm.binding.utap_builder import ModelBuilder
+            >>> builder = (
+            ...     ModelBuilder()
+            ...     .template("P")
+            ...         .location("Init", initial=True)
+            ...         .end()
+            ...     .update_template("P", new_name="Worker")
+            ... )
+            >>> isinstance(builder, ModelBuilder)
+            True
+        """
+
+        normalized_name = _require_text("template name", name)
+        for state in self._templates:
+            if state.name == normalized_name:
+                template_state = state
+                break
+        else:
+            raise ValueError("unknown template {0!r}".format(normalized_name))
+
+        final_name = template_state.name
+        if new_name is not _UNSET:
+            final_name = _require_text("new template name", new_name)
+            if final_name != template_state.name and any(item.name == final_name for item in self._templates):
+                raise ValueError("duplicate template {0!r}".format(final_name))
+
+        if parameters is not _UNSET:
+            template_state.parameters = _normalize_optional_text("parameters", parameters)
+
+        if final_name != template_state.name:
+            old_name = template_state.name
+            template_state.name = final_name
+            for process_state in self._processes:
+                if process_state.template_name == old_name:
+                    process_state.template_name = final_name
+
+        return self
+
+    def edit_template(self, name: str) -> "TemplateBuilder":
+        """
+        Open one existing template for incremental edits.
+
+        This is intended for import-edit-export workflows started with
+        :meth:`from_document`.
+
+        :param name: Existing template name.
+        :type name: str
+        :return: Template builder bound to the existing template state.
+        :rtype: TemplateBuilder
+        :raises ValueError: If the template does not exist.
+
+        Example::
+
+            >>> from pyudbm.binding.utap_builder import ModelBuilder
+            >>> document = (
+            ...     ModelBuilder()
+            ...     .template("P")
+            ...         .location("Init", initial=True)
+            ...         .end()
+            ...     .process("P1", "P")
+            ...     .system("P1")
+            ...     .build()
+            ... )
+            >>> template = ModelBuilder.from_document(document).edit_template("P")
+            >>> isinstance(template, TemplateBuilder)
+            True
+        """
+
+        normalized_name = _require_text("template name", name)
+        for state in self._templates:
+            if state.name == normalized_name:
+                return TemplateBuilder(self, state)
+
+        raise ValueError("unknown template {0!r}".format(normalized_name))
+
+    def remove_template(self, name: str) -> "ModelBuilder":
+        """
+        Remove one template and all processes instantiated from it.
+
+        Any matching process names are also removed from the current system
+        declaration order.
+
+        :param name: Template name to remove.
+        :type name: str
+        :return: The current builder.
+        :rtype: ModelBuilder
+        :raises ValueError: If the template does not exist.
+
+        Example::
+
+            >>> from pyudbm.binding.utap_builder import ModelBuilder
+            >>> builder = (
+            ...     ModelBuilder()
+            ...     .template("P")
+            ...         .location("Init", initial=True)
+            ...         .end()
+            ...     .process("P1", "P")
+            ...     .system("P1")
+            ...     .remove_template("P")
+            ... )
+            >>> isinstance(builder, ModelBuilder)
+            True
+        """
+
+        normalized_name = _require_text("template name", name)
+        for index, state in enumerate(self._templates):
+            if state.name == normalized_name:
+                del self._templates[index]
+                break
+        else:
+            raise ValueError("unknown template {0!r}".format(normalized_name))
+
+        removed_process_names = {process.name for process in self._processes if process.template_name == normalized_name}
+        self._processes = [process for process in self._processes if process.template_name != normalized_name]
+        if self._system_process_names is not None and removed_process_names:
+            self._system_process_names = tuple(
+                process_name for process_name in self._system_process_names if process_name not in removed_process_names
+            )
+        return self
+
     def process(self, name: str, template: str, *arguments: object) -> "ModelBuilder":
         """
         Append one process instantiation line.
@@ -843,6 +1314,118 @@ class ModelBuilder:
                 arguments=_normalize_process_arguments(arguments),
             )
         )
+        return self
+
+    def update_process(
+        self,
+        name: str,
+        *,
+        new_name: object = _UNSET,
+        template: object = _UNSET,
+        arguments: object = _UNSET,
+    ) -> "ModelBuilder":
+        """
+        Update one existing process instantiation.
+
+        :param name: Existing process name.
+        :type name: str
+        :param new_name: Optional replacement process name.
+        :type new_name: object
+        :param template: Optional replacement template name.
+        :type template: object
+        :param arguments: Optional replacement iterable of argument texts.
+        :type arguments: object
+        :return: The current builder.
+        :rtype: ModelBuilder
+        :raises ValueError: If the process does not exist or the new name is
+            duplicated.
+
+        Example::
+
+            >>> from pyudbm.binding.utap_builder import ModelBuilder
+            >>> builder = (
+            ...     ModelBuilder()
+            ...     .template("P")
+            ...         .location("Init", initial=True)
+            ...         .end()
+            ...     .process("P1", "P")
+            ...     .update_process("P1", new_name="Main")
+            ... )
+            >>> isinstance(builder, ModelBuilder)
+            True
+        """
+
+        normalized_name = _require_text("process name", name)
+        for state in self._processes:
+            if state.name == normalized_name:
+                process_state = state
+                break
+        else:
+            raise ValueError("unknown process {0!r}".format(normalized_name))
+
+        final_name = process_state.name
+        if new_name is not _UNSET:
+            final_name = _require_text("new process name", new_name)
+            if final_name != process_state.name and any(item.name == final_name for item in self._processes):
+                raise ValueError("duplicate process {0!r}".format(final_name))
+
+        if template is not _UNSET:
+            process_state.template_name = _require_text("template name", template)
+        if arguments is not _UNSET:
+            process_state.arguments = _normalize_process_arguments(arguments)
+
+        if final_name != process_state.name:
+            old_name = process_state.name
+            process_state.name = final_name
+            if self._system_process_names is not None:
+                self._system_process_names = tuple(
+                    final_name if process_name == old_name else process_name
+                    for process_name in self._system_process_names
+                )
+
+        return self
+
+    def remove_process(self, name: str) -> "ModelBuilder":
+        """
+        Remove one process instantiation.
+
+        The process name is also removed from the current system order if
+        present.
+
+        :param name: Process name to remove.
+        :type name: str
+        :return: The current builder.
+        :rtype: ModelBuilder
+        :raises ValueError: If the process does not exist.
+
+        Example::
+
+            >>> from pyudbm.binding.utap_builder import ModelBuilder
+            >>> builder = (
+            ...     ModelBuilder()
+            ...     .template("P")
+            ...         .location("Init", initial=True)
+            ...         .end()
+            ...     .process("P1", "P")
+            ...     .system("P1")
+            ...     .remove_process("P1")
+            ... )
+            >>> isinstance(builder, ModelBuilder)
+            True
+        """
+
+        normalized_name = _require_text("process name", name)
+        for index, state in enumerate(self._processes):
+            if state.name == normalized_name:
+                del self._processes[index]
+                break
+        else:
+            raise ValueError("unknown process {0!r}".format(normalized_name))
+
+        if self._system_process_names is not None:
+            self._system_process_names = tuple(
+                process_name for process_name in self._system_process_names if process_name != normalized_name
+            )
         return self
 
     def system(self, *process_names: str) -> "ModelBuilder":
@@ -909,6 +1492,78 @@ class ModelBuilder:
                 location=_normalize_optional_text("location", location),
             )
         )
+        return self
+
+    def update_query(
+        self,
+        index: int,
+        *,
+        formula: object = _UNSET,
+        comment: object = _UNSET,
+        options: object = _UNSET,
+        expectation: object = _UNSET,
+        location: object = _UNSET,
+    ) -> "ModelBuilder":
+        """
+        Update one existing query by index.
+
+        Negative indexes follow normal Python indexing rules.
+
+        :param index: Query index.
+        :type index: int
+        :param formula: Optional replacement formula text.
+        :type formula: object
+        :param comment: Optional replacement comment text.
+        :type comment: object
+        :param options: Optional replacement query options.
+        :type options: object
+        :param expectation: Optional replacement expectation metadata.
+        :type expectation: object
+        :param location: Optional replacement query location text.
+        :type location: object
+        :return: The current builder.
+        :rtype: ModelBuilder
+
+        Example::
+
+            >>> from pyudbm.binding.utap_builder import ModelBuilder
+            >>> builder = ModelBuilder().query("A[] not deadlock").update_query(0, comment="patched")
+            >>> isinstance(builder, ModelBuilder)
+            True
+        """
+
+        resolved = _resolve_index("query", len(self._queries), index)
+        current = self._queries[resolved]
+        self._queries[resolved] = Query(
+            formula=current.formula if formula is _UNSET else _require_text("formula", formula),
+            comment=current.comment if comment is _UNSET else _normalize_optional_text("comment", comment),
+            options=current.options if options is _UNSET else _normalize_options(options),
+            expectation=current.expectation if expectation is _UNSET else _normalize_expectation(expectation),
+            location=current.location if location is _UNSET else _normalize_optional_text("location", location),
+        )
+        return self
+
+    def remove_query(self, index: int) -> "ModelBuilder":
+        """
+        Remove one query by index.
+
+        Negative indexes follow normal Python indexing rules.
+
+        :param index: Query index.
+        :type index: int
+        :return: The current builder.
+        :rtype: ModelBuilder
+
+        Example::
+
+            >>> from pyudbm.binding.utap_builder import ModelBuilder
+            >>> builder = ModelBuilder().query("A[] not deadlock").remove_query(0)
+            >>> isinstance(builder, ModelBuilder)
+            True
+        """
+
+        resolved = _resolve_index("query", len(self._queries), index)
+        del self._queries[resolved]
         return self
 
     def to_spec(self) -> ModelSpec:
@@ -1084,6 +1739,29 @@ class TemplateBuilder:
         self._state.declaration_lines.append(_require_text("text", text))
         return self
 
+    def set_declarations(self, *texts: str) -> "TemplateBuilder":
+        """
+        Replace all local declaration blocks on the current template.
+
+        Passing no texts clears the current local declaration list.
+
+        :param texts: Replacement declaration blocks.
+        :type texts: str
+        :return: The current template builder.
+        :rtype: TemplateBuilder
+
+        Example::
+
+            >>> from pyudbm.binding.utap_builder import ModelBuilder
+            >>> template = ModelBuilder().template("P").set_declarations("int i;")
+            >>> type(template).__name__
+            'TemplateBuilder'
+        """
+
+        self._ensure_open()
+        self._state.declaration_lines = list(_normalize_declaration_texts(texts))
+        return self
+
     def location(
         self,
         name: str,
@@ -1139,6 +1817,137 @@ class TemplateBuilder:
         )
         if initial:
             self._state.initial_location = normalized_name
+        return self
+
+    def update_location(
+        self,
+        name: str,
+        *,
+        new_name: object = _UNSET,
+        initial: object = _UNSET,
+        invariant: object = _UNSET,
+        urgent: object = _UNSET,
+        committed: object = _UNSET,
+    ) -> "TemplateBuilder":
+        """
+        Update one existing location by name.
+
+        Renaming a location also updates all edges that refer to it.
+
+        :param name: Existing location name.
+        :type name: str
+        :param new_name: Optional replacement location name.
+        :type new_name: object
+        :param initial: Optional replacement initial-location flag.
+        :type initial: object
+        :param invariant: Optional replacement invariant text.
+        :type invariant: object
+        :param urgent: Optional replacement urgent flag.
+        :type urgent: object
+        :param committed: Optional replacement committed flag.
+        :type committed: object
+        :return: The current template builder.
+        :rtype: TemplateBuilder
+
+        Example::
+
+            >>> from pyudbm.binding.utap_builder import ModelBuilder
+            >>> template = (
+            ...     ModelBuilder()
+            ...     .template("P")
+            ...     .location("Init", initial=True)
+            ...     .update_location("Init", new_name="Start")
+            ... )
+            >>> type(template).__name__
+            'TemplateBuilder'
+        """
+
+        self._ensure_open()
+        normalized_name = _require_text("location name", name)
+        for state in self._state.locations:
+            if state.name == normalized_name:
+                location_state = state
+                break
+        else:
+            raise ValueError("template {0!r} has no location {1!r}".format(self._state.name, normalized_name))
+
+        final_name = location_state.name
+        if new_name is not _UNSET:
+            final_name = _require_text("new location name", new_name)
+            if final_name != location_state.name and any(item.name == final_name for item in self._state.locations):
+                raise ValueError("template {0!r} has duplicate location {1!r}".format(self._state.name, final_name))
+
+        if invariant is not _UNSET:
+            location_state.invariant = _normalize_optional_text("invariant", invariant)
+        if urgent is not _UNSET:
+            location_state.urgent = bool(urgent)
+        if committed is not _UNSET:
+            location_state.committed = bool(committed)
+
+        if initial is not _UNSET:
+            is_initial = bool(initial)
+            if is_initial:
+                for item in self._state.locations:
+                    item.initial = False
+                location_state.initial = True
+                self._state.initial_location = final_name
+            else:
+                location_state.initial = False
+                if self._state.initial_location == location_state.name:
+                    self._state.initial_location = None
+
+        if final_name != location_state.name:
+            old_name = location_state.name
+            location_state.name = final_name
+            if self._state.initial_location == old_name:
+                self._state.initial_location = final_name
+            for edge_state in self._state.edges:
+                if edge_state.source == old_name:
+                    edge_state.source = final_name
+                if edge_state.target == old_name:
+                    edge_state.target = final_name
+
+        return self
+
+    def remove_location(self, name: str) -> "TemplateBuilder":
+        """
+        Remove one location by name.
+
+        Any incident edges are removed together with the location.
+
+        :param name: Location name to remove.
+        :type name: str
+        :return: The current template builder.
+        :rtype: TemplateBuilder
+
+        Example::
+
+            >>> from pyudbm.binding.utap_builder import ModelBuilder
+            >>> template = (
+            ...     ModelBuilder()
+            ...     .template("P")
+            ...     .location("Init", initial=True)
+            ...     .location("Done")
+            ...     .remove_location("Done")
+            ... )
+            >>> type(template).__name__
+            'TemplateBuilder'
+        """
+
+        self._ensure_open()
+        normalized_name = _require_text("location name", name)
+        for index, state in enumerate(self._state.locations):
+            if state.name == normalized_name:
+                removed_location = self._state.locations.pop(index)
+                break
+        else:
+            raise ValueError("template {0!r} has no location {1!r}".format(self._state.name, normalized_name))
+
+        self._state.edges = [
+            edge for edge in self._state.edges if edge.source != normalized_name and edge.target != normalized_name
+        ]
+        if removed_location.initial or self._state.initial_location == normalized_name:
+            self._state.initial_location = None
         return self
 
     def edge(
@@ -1207,6 +2016,126 @@ class TemplateBuilder:
                 update=_normalize_update_text(update, reset),
             )
         )
+        return self
+
+    def update_edge(
+        self,
+        index: int,
+        *,
+        source: object = _UNSET,
+        target: object = _UNSET,
+        when: object = _UNSET,
+        guard: object = _UNSET,
+        sync: object = _UNSET,
+        send: object = _UNSET,
+        recv: object = _UNSET,
+        update: object = _UNSET,
+        reset: object = _UNSET,
+    ) -> "TemplateBuilder":
+        """
+        Update one edge by index.
+
+        Negative indexes follow normal Python indexing rules.
+
+        :param index: Edge index.
+        :type index: int
+        :param source: Optional replacement source location name.
+        :type source: object
+        :param target: Optional replacement target location name.
+        :type target: object
+        :param when: Optional replacement guard alias.
+        :type when: object
+        :param guard: Optional replacement guard text.
+        :type guard: object
+        :param sync: Optional replacement synchronisation text.
+        :type sync: object
+        :param send: Optional replacement send-side sugar.
+        :type send: object
+        :param recv: Optional replacement receive-side sugar.
+        :type recv: object
+        :param update: Optional replacement assignment text.
+        :type update: object
+        :param reset: Optional replacement reset sugar.
+        :type reset: object
+        :return: The current template builder.
+        :rtype: TemplateBuilder
+
+        Example::
+
+            >>> from pyudbm.binding.utap_builder import ModelBuilder
+            >>> template = (
+            ...     ModelBuilder()
+            ...     .template("P")
+            ...     .location("Init", initial=True)
+            ...     .location("Done")
+            ...     .edge("Init", "Done")
+            ...     .update_edge(0, when="x >= 1")
+            ... )
+            >>> type(template).__name__
+            'TemplateBuilder'
+        """
+
+        self._ensure_open()
+        resolved = _resolve_index("edge", len(self._state.edges), index)
+        edge_state = self._state.edges[resolved]
+
+        final_guard = edge_state.guard
+        final_sync = edge_state.sync
+        final_update = edge_state.update
+
+        if guard is not _UNSET or when is not _UNSET:
+            final_guard = _normalize_guard_text(
+                edge_state.guard if guard is _UNSET else guard,
+                "" if when is _UNSET else when,
+            )
+        if sync is not _UNSET or send is not _UNSET or recv is not _UNSET:
+            final_sync = _normalize_sync_text(
+                edge_state.sync if sync is _UNSET else sync,
+                "" if send is _UNSET else send,
+                "" if recv is _UNSET else recv,
+            )
+        if update is not _UNSET or reset is not _UNSET:
+            final_update = _normalize_update_text(
+                edge_state.update if update is _UNSET else update,
+                () if reset is _UNSET else reset,
+            )
+
+        edge_state.source = edge_state.source if source is _UNSET else _require_text("source", source)
+        edge_state.target = edge_state.target if target is _UNSET else _require_text("target", target)
+        edge_state.guard = final_guard
+        edge_state.sync = final_sync
+        edge_state.update = final_update
+        return self
+
+    def remove_edge(self, index: int) -> "TemplateBuilder":
+        """
+        Remove one edge by index.
+
+        Negative indexes follow normal Python indexing rules.
+
+        :param index: Edge index.
+        :type index: int
+        :return: The current template builder.
+        :rtype: TemplateBuilder
+
+        Example::
+
+            >>> from pyudbm.binding.utap_builder import ModelBuilder
+            >>> template = (
+            ...     ModelBuilder()
+            ...     .template("P")
+            ...     .location("Init", initial=True)
+            ...     .location("Done")
+            ...     .edge("Init", "Done")
+            ...     .remove_edge(0)
+            ... )
+            >>> type(template).__name__
+            'TemplateBuilder'
+        """
+
+        self._ensure_open()
+        resolved = _resolve_index("edge", len(self._state.edges), index)
+        del self._state.edges[resolved]
         return self
 
     def end(self) -> ModelBuilder:
