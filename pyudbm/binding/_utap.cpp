@@ -13,6 +13,7 @@
 #include <filesystem>
 #include <fstream>
 #include <memory>
+#include <optional>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -76,6 +77,33 @@ const std::string& normalized_text_view(const std::string& input, std::string& s
 
     storage = normalize_newlines(input);
     return storage;
+}
+
+std::string apply_text_indent(const std::string& input, const std::optional<int32_t>& indent)
+{
+    if (!indent.has_value()) {
+        return input;
+    }
+    if (*indent < 0) {
+        throw py::value_error("indent must be >= 0 or None");
+    }
+    if (input.find('\t') == std::string::npos) {
+        return input;
+    }
+
+    const auto replacement = std::string(static_cast<std::size_t>(*indent), ' ');
+    std::string output;
+    output.reserve(input.size());
+
+    for (const char ch : input) {
+        if (ch == '\t') {
+            output += replacement;
+        } else {
+            output.push_back(ch);
+        }
+    }
+
+    return output;
 }
 
 std::string py_fspath(const py::object& path_object)
@@ -1266,7 +1294,12 @@ std::shared_ptr<NativeDocument> parse_xta_file(const std::filesystem::path& path
     return parse_xta_buffer(read_text_file(path), newxta, strict);
 }
 
-std::string xml_to_text(const std::string& buffer, bool newxta, bool include_builtin_preamble)
+std::string xml_to_text(
+    const std::string& buffer,
+    bool newxta,
+    bool include_builtin_preamble,
+    const std::optional<int32_t>& indent
+)
 {
     std::ostringstream stream;
     UTAP::PrettyPrinter pretty_printer(stream);
@@ -1286,9 +1319,9 @@ std::string xml_to_text(const std::string& buffer, bool newxta, bool include_bui
 
     const auto text = stream.str();
     if (include_builtin_preamble || !newxta) {
-        return text;
+        return apply_text_indent(text, indent);
     }
-    return strip_exact_prefix(text, textual_builtin_preamble(true));
+    return apply_text_indent(strip_exact_prefix(text, textual_builtin_preamble(true)), indent);
 }
 
 py::object property_expectation_to_object(const UTAP::expectation* expectation)
@@ -1491,7 +1524,8 @@ PYBIND11_MODULE(_utap, m)
         &xml_to_text,
         py::arg("buffer"),
         py::arg("newxta") = true,
-        py::arg("include_builtin_preamble") = false
+        py::arg("include_builtin_preamble") = false,
+        py::arg("indent") = 4
     );
     m.def("textual_builtin_preamble", &textual_builtin_preamble, py::arg("newxta") = true);
     m.def(

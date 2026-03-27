@@ -1694,7 +1694,7 @@ class ModelDocument:
         with open(os.fspath(path), "w", encoding="utf-8", newline="\n") as file:
             file.write(self.dumps())
 
-    def to_xta(self, *, include_builtin_preamble: bool = False) -> str:
+    def to_xta(self, *, include_builtin_preamble: bool = False, indent: Optional[int] = 4) -> str:
         """
         Render the document as textual XTA using the upstream UTAP pretty printer.
 
@@ -1717,6 +1717,10 @@ class ModelDocument:
         :param include_builtin_preamble: Whether to keep the official UTAP
             built-in declaration preamble in the returned XTA text.
         :type include_builtin_preamble: bool
+        :param indent: Number of spaces used to replace each upstream tab
+            indentation character. Pass ``None`` to preserve literal ``\\t``
+            output from UTAP.
+        :type indent: Optional[int]
         :return: Textual XTA rendering of the current document.
         :rtype: str
 
@@ -1735,9 +1739,9 @@ class ModelDocument:
             True
         """
 
-        return _xml_to_text(self.dumps(), True, include_builtin_preamble)
+        return _xml_to_text(self.dumps(), True, include_builtin_preamble, indent)
 
-    def dump_xta(self, path: Any, *, include_builtin_preamble: bool = False) -> None:
+    def dump_xta(self, path: Any, *, include_builtin_preamble: bool = False, indent: Optional[int] = 4) -> None:
         """
         Write the upstream-pretty-printed XTA rendering to ``path``.
 
@@ -1746,20 +1750,28 @@ class ModelDocument:
         :param include_builtin_preamble: Whether to keep the official UTAP
             built-in declaration preamble in the written XTA text.
         :type include_builtin_preamble: bool
+        :param indent: Number of spaces used to replace each upstream tab
+            indentation character. Pass ``None`` to preserve literal ``\\t``
+            output from UTAP.
+        :type indent: Optional[int]
         :return: ``None``.
         :rtype: None
         """
 
         with open(os.fspath(path), "w", encoding="utf-8", newline="\n") as file:
-            file.write(self.to_xta(include_builtin_preamble=include_builtin_preamble))
+            file.write(self.to_xta(include_builtin_preamble=include_builtin_preamble, indent=indent))
 
-    def to_ta(self) -> str:
+    def to_ta(self, *, indent: Optional[int] = 4) -> str:
         """
         Render the document using the upstream pretty printer in old-syntax mode.
 
         This is the same official pretty-printing path as :meth:`to_xta`, but
         with ``newxta=False`` when feeding XML back into UTAP.
 
+        :param indent: Number of spaces used to replace each upstream tab
+            indentation character. Pass ``None`` to preserve literal ``\\t``
+            output from UTAP.
+        :type indent: Optional[int]
         :return: Textual TA rendering of the current document.
         :rtype: str
 
@@ -1778,20 +1790,24 @@ class ModelDocument:
             True
         """
 
-        return _xml_to_text(self.dumps(), False, False)
+        return _xml_to_text(self.dumps(), False, False, indent)
 
-    def dump_ta(self, path: Any) -> None:
+    def dump_ta(self, path: Any, *, indent: Optional[int] = 4) -> None:
         """
         Write the old-syntax upstream-pretty-printed rendering to ``path``.
 
         :param path: Output path.
         :type path: Any
+        :param indent: Number of spaces used to replace each upstream tab
+            indentation character. Pass ``None`` to preserve literal ``\\t``
+            output from UTAP.
+        :type indent: Optional[int]
         :return: ``None``.
         :rtype: None
         """
 
         with open(os.fspath(path), "w", encoding="utf-8", newline="\n") as file:
-            file.write(self.to_ta())
+            file.write(self.to_ta(indent=indent))
 
     @property
     def global_declarations(self) -> str:
