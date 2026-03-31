@@ -1,0 +1,28 @@
+digraph search_loop_overview {
+    rankdir=TB;
+    graph [pad="0.18", nodesep="0.42", ranksep="0.52", splines=true, newrank=true];
+    node [shape=box, style="rounded,filled", fillcolor="#f7f7f7", color="#666666", margin="0.14,0.08", fontname="Helvetica"];
+    edge [color="#666666", arrowsize="0.7", fontname="Helvetica"];
+
+    init [label="initialise\nput the stable start state\nS0 = (l0, Z0)\ninto WAIT", fillcolor="#eef4ff", color="#5c7fb8"];
+    inspect [label="take one candidate\nS = (l, Z)\nthen check the goal", fillcolor="#f7f7f7"];
+    done [shape=oval, label="return “reachable”\nand optionally a trace", fillcolor="#eef8ee", color="#5b8a5b"];
+    cover [shape=diamond, label="cover check\n∃(l, Z') ∈ PASSED\nwith Z ⊆ Z' ?", fillcolor="#fff8e8", color="#c97a1f"];
+    skip [shape=oval, label="skip expansion\nalready covered by PASSED", fillcolor="#f3f3f3", color="#9a9a9a"];
+    remember [label="add S to PASSED\nas one representative", fillcolor="#eef8ee", color="#5b8a5b"];
+    succ [label="generate successors\nPost_e(S)\nguard + reset + time elapse\n+ normalise / extrapolate", fillcolor="#f6eff7", color="#8c6bb1"];
+    wait [label="put successors\nback into WAIT", fillcolor="#eef4ff", color="#5c7fb8"];
+
+    { rank=same; inspect; done; }
+    { rank=same; cover; skip; }
+    { rank=same; remember; succ; }
+
+    init -> inspect;
+    inspect -> done [label="yes"];
+    inspect -> cover [label="no"];
+    cover -> skip [label="yes"];
+    cover -> remember [label="no"];
+    remember -> succ;
+    succ -> wait;
+    wait -> inspect [label="continue loop"];
+}

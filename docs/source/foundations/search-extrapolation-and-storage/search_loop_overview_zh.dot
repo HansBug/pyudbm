@@ -1,0 +1,28 @@
+digraph search_loop_overview_zh {
+    rankdir=TB;
+    graph [pad="0.18", nodesep="0.42", ranksep="0.52", splines=true, newrank=true];
+    node [shape=box, style="rounded,filled", fillcolor="#f7f7f7", color="#666666", margin="0.14,0.08"];
+    edge [color="#666666", arrowsize="0.7"];
+
+    init [label="初始化\n把初始稳定状态\nS0 = (l0, Z0)\n放入 WAIT", fillcolor="#eef4ff", color="#5c7fb8"];
+    inspect [label="取出候选状态\nS = (l, Z)\n并先看是否命中目标", fillcolor="#f7f7f7"];
+    done [shape=oval, label="返回“可达”\n并可回溯诊断轨迹", fillcolor="#eef8ee", color="#5b8a5b"];
+    cover [shape=diamond, label="覆盖判定\n∃(l, Z') ∈ PASSED\n且 Z ⊆ Z' ？", fillcolor="#fff8e8", color="#c97a1f"];
+    skip [shape=oval, label="跳过展开\n因为新信息已被覆盖", fillcolor="#f3f3f3", color="#9a9a9a"];
+    remember [label="加入 PASSED\n把 S 作为代表状态保存", fillcolor="#eef8ee", color="#5b8a5b"];
+    succ [label="生成并整理后继\nPost_e(S)\n守卫 + 重置 + 时间流逝\n+ 规范化 / 外推", fillcolor="#f6eff7", color="#8c6bb1"];
+    wait [label="放回 WAIT\n形成新的搜索前沿", fillcolor="#eef4ff", color="#5c7fb8"];
+
+    { rank=same; inspect; done; }
+    { rank=same; cover; skip; }
+    { rank=same; remember; succ; }
+
+    init -> inspect;
+    inspect -> done [label="是"];
+    inspect -> cover [label="否"];
+    cover -> skip [label="是"];
+    cover -> remember [label="否"];
+    remember -> succ;
+    succ -> wait;
+    wait -> inspect [label="继续主循环"];
+}

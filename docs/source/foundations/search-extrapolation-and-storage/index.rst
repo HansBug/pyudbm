@@ -36,6 +36,52 @@ Start With A Small But Real Search Loop
 The fundamental object of timed symbolic search is the symbolic state: a
 control location together with one clock region.
 
+Clarify WAIT And PASSED First
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The first confusing point in a search-algorithm tutorial is often not `up`,
+`reset`, or DBMs. It is the pair of containers the verifier keeps around and
+what each of them is actually for.
+
+At the most intuitive level, think of one to-do structure and one explored
+record:
+
+* `WAIT`: symbolic states that are already known reachable but have not been
+  expanded yet
+* `PASSED`: symbolic states that have already been expanded and can now be used
+  to block redundant exploration
+
+Slightly more precisely:
+
+* `WAIT` is the current frontier; different engines may implement it as a
+  stack, queue, or other worklist, but the shared meaning is “not expanded yet”
+* `PASSED` is not just a visited-node set. It is a **cover set**: it stores
+  symbolic states that are already strong enough to represent later
+  exploration
+
+So the standard search loop is really just:
+
+1. put the initial symbolic state into `WAIT`
+2. remove one candidate :math:`(l, Z)` from `WAIT`
+3. if something already in `PASSED` at the same location covers it, skip it
+4. otherwise add it to `PASSED`, generate successors, and put them into `WAIT`
+5. stop as soon as a target location is reached
+
+The next figure compresses those five steps into one overview: the labels keep
+symbols such as :math:`S = (l, Z)`, :math:`Z \subseteq Z'`, and :math:`Post_e(S)`, but also say
+in plain language what each stage is doing.
+
+.. graphviz:: search_loop_overview.dot
+
+The key correction to ordinary graph-search intuition is that `PASSED` is not a
+set of node ids. In timed symbolic search, one state is “location + one whole
+zone”. So the real job of `PASSED` is coverage: if a new candidate
+:math:`(l, Z)` is already contained in a larger stored state :math:`(l, Z')`,
+then expanding it usually adds no new reachability information.
+
+Once those two roles are fixed, the formulas below are just a precise way to
+write the same loop.
+
 If we show only two short successor formulas here, the notation looks cleaner
 than the real algorithm. So first fix the smallest useful set of symbols.
 
@@ -139,7 +185,7 @@ But the repeated building blocks are still the same set operations.
 A Tiny But Real Verification Example
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Now consider a tiny automaton with only one clock `x`.
+Now consider a tiny automaton with only one clock :math:`x`.
 It is small enough that we can calculate each search step explicitly, but it
 already contains guards, resets, target invariants, and a real `WAIT` /
 `PASSED` loop.
@@ -152,7 +198,7 @@ The query is:
 
    E \Diamond Goal
 
-meaning “is there an execution that eventually reaches `Goal`?”
+meaning “is there an execution that eventually reaches :math:`Goal`?”
 
 The three location invariants are:
 
@@ -179,7 +225,7 @@ The two edges are:
    e_1 = (L_1,\; x \ge 1,\; \{x\},\; Goal)
 
 If the verifier stores stable symbolic states in `WAIT`, then the first state
-at `L_0` is not the point :math:`x = 0`, but the time-closed zone:
+at :math:`L_0` is not the point :math:`x = 0`, but the time-closed zone:
 
 .. math::
 
@@ -233,12 +279,12 @@ Along the second edge :math:`e_1`:
    =
    \left\{ v \mid 0 \le v(x) \le 1 \right\}
 
-So the verifier is not following one time point such as `x = 2` or `x = 3.4`.
+So the verifier is not following one time point such as :math:`x = 2` or :math:`x = 3.4`.
 It is following:
 
-* the full feasible interval :math:`0 \le x \le 5` in `L_0`
-* then the full interval :math:`0 \le x \le 3` in `L_1`
-* then the full interval :math:`0 \le x \le 1` in `Goal`
+* the full feasible interval :math:`0 \le x \le 5` in :math:`L_0`
+* then the full interval :math:`0 \le x \le 3` in :math:`L_1`
+* then the full interval :math:`0 \le x \le 1` in :math:`Goal`
 
 The next figure turns that same story into a one-dimensional zone evolution:
 
@@ -572,7 +618,7 @@ tests [PYUDBM_UDBM_PY_SEARCH]_ [PYUDBM_UDBM_CPP_SEARCH]_ [PYUDBM_TEST_UDBM]_.
      - ``dbm_down`` / ``fed_t::predt``
      - This covers backward-style reasoning and predecessor computation while avoiding bad zones.
    * - Cover / inclusion test
-     - :meth:`Federation.contains`, ``<=``, ``>=``
+     - :meth:`Federation.contains`, :math:`\le`, :math:`\ge`
      - ``fed_t::contains``, relation / inclusion checks
      - These decide whether `PASSED` is already strong enough to block a new candidate.
    * - Max-bound extrapolation
