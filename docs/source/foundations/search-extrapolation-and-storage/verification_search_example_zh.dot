@@ -1,0 +1,17 @@
+digraph verification_search_example_zh {
+    rankdir=TB;
+    graph [pad="0.25", nodesep="0.55", ranksep="0.7", splines=true, newrank=true];
+    node [shape=box, style="rounded,filled", fillcolor="#f7f7f7", color="#666666"];
+    edge [color="#666666"];
+
+    init [shape=point, width="0.16", fillcolor="#666666", color="#666666"];
+    l0 [label="L0\n不变量: x <= 5", fillcolor="#eef4ff", color="#5c7fb8"];
+    l1 [label="L1\n不变量: x <= 3", fillcolor="#f6eff7", color="#8c6bb1"];
+    goal [label="Goal\n不变量: x <= 1", fillcolor="#eef8ee", color="#5b8a5b"];
+
+    { rank=same; l1; goal; }
+
+    init -> l0;
+    l0 -> l1 [label="g0: x >= 2\nreset: x := 0"];
+    l1 -> goal [label="g1: x >= 1\nreset: x := 0"];
+}

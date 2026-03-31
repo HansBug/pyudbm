@@ -1,0 +1,20 @@
+digraph storage_stack_zh {
+    rankdir=LR;
+    graph [pad="0.25", nodesep="0.55", ranksep="0.8", splines=true];
+    node [shape=box, style="rounded,filled", fillcolor="#f7f7f7", color="#666666"];
+    edge [color="#666666"];
+
+    state [label="符号状态\n(位置, 区域)", fillcolor="#eef4ff", color="#5c7fb8"];
+    closed [label="闭包后的 DBM /\n联邦", fillcolor="#f6eff7", color="#8c6bb1"];
+    mingraph [label="最小约束 /\nminDBM", fillcolor="#fff3de", color="#c97a1f"];
+    packed [label="紧凑编码 /\n哈希表载荷", fillcolor="#eef8ee", color="#5b8a5b"];
+    check [label="去重 / 包含检查", fillcolor="#fff8e8", color="#c97a1f"];
+    pyapi [label="Python 侧入口\nDBM.to_min_dbm()\nFederation.contains()\nFederation.extrapolate_max_bounds()", fillcolor="#f3f3f3", color="#666666"];
+
+    state -> closed;
+    closed -> mingraph [label="删去冗余约束"];
+    mingraph -> packed [label="编码 / 缓存 / 哈希"];
+    packed -> check [label="PWList / PASSED"];
+    closed -> pyapi [style=dashed];
+    mingraph -> pyapi [style=dashed];
+}

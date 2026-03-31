@@ -81,6 +81,7 @@
     foundations/dbm-basics/index_zh
     foundations/federations/index_zh
     foundations/cdd/index_zh
+    foundations/search-extrapolation-and-storage/index_zh
 
 * :doc:`foundations/reading-guide/index_zh`
 * :doc:`foundations/what-is-uppaal/index_zh`
@@ -90,5 +91,6 @@
 * :doc:`foundations/dbm-basics/index_zh`
 * :doc:`foundations/federations/index_zh`
 * :doc:`foundations/cdd/index_zh`
+* :doc:`foundations/search-extrapolation-and-storage/index_zh`
 
 .. include:: api_doc_zh.rst

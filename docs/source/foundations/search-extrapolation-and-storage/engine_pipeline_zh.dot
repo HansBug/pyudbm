@@ -1,0 +1,46 @@
+digraph engine_pipeline_zh {
+    rankdir=TB;
+    graph [pad="0.25", nodesep="0.4", ranksep="0.65", splines=true];
+    node [shape=box, style="rounded,filled", fillcolor="#f7f7f7", color="#666666"];
+    edge [color="#666666"];
+
+    input [label="符号状态", fillcolor="#eef4ff", color="#5c7fb8"];
+    query [label="Query\n性质检查", fillcolor="#fff8e8", color="#c97a1f"];
+    transition [label="Transition / Successor\n离散后继计算", fillcolor="#f6eff7", color="#8c6bb1"];
+    delay [label="Delay\n时间后继", fillcolor="#f6eff7", color="#8c6bb1"];
+    norm [label="Normalisation /\nExtrapolation", fillcolor="#fff3de", color="#c97a1f"];
+    pwlist [label="PWList / 共享缓冲区", fillcolor="#eef8ee", color="#5b8a5b"];
+    progress [label="进度统计", style="rounded,dashed,filled", fillcolor="#f3f3f3", color="#a0a0a0"];
+    active [label="活动时钟约简", style="rounded,dashed,filled", fillcolor="#f3f3f3", color="#a0a0a0"];
+    trace [label="诊断轨迹存储", style="rounded,dashed,filled", fillcolor="#f3f3f3", color="#a0a0a0"];
+
+    subgraph cluster_filters {
+        label="过滤器式状态操作";
+        color="#cfcfcf";
+        style="rounded,dashed";
+        query;
+        transition;
+        delay;
+        norm;
+        active;
+    }
+
+    subgraph cluster_buffers {
+        label="状态空间表示";
+        color="#cfcfcf";
+        style="rounded,dashed";
+        pwlist;
+        progress;
+        trace;
+    }
+
+    input -> query;
+    query -> transition;
+    transition -> delay;
+    delay -> norm;
+    norm -> pwlist;
+    norm -> active [style=dashed];
+    pwlist -> progress [style=dashed];
+    pwlist -> trace [style=dashed];
+    pwlist -> input [label="下一状态"];
+}

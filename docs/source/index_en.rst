@@ -84,6 +84,7 @@ Concept Foundations
     foundations/dbm-basics/index
     foundations/federations/index
     foundations/cdd/index
+    foundations/search-extrapolation-and-storage/index
 
 * :doc:`foundations/reading-guide/index`
 * :doc:`foundations/what-is-uppaal/index`
@@ -93,5 +94,6 @@ Concept Foundations
 * :doc:`foundations/dbm-basics/index`
 * :doc:`foundations/federations/index`
 * :doc:`foundations/cdd/index`
+* :doc:`foundations/search-extrapolation-and-storage/index`
 
 .. include:: api_doc_en.rst

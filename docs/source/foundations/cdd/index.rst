@@ -605,9 +605,11 @@ If this page leaves you with seven core points, they should be these:
 Next
 ~~~~
 
-After CDDs, the next natural topic cluster is search, storage, extrapolation,
-and termination: now that zones, federations, and CDDs are all on the table,
-the next question is how they participate in real `WAIT` / `PASSED` loops.
+After CDDs, the next natural topic is
+:doc:`../search-extrapolation-and-storage/index`: now that zones, federations,
+and CDDs are all on the table, the next question is how they participate in
+real `WAIT` / `PASSED` loops, why extrapolation is necessary, and why storage
+pressure feeds back into representation design.
 
 References
 ~~~~~~~~~~
