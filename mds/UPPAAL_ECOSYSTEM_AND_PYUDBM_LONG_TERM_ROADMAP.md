@@ -284,6 +284,35 @@
 - 对 `pyudbm` 不提供直接技术复用
 - 但它是观察官方生态优先级变化的窗口
 
+补充记录（`2026-03-24` 再看）：
+
+- 这个仓库更像公开问题池，而不是持续维护的技术路线文档仓库
+- 仓库本体内容很少，真正有价值的信息主要在 issue、标签和讨论里
+- 因此更准确的定位应当是：
+  - 它适合拿来观察用户长期痛点、官方公开回应和需求聚集方向
+  - 但不应把它当成 `pyudbm` 技术路线的主要依据
+
+从现有 issue 池看，对 `pyudbm` 最值得关注的信号主要不是底层 `DBM/CDD` API 本身，而是：
+
+- 文本化建模与非 XML 工作流需求
+  - 例如用户明确偏好 `XTA` 这类更适合文本编辑和版本控制的格式
+- 命令行与自动化输出需求
+  - 例如结构化 query 结果、CLI 友好的结果消费、终端工作流
+- trace / witness / counterexample 的可消费性需求
+  - 例如更稳定的 trace 导出、更多条 counterexample、有限反例轨迹
+- 外部扩展与 FFI 使用需求
+  - 但官方讨论也明确暴露出 side effect 容易破坏验证语义健全性的问题
+- symbolic 与 concrete 工作流边界的精细化需求
+  - 例如某些变量、ODE 或扩展语义应在 symbolic 分析中被忽略，而在 concrete 分析中重新引入
+
+这些信号对本路线的启发是：
+
+- `pyudbm` 的价值不应停留在“再多包几层底层 binding”
+- 更值得优先建设的是 Python-first 的建模、查询、trace、脚本化和结果消费工作流
+- 但同时必须明确区分：
+  - 哪些能力属于符号验证安全子集
+  - 哪些能力只适合具体执行、外部交互或辅助分析
+
 来源：
 
 - <https://github.com/UPPAALModelChecker/UPPAAL-Meta>
@@ -516,6 +545,109 @@ LaTeX 排版工具仓库。
 2. 把 `CDD` 误降级成“又一个 Federation 容器”
 3. 为了快而堆出一层不稳定的 Python API，丢掉与历史 binding / 上游语义的一致性
 4. 过早尝试“做一个完整 UPPAAL 替代品”，导致项目面过大、交付失焦
+
+### 5. 补充：完整验证链路、公开官方仓库边界与 `verifyta`
+
+如果把目标进一步收紧成“搭出一条完整可用的 UPPAAL 形式化验证链路”，那么必须把“公开官方仓库能提供什么”与“仍需依赖官方发行版或本仓库自建什么”分开看。
+
+基于 `2026-03-24` 可见的 `UPPAALModelChecker` 公开仓库列表，一个重要判断是：
+
+- 公开官方仓库里已经有 parser、symbolic core、trace interpreter、LSP、动态库示例等组件
+- 但没有看到一个公开的、可直接作为完整 verifier engine 源码依赖的 `verifyta` 仓库
+
+这意味着一个非常实际的边界：
+
+- 如果目标是“尽快让完整链路跑起来”，那就不能只靠继续引入公开 GitHub 仓库
+- 还必须准备官方 UPPAAL 发行版中的 `verifyta` 命令行工具，或者由本仓库自行实现验证主循环
+
+因此，对 `pyudbm` 来说，近期最现实的完整链路应该理解为：
+
+- Python 建模 DSL / 内部 IR
+- Python 性质 DSL / query 对象
+- 模型导出为 UPPAAL 兼容格式
+- 调用 `verifyta`
+- 消费验证结果、`xtr` trace 与相关诊断输出
+- 在 Python 中提供结构化结果对象
+
+也就是说，更现实的近期链路是：
+
+- `Python DSL -> XML/XTA -> verifyta -> result/trace -> Python object`
+
+而不是误以为：
+
+- `UTAP + UDBM + UCDD + tracer = 完整 verifier`
+
+它们并不等价。
+
+对公开官方仓库的更精确角色判断如下：
+
+- `UDBM` / `UCDD` / `UUtils`
+  - 负责底层符号数据结构与算子
+  - 是验证内核的重要底座
+  - 但不是完整模型检查器
+- `utap`
+  - 负责模型解析、类型检查与文档表示
+  - 适合作为 import / type-check / compatibility front-end
+  - 但不负责性质验证主循环
+- `tracer`
+  - 负责解释 `xtr` trace
+  - 适合作为 witness / diagnostic trace 的消费后端
+  - 但本身不产生 trace，也不做验证
+- `uls`
+  - 主要服务编辑器与自动补全
+  - 不是验证链路主依赖
+- `uppaal-libs`
+  - 主要服务 external functions / 动态库扩展
+  - 不是验证链路主依赖
+- `toolchains`
+  - 主要服务构建环境统一
+  - 不是验证语义组件
+
+这直接导出一个近期优先级判断：
+
+- 真正的下一个阻塞项不是“再引一个官方 repo”
+- 而是先把 `Location / Edge / Template / System`、query 表示、结果对象和 `verifyta bridge` 做出来
+
+在这之后，再评估：
+
+- `utap` 是否作为模型导入 / 语法对齐 / 类型检查层引入
+- `tracer` 是否作为 trace 解释后端引入
+
+这里还有一个工程现实必须记录：
+
+- 当前本仓库本地构建仍然是 `CMake 3.15 + C++17` 体系
+- 而公开上游当前 `UDBM` / `UCDD` 已经明显向更高的工具链要求移动
+- `utap` 也会新增 `libxml2`、`flex`、`bison` 等依赖
+
+因此，后续如果要接官方更多原生仓库，不应默认理解成“直接追最新 upstream head 即可”。
+更稳妥的方式应是：
+
+- 先把验证链路的 Python 层边界定义好
+- 再谨慎决定哪些原生仓库做 hard dependency，哪些先做 optional / sidecar integration
+
+`verifyta` 的官方资源入口也值得单独记一下：
+
+- 官方文档页：
+  - <https://docs.uppaal.org/toolsandapi/verifyta/>
+  - 文档明确说明 `verifyta` 是 UPPAAL 发行版 `bin` 目录中的命令行 verifier
+- 官方下载页：
+  - <https://uppaal.org/downloads/>
+  - 这里提供当前平台发行包，也明确写了如果只使用 `verifyta`，则 Java 不是必需条件
+- 官方 Docker 文档：
+  - <https://docs.uppaal.org/toolsandapi/docker/>
+  - 这里给出了把 UPPAAL engine 放进容器、调用 `verifyta.sh --version`、以及处理 libc 兼容问题的方式
+- 官方文件格式文档：
+  - <https://docs.uppaal.org/toolsandapi/file-formats/>
+  - 这里说明了 `.xml` / `.xta` / `.ta` / `.q` / `.xtr` 等格式关系
+- 官方 symbolic trace 文档：
+  - <https://docs.uppaal.org/gui-reference/symbolic-simulator/symbolic-traces/>
+  - 这里明确指出 `verifyta` 可以生成 forward stable traces
+
+综合起来，对“完整链路”更准确的近期判断是：
+
+- 官方公开仓库已经足够支撑“模型前后处理 + 符号内核 + trace 消费”
+- 但若想尽快得到完整、可运行、与官方工具兼容的验证链路，`verifyta` 仍然是必须认真对接的核心外部资源
+- 若未来希望摆脱 `verifyta` 依赖，则那一部分不会通过“再多引几个官方 repo”自动完成，而必须由本仓库自行补出 verifier 层
 
 ## 五、补充定位：面向 Python 的“UPPAAL 工作流重建”
 
@@ -858,6 +990,19 @@ UPPAAL 传统 XML 格式适合工具持久化和 GUI 交换，但并不适合作
 6. 设计结构化结果、错误和 trace API
 7. 评估 `utap` / `tracer` 对接
 8. 最后再扩更完整查询层与 XML 互操作
+
+补充记录：
+
+- 如果近期目标不是“研究原型”，而是“尽快打通一条完整可运行的官方兼容验证链路”
+- 那么在上述顺序之外，还应尽早插入：
+  - `verifyta bridge`
+  - `verifyta` 结果解析
+  - `xtr` / trace 消费链路
+
+换句话说：
+
+- `utap` / `tracer` 的深度集成可以稍后评估
+- 但 `verifyta` 的调用编排与结果对象化，反而更早会成为真正的工程阻塞项
 
 ### 3. 对文档体系的建议
 
