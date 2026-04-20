@@ -44,6 +44,10 @@ If you already know zones and DBMs, but do not yet see why non-convex symbolic s
     Skim :doc:`../what-is-uppaal/index`, then continue to
     :doc:`../federations/index` and :doc:`../cdd/index`.
 
+If you already understand zones, federations, and CDDs, but now want to know
+    how the verifier actually runs:
+    Continue to :doc:`../search-extrapolation-and-storage/index`.
+
 If your main concern is the future Python-facing architecture of this repository:
     **Read** :doc:`../what-is-uppaal/index` **first**, because it explains the
     user-facing verification workflow that the restored ``Context`` /
@@ -59,6 +63,7 @@ Current Coverage
 * :doc:`../dbm-basics/index`
 * :doc:`../federations/index`
 * :doc:`../cdd/index`
+* :doc:`../search-extrapolation-and-storage/index`
 
 Planned Sequence
 ----------------
@@ -72,7 +77,7 @@ The current concept roadmap is:
 * ``dbm-basics/``
 * ``federations/``
 * ``cdd/``
-* search / extrapolation / storage topics
+* ``search-extrapolation-and-storage/``
 * reduction-oriented topics
 * priced timed automata and API reconstruction topics
 

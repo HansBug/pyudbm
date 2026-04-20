@@ -1,0 +1,33 @@
+digraph forward_search_loop {
+    rankdir=TB;
+    graph [pad="0.25", nodesep="0.45", ranksep="0.55", splines=true, newrank=true];
+    node [shape=box, style="rounded,filled", fillcolor="#f7f7f7", color="#666666", fontname="Helvetica"];
+    edge [color="#666666", fontname="Helvetica"];
+
+    wait [label="WAIT\nreachable, not explored", fillcolor="#eef4ff", color="#5c7fb8"];
+    take [label="take one\nsymbolic state", fillcolor="#f7f7f7"];
+    goal [shape=diamond, label="goal reached?", fillcolor="#fff8e8", color="#c97a1f"];
+    answer [shape=oval, label="report result / trace", fillcolor="#eef8ee", color="#5b8a5b"];
+    cover [shape=diamond, label="covered by PASSED\nat same location?", fillcolor="#fff8e8", color="#c97a1f"];
+    skip [shape=oval, label="skip exploration", fillcolor="#f3f3f3", color="#9a9a9a"];
+    passed [label="PASSED\nexplored representatives", fillcolor="#eef8ee", color="#5b8a5b"];
+    edge_succ [label="edge successor\nintersect guard + reset", fillcolor="#f6eff7", color="#8c6bb1"];
+    delay [label="delay successor\nup + invariant", fillcolor="#f6eff7", color="#8c6bb1"];
+    extra [label="normalise / extrapolate", fillcolor="#fff3de", color="#c97a1f"];
+    enqueue [label="enqueue successors", fillcolor="#eef4ff", color="#5c7fb8"];
+
+    { rank=same; goal; answer; }
+    { rank=same; cover; skip; }
+
+    wait -> take;
+    take -> goal;
+    goal -> answer [label="yes"];
+    goal -> cover [label="no"];
+    cover -> skip [label="yes"];
+    cover -> passed [label="no"];
+    passed -> edge_succ;
+    edge_succ -> delay;
+    delay -> extra;
+    extra -> enqueue;
+    enqueue -> wait [label="continue loop"];
+}

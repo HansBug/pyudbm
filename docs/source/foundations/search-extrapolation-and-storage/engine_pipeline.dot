@@ -1,0 +1,46 @@
+digraph engine_pipeline {
+    rankdir=TB;
+    graph [pad="0.25", nodesep="0.4", ranksep="0.65", splines=true];
+    node [shape=box, style="rounded,filled", fillcolor="#f7f7f7", color="#666666", fontname="Helvetica"];
+    edge [color="#666666", fontname="Helvetica"];
+
+    input [label="symbolic state", fillcolor="#eef4ff", color="#5c7fb8"];
+    query [label="Query\nproperty check", fillcolor="#fff8e8", color="#c97a1f"];
+    transition [label="Transition / Successor", fillcolor="#f6eff7", color="#8c6bb1"];
+    delay [label="Delay", fillcolor="#f6eff7", color="#8c6bb1"];
+    norm [label="Normalisation /\nExtrapolation", fillcolor="#fff3de", color="#c97a1f"];
+    pwlist [label="PWList / shared buffer", fillcolor="#eef8ee", color="#5b8a5b"];
+    progress [label="Progress info", style="rounded,dashed,filled", fillcolor="#f3f3f3", color="#a0a0a0"];
+    active [label="Active clock\nreduction", style="rounded,dashed,filled", fillcolor="#f3f3f3", color="#a0a0a0"];
+    trace [label="Diagnostic trace\nstorage", style="rounded,dashed,filled", fillcolor="#f3f3f3", color="#a0a0a0"];
+
+    subgraph cluster_filters {
+        label="filter-style state manipulation";
+        color="#cfcfcf";
+        style="rounded,dashed";
+        query;
+        transition;
+        delay;
+        norm;
+        active;
+    }
+
+    subgraph cluster_buffers {
+        label="state-space representation";
+        color="#cfcfcf";
+        style="rounded,dashed";
+        pwlist;
+        progress;
+        trace;
+    }
+
+    input -> query;
+    query -> transition;
+    transition -> delay;
+    delay -> norm;
+    norm -> pwlist;
+    norm -> active [style=dashed];
+    pwlist -> progress [style=dashed];
+    pwlist -> trace [style=dashed];
+    pwlist -> input [label="next state"];
+}

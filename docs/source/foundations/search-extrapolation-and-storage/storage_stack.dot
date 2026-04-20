@@ -1,0 +1,20 @@
+digraph storage_stack {
+    rankdir=LR;
+    graph [pad="0.25", nodesep="0.55", ranksep="0.8", splines=true];
+    node [shape=box, style="rounded,filled", fillcolor="#f7f7f7", color="#666666", fontname="Helvetica"];
+    edge [color="#666666", fontname="Helvetica"];
+
+    state [label="symbolic state\n(location, zone)", fillcolor="#eef4ff", color="#5c7fb8"];
+    closed [label="closed DBM /\nfederation", fillcolor="#f6eff7", color="#8c6bb1"];
+    mingraph [label="minimal constraints /\nminDBM", fillcolor="#fff3de", color="#c97a1f"];
+    packed [label="packed words /\nhash-table payload", fillcolor="#eef8ee", color="#5b8a5b"];
+    check [label="duplicate / inclusion\ncheck", fillcolor="#fff8e8", color="#c97a1f"];
+    pyapi [label="Python-facing hooks\nDBM.to_min_dbm()\nFederation.contains()\nFederation.extrapolate_max_bounds()", fillcolor="#f3f3f3", color="#666666"];
+
+    state -> closed;
+    closed -> mingraph [label="remove redundant constraints"];
+    mingraph -> packed [label="encode / cache / hash"];
+    packed -> check [label="PWList / PASSED"];
+    closed -> pyapi [style=dashed];
+    mingraph -> pyapi [style=dashed];
+}

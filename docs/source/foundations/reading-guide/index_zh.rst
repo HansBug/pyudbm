@@ -41,6 +41,9 @@
     可以先快速读一遍 :doc:`../what-is-uppaal/index_zh`，再继续读
     :doc:`../federations/index_zh` 和 :doc:`../cdd/index_zh`。
 
+如果你已经接受了 zone、联邦(federation) 和 CDD 的基本直觉，但想进一步理解验证器究竟怎样跑起来：
+    接着读 :doc:`../search-extrapolation-and-storage/index_zh`。
+
 如果你最关心的是这个仓库未来的 Python 接口会怎样映射这些概念：
     也建议\ **先读**\ :doc:`../what-is-uppaal/index_zh`，因为它解释了被恢复的
     ``Context`` / ``Clock`` / ``Federation`` 这套接口到底在服务怎样的验证工作流。
@@ -55,6 +58,7 @@
 * :doc:`../dbm-basics/index_zh`
 * :doc:`../federations/index_zh`
 * :doc:`../cdd/index_zh`
+* :doc:`../search-extrapolation-and-storage/index_zh`
 
 规划中的主题顺序
 ----------------
@@ -68,7 +72,7 @@
 * ``dbm-basics/``
 * ``federations/``
 * ``cdd/``
-* 搜索 / 外推(extrapolation) / 存储(storage) 相关主题
+* ``search-extrapolation-and-storage/``
 * 约简(reduction)相关主题
 * 计价时间自动机(priced timed automata) 与 API 重建路线相关主题
 

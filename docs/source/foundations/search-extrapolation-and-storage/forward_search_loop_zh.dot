@@ -1,0 +1,33 @@
+digraph forward_search_loop_zh {
+    rankdir=TB;
+    graph [pad="0.25", nodesep="0.45", ranksep="0.55", splines=true, newrank=true];
+    node [shape=box, style="rounded,filled", fillcolor="#f7f7f7", color="#666666"];
+    edge [color="#666666"];
+
+    wait [label="WAIT\n已到达但未展开", fillcolor="#eef4ff", color="#5c7fb8"];
+    take [label="取出一个\n符号状态", fillcolor="#f7f7f7"];
+    goal [shape=diamond, label="是否命中目标？", fillcolor="#fff8e8", color="#c97a1f"];
+    answer [shape=oval, label="输出结果 / 诊断轨迹", fillcolor="#eef8ee", color="#5b8a5b"];
+    cover [shape=diamond, label="同一控制位置下\n是否已被 PASSED 覆盖？", fillcolor="#fff8e8", color="#c97a1f"];
+    skip [shape=oval, label="跳过展开", fillcolor="#f3f3f3", color="#9a9a9a"];
+    passed [label="PASSED\n已展开代表状态", fillcolor="#eef8ee", color="#5b8a5b"];
+    edge_succ [label="离散后继\n守卫相交 + 重置", fillcolor="#f6eff7", color="#8c6bb1"];
+    delay [label="时间后继\nup + 不变量过滤", fillcolor="#f6eff7", color="#8c6bb1"];
+    extra [label="规范化 / 外推", fillcolor="#fff3de", color="#c97a1f"];
+    enqueue [label="把新后继\n放回 WAIT", fillcolor="#eef4ff", color="#5c7fb8"];
+
+    { rank=same; goal; answer; }
+    { rank=same; cover; skip; }
+
+    wait -> take;
+    take -> goal;
+    goal -> answer [label="是"];
+    goal -> cover [label="否"];
+    cover -> skip [label="是"];
+    cover -> passed [label="否"];
+    passed -> edge_succ;
+    edge_succ -> delay;
+    delay -> extra;
+    extra -> enqueue;
+    enqueue -> wait [label="继续主循环"];
+}
