@@ -293,28 +293,54 @@ The next figure turns that same story into a one-dimensional zone evolution:
    :align: center
    :alt: Six-panel interval figure showing the stable initial zone, guard filtering, reset, the next stable zone, the second guard filter, and the final goal zone.
 
-From the search-loop point of view, the same run can be summarized as:
+If we write the main loop's key variables out explicitly, and follow the same
+order as in the overview figure above
+“pop `current` :math:`\to` check goal :math:`\to` check cover :math:`\to` expand”,
+the same run becomes the following engineering-style state snapshot table.
+Square brackets below mean “the current contents of `WAIT`”; they do not force
+any particular queue-versus-stack implementation detail.
 
 .. list-table::
    :header-rows: 1
-   :widths: 12 26 28 34
+   :widths: 10 18 21 21 18 32
 
    * - Round
-     - state popped from `WAIT`
-     - `PASSED` update
-     - newly generated successors
+     - current
+     - `WAIT` snapshot
+     - `PASSED` snapshot
+     - `succ` / `result`
+     - note
+   * - init
+     - :math:`current = \bot`
+     - before start: :math:`[]`
+       after enqueueing the stable initial state: :math:`[S_0]`
+     - :math:`\emptyset`
+     - :math:`succ = \emptyset`
+     - Here :math:`S_0 = (L_0, Z_0)` is the stable initial symbolic state after time-closure at the start location.
    * - 0
-     - :math:`(L_0, Z_0)`
-     - add it to :math:`PASSED(L_0)`
-     - generate :math:`(L_1, Z_1)` and enqueue it
+     - :math:`current = S_0 = (L_0, Z_0)`
+     - before pop: :math:`[S_0]`
+       after this round: :math:`[S_1]`
+     - before round: :math:`\emptyset`
+       after round: :math:`\{S_0\}`
+     - :math:`succ = \{S_1\}`
+     - `current` is not a goal state and is not covered, so the verifier expands :math:`e_0` and obtains :math:`S_1 = (L_1, Z_1)`.
    * - 1
-     - :math:`(L_1, Z_1)`
-     - add it to :math:`PASSED(L_1)`
-     - generate :math:`(Goal, Z_2)` and enqueue it
+     - :math:`current = S_1 = (L_1, Z_1)`
+     - before pop: :math:`[S_1]`
+       after this round: :math:`[S_2]`
+     - before round: :math:`\{S_0\}`
+       after round: :math:`\{S_0, S_1\}`
+     - :math:`succ = \{S_2\}`
+     - `current` is still not a goal state and still not covered, so the verifier expands :math:`e_1` and obtains :math:`S_2 = (Goal, Z_2)`.
    * - 2
-     - :math:`(Goal, Z_2)`
-     - goal hit
-     - return “reachable” and optionally reconstruct a diagnostic trace
+     - :math:`current = S_2 = (Goal, Z_2)`
+     - before pop: :math:`[S_2]`
+       at termination: :math:`[]`
+     - before round: :math:`\{S_0, S_1\}`
+       after round: :math:`\{S_0, S_1\}`
+     - :math:`result = reachable`
+     - The candidate hits the target immediately, so this presentation stops here without any further cover check or successor generation.
 
 This tiny example already contains three facts that matter in a real verifier:
 
