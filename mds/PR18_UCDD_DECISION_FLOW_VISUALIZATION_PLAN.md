@@ -437,46 +437,173 @@ matplotlib 对 `DBM` 几何可视化很合适，但对流程图布局和渲染�
 - 生成 `Mermaid` 或 `PlantUML` 文本
 - 用一个轻量本地预览容器直接渲染它
 
-### 二、优先考虑原生小窗 + 内嵌 WebView
+### 二、MVP 选型结论
 
-推荐优先级如下：
+这里给出明确结论，而不是保留成开放选项。
 
-1. `tkinter` + 内嵌 HTML 预览能力
-2. 如 `tkinter` 不能稳定承载内嵌 Web 内容，则考虑更适合嵌入浏览内核的轻量原生 UI
-3. 无论具体宿主选型如何，核心都应保持“渲染器与宿主分离”
+MVP 的预览路线应当是：
 
-更具体地说，预览功能应拆成：
+- 导出目标使用 `Mermaid`
+- 本地小窗优先使用 `pywebview`
+- 浏览器打开作为零额外依赖 fallback
+- `PlantUML` 在 MVP 中先支持文本导出，不进入本地实时预览
 
-- Python 端负责生成图文本和一段固定 HTML 壳
-- 宿主窗口负责承载这段 HTML
-- HTML 中的少量 JS 负责把 `Mermaid` 初始化并渲染到 DOM
+不推荐把“裸 `tkinter` 直接承载 HTML/JS 渲染”作为 MVP 主路线，原因很直接：
 
-这样即使将来：
+- `tkinter` 是标准库，但标准库并不自带可用的现代浏览器内核
+- 如果为了在 `tkinter` 内嵌网页而额外引入 HTML 控件，复杂度并不会比采用 `pywebview` 更低
+- UCDD 预览真正需要的是稳定的 Web 渲染宿主，而不是特定 GUI toolkit 的名义归属
 
-- 从 `tkinter` 切换到别的宿主
-- 增加导出 SVG
-- 增加保存 HTML 快照
+因此，本文档建议的宿主优先级改为：
 
-也不会影响上层 graph snapshot 和导出逻辑。
+1. `pywebview` 原生小窗
+2. 系统浏览器打开本地临时 HTML
+3. 后续再讨论是否需要 `tkinter` 外壳或 matplotlib 宿主桥接
 
-### 三、建议先支持 HTML preview，再考虑 matplotlib 桥接
+这个选择的依据也比较清楚：
 
-推荐第一版快速预览接口：
+- Mermaid 官方文档明确支持通过浏览器端 ESM 脚本与 `render` API 渲染 SVG
+- `pywebview` 官方文档提供 `create_window(..., html=...)`、`window.load_html(...)`、`window.evaluate_js(...)`
+- PlantUML 官方本地工作流仍主要围绕 `plantuml.jar` / Docker / server，不适合作为 MVP 小窗实时渲染主链路
 
-```python
-preview_cdd(cdd, backend="mermaid", mode="graph")
-preview_cdd(cdd, backend="plantuml", mode="flow")
+### 三、小窗预览的推荐架构
+
+建议把本地预览拆成四层：
+
+1. `CDD` / `CDDGraphSnapshot`
+2. `Mermaid` / `PlantUML` 文本导出
+3. HTML 壳与少量 JS 渲染器
+4. 小窗宿主或浏览器宿主
+
+推荐的数据流如下：
+
+```text
+CDD
+ -> extract_cdd_graph(...)
+ -> CDDGraphSnapshot
+ -> cdd_to_mermaid(..., mode="graph")
+ -> render_mermaid_html(...)
+ -> preview_cdd(..., backend="auto")
+ -> pywebview window / browser tab
 ```
 
-但实际第一版最好先只落：
+其中：
 
-- `backend="mermaid"`
-- 生成临时 HTML
-- 用本地窗口或浏览器打开
+- `extract_cdd_graph(...)` 负责拿到稳定 graph snapshot
+- `cdd_to_mermaid(...)` 负责把 snapshot 编译成图代码
+- `render_mermaid_html(...)` 负责生成可离线打开的 HTML
+- `preview_cdd(...)` 只负责选择宿主并展示
 
-PlantUML 的本地实时渲染链更复杂，可以晚一阶段。
+这样分层后，后续无论：
 
-### 四、matplotlib 集成的现实位置
+- 增加 `PlantUML`
+- 增加 SVG 导出
+- 增加保存 HTML 快照
+- 增加 matplotlib 宿主
+
+都不需要重写前面的 graph snapshot 层。
+
+### 四、Preview Backend 策略
+
+建议预览入口统一为：
+
+```python
+preview_cdd(cdd, backend="auto", format="mermaid", mode="graph")
+```
+
+建议支持的 backend 语义如下：
+
+- `backend="auto"`
+  - 优先尝试 `pywebview`
+  - 不可用时 fallback 到系统浏览器
+- `backend="webview"`
+  - 强制使用 `pywebview`
+  - 缺失依赖时抛清晰异常
+- `backend="browser"`
+  - 直接写出临时 HTML 并用 `webbrowser` 打开
+
+MVP 不建议支持：
+
+- `backend="plantuml-webview"`
+- `backend="matplotlib"`
+- `backend="tkinter-html"`
+
+这些可以在 MVP 之后再评估。
+
+### 五、HTML / JS 壳的具体方案
+
+预览 HTML 不应依赖在线 CDN，默认应当支持离线本地使用。
+
+因此建议：
+
+- 在仓库内提供受控静态资源
+- 预览时从包资源或临时目录加载本地 `Mermaid` ESM 文件
+- HTML 模板只做最薄的一层渲染外壳
+
+推荐的模板职责：
+
+- 接收 Mermaid 源码字符串
+- 调用 `mermaid.initialize({startOnLoad: false, securityLevel: "strict"})`
+- 调用 `mermaid.render(...)`
+- 把返回的 SVG 挂进 DOM
+- 为错误信息留出明确区域，方便本地调试
+
+推荐的资源布局可以是：
+
+- `pyudbm/binding/assets/mermaid/`
+- `pyudbm/binding/assets/ucdd_preview/preview.html`
+
+或者在不想引入额外模板文件时，直接由 Python 侧生成完整 HTML 字符串。
+
+第一版更建议：
+
+- Python 直接生成完整 HTML
+- Mermaid JS 作为本地包资源
+
+这样最容易测试与分发。
+
+### 六、MVP 小窗行为定义
+
+MVP 的小窗预览行为需要写死，不要留模糊地带。
+
+`preview_cdd(cdd, backend="auto", format="mermaid", mode="graph")` 的推荐行为：
+
+1. 从 `CDD` 抽取 graph snapshot
+2. 生成 Mermaid `graph` 模式文本
+3. 生成一份离线可用的 HTML
+4. 若 `pywebview` 可用，则打开原生小窗加载 HTML
+5. 若 `pywebview` 不可用且 `backend="auto"`，则退化到系统浏览器
+6. 返回一个 Python 侧 handle，至少包含：
+   - `backend`
+   - `format`
+   - `html_path`
+   - `source_text`
+   - `window` 或 `None`
+
+MVP 的明确非目标：
+
+- 不做 PlantUML 的小窗实时渲染
+- 不做节点拖拽编辑
+- 不做路径单步高亮回放
+- 不做 matplotlib 内嵌
+- 不做在线 server 依赖
+
+### 七、PlantUML 在预览链中的位置
+
+PlantUML 仍然是本方案的重要输出目标，但不应强行塞进 MVP 小窗。
+
+原因是：
+
+- PlantUML 官方本地方案依赖 `java -jar plantuml.jar ...`、GUI 或 Docker/server
+- 对 `pyudbm` 来说，把这套 Java / Docker 依赖链变成默认预览路径，代价明显高于 Mermaid
+- 先做好稳定的文本导出，比过早做小窗渲染更符合工程顺序
+
+因此建议：
+
+- MVP：`PlantUML` 只负责文本导出
+- 后续阶段：再评估是否提供“调用本地 PlantUML 生成 SVG/PNG 后预览”的增强能力
+
+### 八、matplotlib 集成的现实位置
 
 如果后续确实要做“像 `dbm.plot()` 那样的体验”，更现实的理解应是：
 
@@ -514,7 +641,15 @@ PlantUML 的本地实时渲染链更复杂，可以晚一阶段。
 - 标签格式化器
 - `cdd_to_mermaid(...)`
 - `cdd_to_plantuml(...)`
+- `render_mermaid_html(...)`
+- `PreviewHandle`
 - `preview_cdd(...)`
+
+建议补充一个轻量资源目录：
+
+- `pyudbm/binding/assets/`
+  - `mermaid/`
+  - `ucdd_preview/`
 
 ### 第三层：高层入口
 
@@ -527,72 +662,252 @@ PlantUML 的本地实时渲染链更复杂，可以晚一阶段。
 - `pyudbm.binding` 可以重导出 UCDD 可视化入口
 - 包根 `pyudbm/__init__.py` 是否重导出，可放到后续再定，避免初期暴露过宽
 
-## 阶段计划
+## 端到端工作流程
 
-### 阶段 1：把 graph snapshot 打通
+需要区分两类流程：用户使用流程与工程实现流程。
+
+### 一、用户使用流程
+
+理想的用户侧工作流应当是：
+
+1. 用户构造 `CDD` 对象
+2. 用户调用 `cdd_to_mermaid(...)` 或 `preview_cdd(...)`
+3. 底层自动抽取 graph snapshot
+4. 导出器生成图代码
+5. 预览器弹出本地小窗或浏览器页面
+6. 用户决定是否导出 Mermaid / PlantUML 文本到文档、Issue、PR、教程
+
+### 二、工程实现流程
+
+工程侧的正确顺序应当是：
+
+1. 先打通 native graph snapshot
+2. 再建立 Python 侧中间表示
+3. 再做 Mermaid 导出
+4. 再完成 MVP 小窗预览
+5. 再补 PlantUML 活动图导出
+6. 最后再做实例方法、SVG、matplotlib 等增强项
+
+这条顺序不能颠倒，否则很容易陷入：
+
+- GUI 先行但没有稳定数据层
+- 导出格式先行但没有一致的语义模型
+- 小窗已经能弹出，但不同 backend 的结果不一致
+
+## 当前状态与回写规则
+
+### 当前状态
+
+- [x] PR 管理文档已创建并完成编号回填
+- [x] 技术方向已收敛为 “graph snapshot -> 导出 -> preview”
+- [x] 小窗 MVP 已确定优先使用 `pywebview`，浏览器作为 fallback
+- [ ] native graph snapshot 尚未开始实现
+- [ ] Mermaid 导出尚未开始实现
+- [ ] MVP 小窗尚未开始实现
+- [ ] PlantUML 导出尚未开始实现
+- [ ] matplotlib 对接尚未进入实现阶段
+
+### 回写规则
+
+从这个版本开始，后续推进必须显式回写本节以及各个 phase 的 checkbox。
+
+每完成一个 phase，至少要同步更新：
+
+- 本文档里的对应 `Todolist`
+- 本文档里的对应 `Completion Checklist`
+- 本文档里的 `Milestone` 状态
+- GitHub PR body 里的当前 phase / MVP / milestone 状态摘要
+
+只写 prose 描述而不更新 checkbox，不算完成状态同步。
+
+## Milestone 规划
+
+### M0：方案与 PR 管理基线
+
+- [x] PR-managed `mds/` 文档已建立
+- [x] PR 编号已回填到文档与文件名
+- [x] PR body 已反向链接到最终 `mds` 文档
+- [x] phase / milestone / MVP 跟踪框架已落入文档
+
+### M1：Graph Snapshot 基础能力
+
+- [ ] `_NativeCDD.graph_snapshot()` 已可用
+- [ ] Python 侧 `CDDGraphSnapshot` 已稳定
+- [ ] 纯 BDD / 纯 CDD / mixed CDD 三类样本测试已覆盖
+- [ ] interval / complemented-edge / terminal 语义已验证
+
+### M2：MVP
+
+MVP 的定义必须明确，本文档将其锁定为：
+
+- 基于 graph snapshot 的 Mermaid `graph` 模式导出
+- 本地小窗预览优先 `pywebview`
+- `backend="auto"` 支持浏览器 fallback
+- 默认离线 HTML 渲染，不依赖在线 CDN
+- 有基础单测与 smoke test
+
+M2 的完成条件：
+
+- [ ] `extract_cdd_graph(...)` 可用
+- [ ] `cdd_to_mermaid(..., mode="graph")` 可用
+- [ ] `render_mermaid_html(...)` 可用
+- [ ] `preview_cdd(..., backend="auto", format="mermaid", mode="graph")` 可用
+- [ ] `pywebview` 缺失时自动退化到浏览器
+- [ ] 文档明确说明 MVP 不含 PlantUML 小窗与 matplotlib 内嵌
+
+### M3：PlantUML 活动图增强
+
+- [ ] `CDDDecisionFlow` 或等价解释层已稳定
+- [ ] `cdd_to_plantuml(..., diagram="activity")` 可用
+- [ ] mixed bool/clock 的路径文本足够可读
+- [ ] PlantUML 导出测试已覆盖
+
+### M4：公开 API 与体验打磨
+
+- [ ] `CDD.graph_snapshot()` / `CDD.to_mermaid()` / `CDD.preview()` 是否公开已定案
+- [ ] SVG / HTML 导出策略已定案
+- [ ] matplotlib 集成是否推进已定案
+- [ ] 可选依赖、错误提示、示例文档已补齐
+
+## Phase 计划
+
+### Phase 0：PR 初始化与方案收敛
+
+状态：已完成
+
+Todolist：
+
+- [x] 在 `mds/` 建立 PR 管理文档
+- [x] 完成第一次提交、推送、创建 PR
+- [x] 回填 PR 编号并重命名文档
+- [x] 在 PR body 中挂接文档链接
+- [x] 把总体技术路线、小窗方向、MVP、phase、milestone 写入文档
+
+Completion Checklist：
+
+- [x] 文档路径已是 `mds/PR18_UCDD_DECISION_FLOW_VISUALIZATION_PLAN.md`
+- [x] 文档正文已包含 PR URL
+- [x] PR body 已指向最终文档路径
+- [x] 当前状态与 milestone 已具备 checkbox 回写结构
+
+### Phase 1：打通 Native Graph Snapshot
 
 目标：
 
-- 能从 `CDD` 提取完整只读图快照
-- 单测覆盖纯 BDD、纯 CDD、mixed CDD
-- 明确节点类型、边标签、终端和 level 映射
+- 从 `_ucdd.cpp` 暴露完整只读图快照
+- 建立后续所有导出与预览的唯一数据源
 
-产出：
+Todolist：
 
-- `_NativeCDD.graph_snapshot()`
-- Python 层 `CDDGraphSnapshot`
-- 面向 snapshot 的测试
+- [ ] 盘点 `_ucdd.cpp` 当前可直接桥接的节点与边信息
+- [ ] 设计 `_NativeCDD.graph_snapshot()` 的最小 schema
+- [ ] 定义节点 ID 生成策略，保证一次快照内部稳定
+- [ ] 暴露 terminal / bdd / cdd 三类节点信息
+- [ ] 暴露 bdd low/high edge 与 cdd interval edge 信息
+- [ ] 暴露 complemented / mask / negated view 所需只读字段
+- [ ] 写纯 BDD / 纯 CDD / mixed CDD 三组最小测试
 
-这是整个工作的关键里程碑；没有这一层，后面的导出与预览都会变成拼凑。
+Completion Checklist：
 
-### 阶段 2：先导出 Mermaid
+- [ ] `_NativeCDD.graph_snapshot()` 可从 Python 直接调用
+- [ ] 返回值已能无损表达节点、边、终端、level、interval
+- [ ] 不需要解析 debug string 才能拿结构化信息
+- [ ] 三类样本测试都已通过
 
-目标：
-
-- 基于 snapshot 导出稳定、可测试的 Mermaid 文本
-- 至少支持 `graph` 模式
-- 保证标签中能正确表达布尔分支和区间分支
-
-产出：
-
-- `cdd_to_mermaid(...)`
-- 文本快照测试
-
-### 阶段 3：补 PlantUML
+### Phase 2：建立 Python 可视化模型并导出 Mermaid
 
 目标：
 
-- 生成更接近活动图的可读流程
-- 允许把 mixed CDD 的判定链路放进更正式的设计文档
+- 建立 Python 侧可维护的数据模型
+- 完成 Mermaid `graph` 模式导出
 
-产出：
+Todolist：
 
-- `cdd_to_plantuml(...)`
-- 针对活动图文本的测试
+- [ ] 新增 `pyudbm/binding/ucdd_visual.py`
+- [ ] 定义 `CDDGraphNode`、`CDDGraphEdge`、`CDDGraphSnapshot`
+- [ ] 设计标签格式化策略
+- [ ] 实现 `extract_cdd_graph(...)`
+- [ ] 实现 `cdd_to_mermaid(..., mode="graph")`
+- [ ] 为典型约束生成稳定可读的区间标签
+- [ ] 增加 Mermaid 文本快照测试
 
-### 阶段 4：本地快速预览
+Completion Checklist：
+
+- [ ] 纯 BDD 图导出 Mermaid 正确
+- [ ] 纯 CDD 图导出 Mermaid 正确
+- [ ] mixed CDD 图导出 Mermaid 正确
+- [ ] 导出路径不依赖 GUI
+- [ ] Mermaid 文本在测试中稳定可比较
+
+### Phase 3：完成 MVP 小窗预览
 
 目标：
 
-- 用户一行调用即可看到图
-- 不要求外部手工粘贴
-- 保持核心逻辑与宿主窗口分离
+- 基于 Mermaid 打通 “一行调用 -> 本地看到图” 的 MVP 体验
 
-产出：
+Todolist：
 
-- `preview_cdd(...)`
-- HTML 模板
-- 内嵌少量 JS 的 Mermaid preview
+- [ ] 选定并接入本地 Mermaid 静态资源打包方式
+- [ ] 实现 `render_mermaid_html(...)`
+- [ ] 定义 `PreviewHandle`
+- [ ] 实现 `preview_cdd(..., backend="auto")`
+- [ ] 实现 `backend="webview"` 的 `pywebview` 路径
+- [ ] 实现 `backend="browser"` 的 `webbrowser` 路径
+- [ ] 处理 `auto` backend 的 fallback 逻辑
+- [ ] 为缺失 `pywebview` / GUI 不可用等场景补清晰错误信息
+- [ ] 增加 HTML 生成与 preview smoke test
 
-### 阶段 5：与现有可视化体验对齐
+Completion Checklist：
+
+- [ ] `preview_cdd(..., backend="auto", format="mermaid", mode="graph")` 已可用
+- [ ] 安装 `pywebview` 时能弹出本地原生小窗
+- [ ] 未安装 `pywebview` 时能自动退化到浏览器
+- [ ] 默认离线可用，不依赖 CDN
+- [ ] 返回值可让调用方拿到 HTML 路径和源代码
+
+### Phase 4：补 PlantUML 与活动图式流程导出
 
 目标：
 
-- 评估是否给 `CDD` 增加实例方法
-- 评估是否提供 SVG 导出
-- 评估是否需要与 matplotlib 小窗体验进一步统一
+- 把“完整判定链路”从结构图推进到更可读的活动图表达
 
-这阶段不应阻塞前面四阶段。
+Todolist：
+
+- [ ] 定义 `CDDDecisionFlow` 或等价解释层
+- [ ] 设计共享子结构在活动图中的展开策略
+- [ ] 实现 `cdd_to_mermaid(..., mode="flow")`
+- [ ] 实现 `cdd_to_plantuml(..., diagram="activity")`
+- [ ] 针对 mixed CDD 优化条件文本可读性
+- [ ] 增加 PlantUML 文本快照测试
+
+Completion Checklist：
+
+- [ ] `flow` 模式能明显比原始 DAG 更易读
+- [ ] `PlantUML` 活动图能表达 bool / clock 双重判定
+- [ ] 不依赖 PlantUML 本地渲染也能稳定导出文本
+- [ ] PlantUML 输出已被测试样本覆盖
+
+### Phase 5：公开 API、SVG 与 matplotlib 桥接评估
+
+目标：
+
+- 在已有功能稳定后再做对外 API 收敛与体验打磨
+
+Todolist：
+
+- [ ] 评估并决定是否给 `CDD` 增加实例方法
+- [ ] 决定 `pyudbm.binding.__init__` 的重导出范围
+- [ ] 评估 `save_html` / `save_svg` / `to_svg` 一类导出接口
+- [ ] 评估 Mermaid SVG 嵌入 matplotlib 的可行路径
+- [ ] 补充使用示例与可选依赖说明
+- [ ] 补充用户侧错误排查说明
+
+Completion Checklist：
+
+- [ ] 对外 API 命名已稳定
+- [ ] 可选依赖策略已文档化
+- [ ] matplotlib 集成已明确“实现 / 推迟 / 放弃”三选一结论
+- [ ] 用户文档和测试与最终 API 保持一致
 
 ## API 方向建议
 
@@ -602,8 +917,9 @@ PlantUML 的本地实时渲染链更复杂，可以晚一阶段。
 
 1. `extract_cdd_graph(cdd)`
 2. `cdd_to_mermaid(cdd, mode="graph")`
-3. `cdd_to_plantuml(cdd, mode="activity")`
-4. `preview_cdd(cdd, backend="mermaid")`
+3. `render_mermaid_html(cdd_or_source, mode="graph")`
+4. `preview_cdd(cdd, backend="auto", format="mermaid", mode="graph")`
+5. `cdd_to_plantuml(cdd, diagram="activity")`
 
 等这些稳定后，再考虑：
 
@@ -643,6 +959,8 @@ PlantUML 的本地实时渲染链更复杂，可以晚一阶段。
 
 - 能生成 HTML
 - 能正确注入 Mermaid 源码
+- `backend="auto"` 能正确选择 `webview` 或 `browser`
+- `pywebview` 缺失时 fallback 行为正确
 - 在没有 GUI 或没有可选依赖时给出清晰错误
 
 不建议把 GUI 像素级截图比对作为第一版硬要求。
@@ -687,22 +1005,24 @@ PlantUML 的本地实时渲染链更复杂，可以晚一阶段。
 
 - 先 snapshot
 - 再文本导出
-- 再 HTML preview
+- 再 Mermaid HTML preview
+- 再 PlantUML 文本增强
 - 最后再讨论 matplotlib 对接
 
 ## 本 PR 之后的直接工作建议
 
-这个 PR 合并后，下一步最应该启动的不是 UI，而是数据抽取层。
+这个 PR 合并后，下一步最应该启动的仍然不是 UI 细节，而是 `Phase 1` 的数据抽取层。
 
 建议紧接着做：
 
 1. 盘点 `_ucdd.cpp` 当前能直接桥接哪些图遍历信息。
 2. 明确 `graph_snapshot()` 的最小字段集合。
-3. 先做纯 Python 层 dataclass 和文本导出接口骨架。
-4. 用 3 组最小示例建立测试样本：
+3. 用 3 组最小示例建立测试样本：
    - 纯 BDD
    - 纯 clock CDD
    - mixed bool/clock CDD
+4. 先让 `Phase 1` 的 checkbox 进入真实回写节奏。
+5. `Phase 1` 完成后，再进入 `Phase 2` 与 `Phase 3` 组成的 MVP 主线。
 
 ## 结论
 
@@ -717,9 +1037,10 @@ UCDD 可视化应当被理解为“判定链路可视化”而不是“几何区
 其中：
 
 - graph snapshot 是技术前提
-- Mermaid 是第一优先导出目标
-- PlantUML 活动图是增强方向
-- 原生小窗预览是体验层
+- Mermaid 是 MVP 的第一优先导出与预览目标
+- `pywebview` 小窗 + 浏览器 fallback 是 MVP 预览方案
+- PlantUML 活动图是 MVP 之后的增强方向
+- 原生小窗预览是体验层，但必须建立在 HTML / JS 渲染壳之上
 - matplotlib 集成是后续可选扩展，而不是第一阶段阻塞项
 
 这个方向既贴合 `UCDD` 的判定图本质，也与 `pyudbm` 当前“先做 Python 高层抽象，再做可选渲染”的实现风格一致。
